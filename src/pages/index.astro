@@ -26,17 +26,17 @@ const trace2Html = await highlightCode(
 );
 
 const trace3Html = await highlightCode(
-  `auditstream export --format jsonl --out changes.jsonl\n# window: xact_id >= cursor AND xact_id < pg_snapshot_xmin()\n# exported 1,428 rows (JSON Lines) · ack after flush`,
+  `auditstream export --format jsonl \\\n  --output changes.jsonl --cursor-file cursor.json\n# window: xact_id >= cursor AND xact_id < xmin\n# exported 1,428 rows (JSONL) · ack after flush`,
   "bash",
   { lineNumbers: true }
 );
 
 const prismaRaw = `import { PrismaClient } from "@prisma/client";
 import { audit } from "@auditstream/node";
-import { auditstreamPlugin } from "@auditstream/prisma";
+import { auditstream } from "@auditstream/prisma";
 
 const db = new PrismaClient({
-  comments: [auditstreamPlugin()],
+  comments: [auditstream()],
 });
 
 await audit.as(
@@ -59,11 +59,11 @@ const prismaHtml = await highlightCode(prismaRaw, "ts", { lineNumbers: true });
 const drizzleRaw = `import { drizzle } from "drizzle-orm/node-postgres";
 import { eq } from "drizzle-orm";
 import { audit } from "@auditstream/node";
-import { wrapPgPool } from "@auditstream/drizzle";
+import { wrapPgPool } from "@auditstream/drizzle/pg";
 import { invoice } from "./schema";
 
-// Drizzle 0.45 wrapper (or .comment() in Drizzle 1.x)
-const db = drizzle(wrapPgPool(pool));
+// Drizzle 0.45 wrapper (or auditComment() in 1.x)
+const db = drizzle({ client: wrapPgPool(pool) });
 
 await audit.as(
   { type: "user", id: "usr_42", tenant: "org_acme" },
@@ -80,12 +80,15 @@ const nodeRaw = `import { audit } from "@auditstream/node";
 
 // AsyncLocalStorage.run() — works in Node, Bun, Deno,
 // and Cloudflare Workers (nodejs_als)
+const exec = (sql, vals) => pool.query(sql, vals);
+
 await audit.as(
   { type: "api_key", id: "key_prod_09" },
   async () => {
-    // Database writes are captured by PG triggers.
-    // App-only events go through auditstream.log_event:
-    await audit.log("invoice.exported", {
+    // DB writes are captured by PG triggers.
+    // App-only events go via auditstream.log_event:
+    await audit.log(exec, {
+      action: "invoice.exported",
       target: { table: "invoice", id: "inv_901" },
       data: { format: "jsonl" },
     });
@@ -101,14 +104,14 @@ const querySqlHtml = await highlightCode(
 );
 
 const jsonlHtml = await highlightCode(
-  `{\n  "schema_version": 1,\n  "event_id": "019ab7c1-442e-7a10-9c2a-81f02b9c1140",\n  "xact_id": "48291044",\n  "occurred_at": "2026-11-24T04:11:09.184Z",\n  "source": "db", "table": "public.invoice", "op": "UPDATE",\n  "actor_source": "comment",\n  "actor": {\n    "type": "ai_agent", "id": "billing-agent",\n    "onBehalfOf": { "type": "user", "id": "usr_42" }\n  },\n  "changed": ["status"],\n  "before": { "status": "open" },\n  "after":  { "status": "paid" }\n}`,
+  `{\n  "schema_version": 1,\n  "event_id": "019ab7c1-442e-7a10-9c2a-81f02b9c1140",\n  "occurred_at": "2026-11-24T04:11:09.184000Z",\n  "source": "db", "op": "UPDATE",\n  "schema_name": "public", "table_name": "invoice",\n  "record_id": { "id": "inv_901" },\n  "actor_source": "comment", "db_user": "app_user",\n  "actor": {\n    "type": "ai_agent", "id": "billing-agent",\n    "onBehalfOf": { "type": "user", "id": "usr_42" }\n  },\n  "changed": ["status"],\n  "before": { "status": "open" },\n  "after":  { "status": "paid" }\n}`,
   "json",
   { lineNumbers: true }
 );
 
-const qs1Cmd = "auditstream init --format prisma --tables invoice,users";
+const qs1Cmd = "auditstream init --migrations prisma --table public.invoice --table public.users";
 const qs1Html = await highlightCode(
-  `${qs1Cmd}\n# wrote partitioned auditstream.changes + triggers\n# statement-level INSERT/DELETE · row-level UPDATE`,
+  `auditstream init --migrations prisma \\\n  --table public.invoice --table public.users\n# wrote partitioned auditstream.changes + triggers\n# partial HASH lookup index · hybrid triggers`,
   "bash",
   { lineNumbers: true }
 );
@@ -116,9 +119,9 @@ const qs1Html = await highlightCode(
 const qs2Cmd = "pnpm add @auditstream/node @auditstream/prisma";
 const qs2Html = await highlightCode(qs2Cmd, "bash", { lineNumbers: true });
 
-const qs3Cmd = "auditstream history --table invoice && auditstream export --format jsonl";
+const qs3Cmd = "auditstream history --table public.invoice --limit 10 && auditstream export --format jsonl --output audit.jsonl --cursor-file cursor.json";
 const qs3Html = await highlightCode(
-  `auditstream history --table invoice --limit 10\nauditstream export --format jsonl --out audit.jsonl\n# xact_id window exported · acked after sink flush`,
+  `auditstream history --table public.invoice --limit 10\nauditstream export --format jsonl \\\n  --output audit.jsonl --cursor-file cursor.json\n# xid8 window exported · acked after sink flush`,
   "bash",
   { lineNumbers: true }
 );
@@ -287,11 +290,11 @@ const qs3Html = await highlightCode(
           <div class="callout-pair">
             <div class="callout-cell">
               <div class="spec-k">Trailing comment (default)</div>
-              <div class="spec-v" style="color:var(--after);white-space:normal;">6,630 tps (−40%) · Pool-safe</div>
+              <div class="spec-v" style="color:var(--after);white-space:normal;">10.4 ns cached tag · Pool-safe</div>
             </div>
             <div class="callout-cell">
               <div class="spec-k">set_config (fallback)</div>
-              <div class="spec-v" style="color:var(--ink-2);white-space:normal;">5,825 tps (−48%) · Explicit tx</div>
+              <div class="spec-v" style="color:var(--ink-2);white-space:normal;">9.3 ns cached JSON · Explicit tx</div>
             </div>
           </div>
 
@@ -317,7 +320,7 @@ const qs3Html = await highlightCode(
           <div class="tab-panel" data-adapter-panel="drizzle" hidden set:html={drizzleHtml} />
           <div class="tab-panel" data-adapter-panel="node" hidden set:html={nodeHtml} />
           <div class="plate-bar" style="border-top:1px solid var(--rule);border-bottom:0;">
-            <span id="adapter-filename">@auditstream/prisma · Prisma 7.1+ SQL comments plugin</span>
+            <span id="adapter-filename">@auditstream/prisma · auditstream() SQL comments plugin</span>
             <span class="pill pill-accent">ESM only · spec 0.1</span>
           </div>
         </div>
@@ -342,7 +345,8 @@ const qs3Html = await highlightCode(
           <p class="lead" style="margin-top:0.85rem;">
             INSERT and DELETE fire once per statement via transition tables (<code class="ic">REFERENCING NEW/OLD TABLE</code>);
             UPDATE stays row-level with <code class="ic">WHEN (OLD.* IS DISTINCT FROM NEW.*)</code> so no-op and
-            excluded-column writes record nothing.
+            excluded-column writes record nothing. Lookups use a partial <code class="ic">HASH</code> index on
+            <code class="ic">record_id</code> alongside a monthly BRIN on <code class="ic">occurred_at</code>.
           </p>
         </div>
 
@@ -523,8 +527,9 @@ const qs3Html = await highlightCode(
         <div class="eyebrow"><span class="eyebrow-dot" />04 · VERIFIED EVIDENCE · 2026-11-24</div>
         <h2 class="h2" style="margin-top:0.85rem;">Measured on Postgres 15–19. Honest limits.</h2>
         <p class="lead" style="margin-top:1rem;max-width:48rem;">
-          Every claim below was benchmarked directly on PostgreSQL 16.15 (<code class="ic">pgbench</code>, 4 clients)
-          and verified across local Postgres 15–19, PgBouncer 1.26, Neon (PG 18.7), and Supabase Supavisor (PG 17.12).
+          Architectural baselines were measured on PostgreSQL 16.15 (<code class="ic">pgbench</code>, 4 clients),
+          followed by hot-path optimizations verified on PostgreSQL 19.0 (<code class="ic">tmpfs</code>, 3-run medians)
+          and Node 26.13, plus compatibility runs across Postgres 15–19, PgBouncer 1.26, Neon (PG 18.7), and Supabase Supavisor (PG 17.12).
           <a href="/docs/evidence" style="color:var(--accent);text-decoration:underline;text-underline-offset:3px;">Read the full Evidence log →</a>
         </p>
 
@@ -580,34 +585,54 @@ const qs3Html = await highlightCode(
           </table>
         </div>
 
-        <!-- Real pgbench numbers from evidence.md -->
+        <!-- Real pgbench & Node hot-path numbers from evidence.md -->
         <div class="bench-grid reveal">
           <div class="plate plate-reg" style="padding:1.4rem;">
             <div class="mono" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--ink-3);">
-              PostgreSQL 16.15 · pgbench (4 clients) · Real measured throughput
+              PostgreSQL 19.0 (tmpfs) · Hot-path gains (auditstream #97 + #102)
             </div>
-            <p style="margin:0.5rem 0 1.3rem;font-size:0.84rem;color:var(--ink-2);line-height:1.58;">
-              Single-row updates are the worst case; bulk inserts run <strong>3× faster</strong> with statement-level
-              transition tables (<code class="ic">155–180 ms</code> vs <code class="ic">541–550 ms</code> for 10,000 rows).
+            <p style="margin:0.5rem 0 1.1rem;font-size:0.84rem;color:var(--ink-2);line-height:1.58;">
+              Partial <code class="ic">HASH</code> lookup index + zero-regex PL/pgSQL triggers (<code class="ic">pgbench -M prepared -c 8 -j 4</code>, 3-run medians vs prior <code class="ic">main</code>).
             </p>
-            <div style="display:grid;gap:1rem;">
+            <div class="opt-grid">
+              <div class="opt-row">
+                <span class="mono">Single-row INSERT · comment</span>
+                <span class="mono"><strong style="color:var(--after);">86,060 tps</strong> <span style="color:var(--ink-3);">(+23.2% · +7.0 µs)</span></span>
+              </div>
+              <div class="opt-row">
+                <span class="mono">Single-row UPDATE · comment</span>
+                <span class="mono"><strong style="color:var(--accent);">67,018 tps</strong> <span style="color:var(--ink-3);">(+23.4% · +9.8 µs)</span></span>
+              </div>
+              <div class="opt-row">
+                <span class="mono">Single-row UPDATE · set_config</span>
+                <span class="mono"><strong style="color:var(--accent);">38,095 tps</strong> <span style="color:var(--ink-3);">(+43.4% · +21.2 µs)</span></span>
+              </div>
+              <div class="opt-row">
+                <span class="mono">10,000-row bulk INSERT</span>
+                <span class="mono"><strong style="color:var(--after);">49.1 ms</strong> <span style="color:var(--ink-3);">(−25.7% · +3.6 µs/row)</span></span>
+              </div>
+            </div>
+            <div class="mono" style="font-size:0.68rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-3);margin:1.15rem 0 0.7rem;padding-top:0.95rem;border-top:1px solid var(--rule);">
+              PG 16.15 disk baseline (4 clients · vs no-capture)
+            </div>
+            <div style="display:grid;gap:0.75rem;">
               <div>
-                <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:0.35rem;">
-                  <span class="mono">Single-row INSERT · statement-level trigger</span>
-                  <span class="mono" style="color:var(--after);font-weight:600;">7,906 tps (vs 9,572 base)</span>
+                <div style="display:flex;justify-content:space-between;font-size:0.76rem;margin-bottom:0.3rem;">
+                  <span class="mono">Single-row INSERT · statement-level</span>
+                  <span class="mono" style="color:var(--after);font-weight:600;">7,906 tps (vs 9,572)</span>
                 </div>
                 <div class="bar-track"><div class="bar-fill emerald" style="width:82.6%;" /></div>
               </div>
               <div>
-                <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:0.35rem;">
+                <div style="display:flex;justify-content:space-between;font-size:0.76rem;margin-bottom:0.3rem;">
                   <span class="mono">Single-row UPDATE · <strong>SQL comment</strong></span>
                   <span class="mono" style="color:var(--accent);font-weight:600;">6,630 tps (−40%)</span>
                 </div>
                 <div class="bar-track"><div class="bar-fill" style="width:59.7%;" /></div>
               </div>
               <div>
-                <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:0.35rem;">
-                  <span class="mono">Single-row UPDATE · set_config fallback</span>
+                <div style="display:flex;justify-content:space-between;font-size:0.76rem;margin-bottom:0.3rem;">
+                  <span class="mono">Single-row UPDATE · set_config</span>
                   <span class="mono" style="color:var(--ink-3);">5,825 tps (−48%)</span>
                 </div>
                 <div class="bar-track"><div class="bar-fill muted" style="width:52.4%;" /></div>
@@ -615,18 +640,44 @@ const qs3Html = await highlightCode(
             </div>
           </div>
 
-          <div class="plate" style="padding:1.4rem;display:flex;flex-direction:column;justify-content:space-between;gap:1rem;">
+          <div class="plate" style="padding:1.4rem;display:flex;flex-direction:column;justify-content:space-between;gap:1.1rem;">
             <div>
+              <div class="mono" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--ink-3);">
+                @auditstream/node · Transport Hot-Path (Node 26.13 · #64)
+              </div>
+              <p style="margin:0.5rem 0 0.9rem;font-size:0.84rem;color:var(--ink-2);line-height:1.58;">
+                Process-wide <code class="ic">WeakMap</code> caching per immutable <code class="ic">audit.as()</code> scope and <code class="ic">O(1)</code> trailing-character <code class="ic">isTagged()</code> scan.
+              </p>
+              <div class="opt-grid">
+                <div class="opt-row">
+                  <span class="mono">encodeScope() (Prisma path)</span>
+                  <span class="mono"><strong style="color:var(--after);">10.4 ns</strong> <span style="color:var(--ink-3);">(134×)</span></span>
+                </div>
+                <div class="opt-row">
+                  <span class="mono">setConfigValue()</span>
+                  <span class="mono"><strong style="color:var(--after);">9.3 ns</strong> <span style="color:var(--ink-3);">(66.6×)</span></span>
+                </div>
+                <div class="opt-row">
+                  <span class="mono">tagSql() inside audit.as()</span>
+                  <span class="mono"><strong style="color:var(--accent);">157–240 ns</strong> <span style="color:var(--ink-3);">(5.0–6.4×)</span></span>
+                </div>
+                <div class="opt-row">
+                  <span class="mono">isTagged() untagged SQL</span>
+                  <span class="mono"><strong style="color:var(--after);">1.7–4.8 ns</strong> <span style="color:var(--ink-3);">(9.2–56.9×)</span></span>
+                </div>
+              </div>
+            </div>
+
+            <div style="padding-top:1rem;border-top:1px solid var(--rule);">
               <div class="mono" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--ink-3);">
                 Concurrency &amp; Tamper Proof
               </div>
-              <h3 style="margin:0.5rem 0 0.45rem;font-size:1.12rem;font-weight:620;letter-spacing:-0.02em;">
+              <h3 style="margin:0.45rem 0 0.4rem;font-size:1.05rem;font-weight:620;letter-spacing:-0.02em;">
                 18,748 pooled writes. Zero leaked actors.
               </h3>
-              <p style="margin:0;font-size:0.84rem;color:var(--ink-2);line-height:1.6;">
-                Tested through PgBouncer 1.26, Neon pooler (HTTP &amp; WebSocket), and Supabase Supavisor
-                with more clients than server connections: <strong>9,436</strong> <code class="ic">set_config</code> rows and
-                <strong>9,312</strong> actor-less rows interleaved with zero crossover.
+              <p style="margin:0;font-size:0.83rem;color:var(--ink-2);line-height:1.58;">
+                Verified through PgBouncer 1.26, Neon (HTTP &amp; WebSocket), and Supabase Supavisor:
+                <strong>9,436</strong> <code class="ic">set_config</code> and <strong>9,312</strong> actor-less writes interleaved with zero crossover.
               </p>
             </div>
             <div class="mono" style="font-size:0.7rem;color:var(--accent);padding-top:0.75rem;border-top:1px solid var(--rule);">
@@ -637,12 +688,12 @@ const qs3Html = await highlightCode(
 
         <div class="proven-strip reveal">
           <div class="proven-cell">
-            <div class="spec-k">10,000-row INSERT</div>
-            <div class="spec-v" style="color:var(--after);">155–180 ms (3× faster)</div>
+            <div class="spec-k">Engine Hot-Path (PG 19)</div>
+            <div class="spec-v" style="color:var(--after);">+23%–43% tps · 49.1 ms / 10k</div>
           </div>
           <div class="proven-cell">
-            <div class="spec-k">Prisma 7.10 &amp; Drizzle</div>
-            <div class="spec-v">80 concurrent · 0 wrong</div>
+            <div class="spec-k">Adapter Hot-Path (Node 26)</div>
+            <div class="spec-v" style="color:var(--after);">10.4 ns tag · 5×–134× faster</div>
           </div>
           <div class="proven-cell">
             <div class="spec-k">App Role Tamper Tests</div>
@@ -661,45 +712,45 @@ const qs3Html = await highlightCode(
          ====================================================================== -->
     <section class="section section-alt" id="roadmap">
       <div class="shell">
-        <div class="eyebrow"><span class="eyebrow-dot" />05 · ROADMAP · 59 ISSUES · 5 WAVES</div>
+        <div class="eyebrow"><span class="eyebrow-dot" />05 · ROADMAP · 5 WAVES · W1–W4 SHIPPED</div>
         <h2 class="h2" style="margin-top:0.85rem;">
           Built in five waves, behind <span class="mono" style="color:var(--accent);font-size:0.9em;font-weight:500;">EventSource</span>.
         </h2>
         <p class="lead" style="margin-top:1rem;max-width:48rem;">
-          The contract in <code class="ic">spec/</code> gates both repositories. v0.1 ships triggers,
-          <code class="ic">auditstream.changes</code>, JSONL/CSV export, and TypeScript adapters;
-          S3/Webhooks/SIEM, MCP (<code class="ic">rmcp</code>), and optional WAL replication via
-          <code class="ic">pg_logical_emit_message</code> follow behind the same port traits.
+          The contract in <code class="ic">spec/</code> gates both repositories. Waves 1–4 are complete on
+          <code class="ic">main</code> with full PostgreSQL 15–19 CI, conformance fixtures, and hot-path optimizations;
+          Wave 5 packages <code class="ic">v0.1.0</code> channels before S3, Webhooks, SIEM, MCP (<code class="ic">rmcp</code>),
+          and optional WAL replication via <code class="ic">pg_logical_emit_message</code>.
         </p>
 
         <div class="roadmap-grid">
-          <article class="phase current reveal">
+          <article class="phase done reveal">
             <div class="phase-num">W1</div>
-            <span class="mono" style="font-size:0.66rem;color:var(--accent);">ACTIVE · CONTRACT</span>
+            <span class="mono" style="font-size:0.66rem;color:var(--after);">SHIPPED · CONTRACT</span>
             <h3>Spec v0.1 &amp; CI</h3>
             <p>Normative <span class="mono">spec/</span>, JSON schemas, conformance fixtures, Cargo &amp; pnpm foundations.</p>
           </article>
-          <article class="phase reveal">
+          <article class="phase done reveal">
             <div class="phase-num">W2</div>
-            <span class="mono" style="font-size:0.66rem;color:var(--ink-3);">WAVE 2 · CORE</span>
+            <span class="mono" style="font-size:0.66rem;color:var(--after);">SHIPPED · CORE</span>
             <h3>Core &amp; @auditstream/node</h3>
-            <p>Domain types, port traits, base64url transport codec passing shared fixtures in Rust &amp; TS.</p>
+            <p>Domain types, port traits, cached base64url codec passing shared fixtures in Rust &amp; TS.</p>
           </article>
-          <article class="phase reveal">
+          <article class="phase done reveal">
             <div class="phase-num">W3</div>
-            <span class="mono" style="font-size:0.66rem;color:var(--ink-3);">WAVE 3 · CAPTURE</span>
+            <span class="mono" style="font-size:0.66rem;color:var(--after);">SHIPPED · CAPTURE</span>
             <h3>Triggers, Export &amp; ORMs</h3>
             <p><span class="mono">auditstream-pg</span>, JSONL/CSV sinks, Prisma 7 plugin, Drizzle 0.45 &amp; 1.x wrappers.</p>
           </article>
-          <article class="phase reveal">
+          <article class="phase done reveal">
             <div class="phase-num">W4</div>
-            <span class="mono" style="font-size:0.66rem;color:var(--ink-3);">WAVE 4 · CLI</span>
+            <span class="mono" style="font-size:0.66rem;color:var(--after);">SHIPPED · CLI</span>
             <h3>CLI &amp; App Examples</h3>
-            <p><span class="mono">init</span>, <span class="mono">verify</span>, <span class="mono">history</span>, <span class="mono">export</span> + Next.js &amp; Hono example apps.</p>
+            <p><span class="mono">init</span>, <span class="mono">status</span>, <span class="mono">verify</span>, <span class="mono">history</span>, <span class="mono">export</span> + Next.js &amp; Hono example apps.</p>
           </article>
-          <article class="phase reveal">
+          <article class="phase current reveal">
             <div class="phase-num">W5</div>
-            <span class="mono" style="font-size:0.66rem;color:var(--ink-3);">WAVE 5 · RELEASE</span>
+            <span class="mono" style="font-size:0.66rem;color:var(--accent);">ACTIVE · v0.1 RELEASE</span>
             <h3>Dist, Docs &amp; Beyond</h3>
             <p>npm, Homebrew, shell installer, <span class="mono">ghcr.io</span>. Later: S3, SIEM, MCP &amp; WAL <span class="mono">EventSource</span>.</p>
           </article>
@@ -976,8 +1027,8 @@ const qs3Html = await highlightCode(
      3. Adapter Tabs & History Row 3-View Inspector
      -------------------------------------------------------------------------- */
   const ADAPTER_INFO = {
-    prisma: { file: "@auditstream/prisma · Prisma 7.1+ SQL comments plugin", raw: prismaRaw },
-    drizzle: { file: "@auditstream/drizzle · Drizzle 0.45 wrapper & 1.x .comment()", raw: drizzleRaw },
+    prisma: { file: "@auditstream/prisma · auditstream() SQL comments plugin", raw: prismaRaw },
+    drizzle: { file: "@auditstream/drizzle/pg · Drizzle 0.45 wrapper & 1.x auditComment()", raw: drizzleRaw },
     node: { file: "@auditstream/node · AsyncLocalStorage.run() & audit.log()", raw: nodeRaw },
   };
 

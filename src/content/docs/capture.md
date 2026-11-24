@@ -20,11 +20,16 @@ In v0.1, Auditstream captures every mutation inside PostgreSQL using generated t
 Inside every trigger, PostgreSQL resolves the acting identity in strict precedence order:
 
 1. `nullif(current_setting('auditstream.actor', true), '')` — set via `set_config(..., true)` inside the current transaction.
-2. Trailing `/*auditstream='<base64url>'*/` comment at the end of `right(current_query(), 4096)` (last comment, body contains no `/`, length validated outside the regex because PostgreSQL caps regex repetition counts at 255).
+2. Trailing `/*auditstream='<base64url>'*/` comment at the end of `right(current_query(), 4096)` — parsed with pure PostgreSQL string builtins (`rtrim`, `reverse`, `strpos`, `substr`, zero POSIX regexes) with explicit `<= 683`-char / `<= 512`-byte validation (`auditstream#102`).
 3. The `sub` claim from `request.jwt.claims` (Supabase and PostgREST callers).
 4. `NULL` actor, recording `db_user = session_user`.
 
 > **Safety rule:** A malformed payload never aborts the application's write. The change is still recorded with `actor = NULL` and `actor_source = 'invalid'`.
+
+## Indexing & trigger hot-path tuning
+
+- **Monthly BRIN + partial `HASH` lookup index:** every partition carries a BRIN index on `occurred_at` and a partial `HASH` index `USING hash (record_id) WHERE record_id IS NOT NULL` (`auditstream#97`), accelerating `history --table ... --record-id ...` lookups with far lower write amplification than a wide composite B-tree.
+- **Zero-subquery single-PK path:** `capture()` builds single-column primary keys directly with `jsonb_build_object(...)`, skips empty `TG_ARGV` / excluded-column array work, and evaluates `resolve_actor()` only after excluded-column-only `UPDATE` no-ops return early (`auditstream#102`).
 
 ## History table (`auditstream.changes`)
 
