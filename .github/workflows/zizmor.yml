@@ -1,0 +1,26 @@
+name: zizmor
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/**"
+  pull_request:
+    paths:
+      - ".github/**"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  zizmor:
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    uses: auditstream/.github/.github/workflows/reusable-zizmor.yml@85d9a13ddc78591528d7b59db8138b1c0864e2d5 # main
