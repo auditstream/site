@@ -10,8 +10,8 @@ In v0.1, Auditstream captures every mutation inside PostgreSQL using generated t
 
 ## Trigger strategy
 
-- **`INSERT` and `DELETE` are statement-level** using transition tables (`REFERENCING NEW TABLE` / `OLD TABLE`). The actor is resolved once per statement instead of once per row — cutting a 10,000-row insert on disk-backed PostgreSQL 16.15 from 541–550 ms down to **155–180 ms** (**3× faster**; see [Evidence](/docs/evidence) for post-optimization PostgreSQL 19.0 `tmpfs` latency of **49.1 ms** / `+3.6 µs/row`).
-- **`UPDATE` stays row-level** with `WHEN (OLD.* IS DISTINCT FROM NEW.*)` so no-op updates write nothing. Measuring a statement-level update showed primary-key changes split into two half-events and 4% slower single-row writes.
+- **`INSERT` and `DELETE` are statement-level** using transition tables (`REFERENCING NEW TABLE` / `OLD TABLE`). The actor is resolved once per statement instead of once per row — sustaining **211k–213k rows/s** (`+3.7–4.0 µs/row`, 100k `INSERT` in **473 ms**, 10k `DELETE` in **46.9 ms**) with a heavy 368-byte AI-agent actor on PostgreSQL 19 `tmpfs`, and **60.5 ms** (`+3.8 µs/row`) for a 10k `INSERT` on durable disk (`fsync=on`; see [Evidence](/docs/evidence)).
+- **`UPDATE` stays row-level** with `WHEN (OLD.* IS DISTINCT FROM NEW.*)` so no-op updates write nothing and single-row durable-disk updates add only **+3.2% (+5.1 µs/row)**. The honest trade-off is that single-statement bulk `UPDATE`s (e.g. 10,000 rows in one statement) cap at **~15k rows/s** (`665 ms`, `+64.5 µs/row`), because statement-level `UPDATE` transition tables split primary-key changes into two half-events and slowed single-row writes by 4%.
 - **`TRUNCATE`** uses a dedicated `AFTER TRUNCATE FOR EACH STATEMENT` trigger recording the table and actor.
 - **Excluded columns** (such as `password_hash`) are stripped before storing `before` and `after`; an update touching only excluded columns writes no audit row.
 
