@@ -1,0 +1,377 @@
+---
+import { getCollection } from "astro:content";
+import BaseLayout from "./BaseLayout.astro";
+import BrandMark from "../components/BrandMark.astro";
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  title: string;
+  description: string;
+  eyebrow?: string;
+  currentSlug: string;
+  headings: Heading[];
+}
+
+const { title, description, eyebrow, currentSlug, headings } = Astro.props;
+
+const allDocs = (await getCollection("docs")).sort((a, b) => a.data.order - b.data.order);
+const sectionOrder = ["Start", "Architecture", "Contract", "Adapters", "Evidence"] as const;
+const grouped = sectionOrder
+  .map((sec) => ({
+    section: sec,
+    items: allDocs.filter((d) => d.data.section === sec),
+  }))
+  .filter((g) => g.items.length > 0);
+
+const currentIdx = allDocs.findIndex((d) => d.id === currentSlug);
+const prevDoc = currentIdx > 0 ? allDocs[currentIdx - 1] : null;
+const nextDoc = currentIdx >= 0 && currentIdx < allDocs.length - 1 ? allDocs[currentIdx + 1] : null;
+
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
+
+function docHref(id: string) {
+  return id === "index" ? "/docs" : `/docs/${id}`;
+}
+---
+
+<BaseLayout
+  title={`${title} — Auditstream Docs`}
+  description={description}
+  currentPath={docHref(currentSlug)}
+  enableSmoothScroll={false}
+  showProgress={true}
+>
+  <div class="docs-frame shell">
+    <aside class="docs-sidebar" aria-label="Documentation navigation">
+      <div class="docs-sidebar-inner">
+        {grouped.map((g) => (
+          <div class="docs-group">
+            <div class="docs-group-title">{g.section}</div>
+            <ul>
+              {g.items.map((item) => (
+                <li>
+                  <a
+                    href={docHref(item.id)}
+                    aria-current={item.id === currentSlug ? "page" : undefined}
+                  >
+                    {item.data.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </aside>
+
+    <article class="docs-article" data-pagefind-body>
+      <header class="docs-header">
+        {eyebrow && (
+          <div class="eyebrow">
+            <span class="eyebrow-dot" />
+            <span>{eyebrow}</span>
+          </div>
+        )}
+        <h1 class="docs-title">{title}</h1>
+        <p class="lead" style="margin-top:0.8rem;">{description}</p>
+      </header>
+
+      <div class="prose">
+        <slot />
+      </div>
+
+      <nav class="docs-pager" aria-label="Adjacent pages">
+        {prevDoc ? (
+          <a href={docHref(prevDoc.id)} class="pager-card">
+            <span class="mono" style="font-size:0.68rem;color:var(--ink-3);">← PREVIOUS</span>
+            <strong>{prevDoc.data.title}</strong>
+          </a>
+        ) : (
+          <div />
+        )}
+        {nextDoc ? (
+          <a href={docHref(nextDoc.id)} class="pager-card" style="text-align:right;">
+            <span class="mono" style="font-size:0.68rem;color:var(--ink-3);">NEXT →</span>
+            <strong>{nextDoc.data.title}</strong>
+          </a>
+        ) : (
+          <div />
+        )}
+      </nav>
+    </article>
+
+    <aside class="docs-toc" aria-label="On this page">
+      {toc.length > 0 && (
+        <div class="docs-toc-inner">
+          <div class="docs-group-title">On this page</div>
+          <ul>
+            {toc.map((h) => (
+              <li class={h.depth === 3 ? "is-sub" : ""}>
+                <a href={`#${h.slug}`}>{h.text}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </aside>
+  </div>
+
+  <footer class="docs-footer">
+    <div class="shell docs-footer-inner">
+      <div class="brand" style="color:var(--ink);font-size:0.9rem;">
+        <BrandMark size={18} />
+        <span>auditstream.dev</span>
+      </div>
+      <div class="mono" style="font-size:0.72rem;color:var(--ink-3);">
+        MIT License · PostgreSQL 15–19 · Press / or ⌘K to search
+      </div>
+    </div>
+  </footer>
+</BaseLayout>
+
+<style>
+  .docs-frame {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2.5rem;
+    padding-block: 2.25rem 4.5rem;
+    min-height: calc(100vh - 8rem);
+  }
+
+  @media (min-width: 960px) {
+    .docs-frame {
+      grid-template-columns: 14.5rem minmax(0, 1fr);
+      gap: 3rem;
+    }
+  }
+
+  @media (min-width: 1240px) {
+    .docs-frame {
+      grid-template-columns: 14.5rem minmax(0, 1fr) 13rem;
+      gap: 3rem;
+    }
+  }
+
+  .docs-sidebar-inner,
+  .docs-toc-inner {
+    position: sticky;
+    top: 5.5rem;
+  }
+
+  .docs-group {
+    margin-bottom: 1.5rem;
+  }
+
+  .docs-group-title {
+    font-family: var(--font-mono);
+    font-size: 0.67rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 0.55rem;
+  }
+
+  .docs-sidebar ul,
+  .docs-toc ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-left: 1px solid var(--rule);
+  }
+
+  .docs-sidebar a,
+  .docs-toc a {
+    display: block;
+    padding: 0.36rem 0 0.36rem 0.9rem;
+    margin-left: -1px;
+    border-left: 2px solid transparent;
+    font-size: 0.84rem;
+    color: var(--ink-2);
+    transition: color 140ms, border-color 140ms;
+  }
+
+  .docs-sidebar a:hover,
+  .docs-toc a:hover {
+    color: var(--ink);
+  }
+
+  .docs-sidebar a[aria-current="page"] {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    font-weight: 540;
+  }
+
+  .docs-toc {
+    display: none;
+  }
+
+  @media (min-width: 1240px) {
+    .docs-toc {
+      display: block;
+    }
+  }
+
+  .docs-toc a {
+    font-size: 0.78rem;
+  }
+
+  .docs-toc li.is-sub a {
+    padding-left: 1.5rem;
+    color: var(--ink-3);
+  }
+
+  .docs-header {
+    padding-bottom: 1.65rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .docs-title {
+    margin: 0.7rem 0 0;
+    font-size: clamp(1.9rem, 3.2vw, 2.75rem);
+    font-weight: 630;
+    font-stretch: 106%;
+    font-variation-settings: "wdth" 106, "wght" 630;
+    letter-spacing: -0.03em;
+    line-height: 1.08;
+  }
+
+  /* Editorial technical prose */
+  .prose :global(h2) {
+    margin: 2.5rem 0 0.85rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--rule);
+    font-size: 1.4rem;
+    font-weight: 620;
+    letter-spacing: -0.02em;
+    scroll-margin-top: 5rem;
+  }
+
+  .prose :global(h3) {
+    margin: 1.75rem 0 0.6rem;
+    font-size: 1.06rem;
+    font-weight: 600;
+    scroll-margin-top: 5rem;
+  }
+
+  .prose :global(p),
+  .prose :global(li) {
+    color: var(--ink-2);
+    line-height: 1.72;
+    font-size: 0.94rem;
+  }
+
+  .prose :global(strong) {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
+  .prose :global(a) {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .prose :global(ul),
+  .prose :global(ol) {
+    padding-left: 1.25rem;
+  }
+
+  .prose :global(li) {
+    margin-bottom: 0.4rem;
+  }
+
+  .prose :global(code:not(pre code)) {
+    font-family: var(--font-mono);
+    font-size: 0.84em;
+    padding: 0.12em 0.4em;
+    background: var(--plate);
+    border: 1px solid var(--rule);
+    color: var(--ink);
+  }
+
+  .prose :global(pre) {
+    margin: 1.35rem 0;
+    border: 1px solid var(--rule-strong);
+    background: var(--plate) !important;
+  }
+
+  .prose :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    border: 1px solid var(--rule-strong);
+    background: var(--plate);
+    font-size: 0.84rem;
+    display: block;
+    overflow-x: auto;
+  }
+
+  .prose :global(th),
+  .prose :global(td) {
+    padding: 0.72rem 0.9rem;
+    border-bottom: 1px solid var(--rule);
+    text-align: left;
+    vertical-align: top;
+  }
+
+  .prose :global(thead th) {
+    font-family: var(--font-mono);
+    font-size: 0.69rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+    background: var(--plate-2);
+    border-bottom: 1px solid var(--rule-strong);
+  }
+
+  .prose :global(blockquote) {
+    margin: 1.4rem 0;
+    padding: 0.85rem 1.15rem;
+    border-left: 2px solid var(--accent);
+    background: var(--plate);
+    color: var(--ink-2);
+  }
+
+  .docs-pager {
+    margin-top: 3.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--rule);
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+  }
+
+  .pager-card {
+    border: 1px solid var(--rule-strong);
+    background: var(--plate);
+    padding: 0.9rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    transition: border-color 140ms;
+  }
+
+  .pager-card:hover {
+    border-color: var(--accent);
+  }
+
+  .docs-footer {
+    border-top: 1px solid var(--rule);
+    background: var(--ground-2);
+    padding-block: 1.75rem;
+  }
+
+  .docs-footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+  }
+</style>

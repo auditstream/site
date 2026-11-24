@@ -1,0 +1,156 @@
+---
+// Instant client-side search modal powered by Pagefind (loaded lazily on first open — 0 KB until used!)
+---
+
+<div class="search-backdrop" id="search-modal" hidden role="dialog" aria-modal="true" aria-label="Search documentation">
+  <div class="search-dialog plate-reg">
+    <div class="search-head">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--ink-3);flex-shrink:0;" aria-hidden="true">
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+      </svg>
+      <input
+        type="search"
+        id="search-input"
+        class="search-input"
+        placeholder="Search docs, triggers, xid8, Prisma, Drizzle, benchmarks…"
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button type="button" class="chip-btn" id="close-search" style="height:1.65rem;padding:0 0.5rem;">Esc</button>
+    </div>
+
+    <div class="search-results" id="search-results" role="listbox">
+      <div class="search-empty">Type to search Auditstream documentation…</div>
+    </div>
+
+    <div class="search-foot">
+      <span>↑↓ navigate · ↵ open · Esc close</span>
+      <span>Powered by Pagefind</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const modal = document.getElementById("search-modal");
+  const input = document.getElementById("search-input") as HTMLInputElement | null;
+  const resultsEl = document.getElementById("search-results");
+  const openBtn = document.getElementById("open-search");
+  const closeBtn = document.getElementById("close-search");
+
+  let pagefind: any = null;
+  let activeIndex = -1;
+  let hits: Array<{ url: string; title: string; excerpt: string }> = [];
+
+  async function ensurePagefind() {
+    if (pagefind) return pagefind;
+    try {
+      const pfPath = "/pagefind/pagefind.js";
+      pagefind = await import(/* @vite-ignore */ pfPath);
+      await pagefind.init();
+      return pagefind;
+    } catch {
+      return null;
+    }
+  }
+
+  function openModal() {
+    if (!modal || !input) return;
+    modal.hidden = false;
+    document.body.style.overflow = "hidden";
+    input.focus();
+    input.select();
+    ensurePagefind();
+  }
+
+  function closeModal() {
+    if (!modal) return;
+    modal.hidden = true;
+    document.body.style.overflow = "";
+  }
+
+  function renderHits() {
+    if (!resultsEl) return;
+    if (!hits.length) {
+      resultsEl.innerHTML = `<div class="search-empty">${input?.value.trim() ? "No matching pages found." : "Type to search Auditstream documentation…"}</div>`;
+      return;
+    }
+    resultsEl.innerHTML = hits
+      .map(
+        (h, i) => `
+        <a class="search-hit" href="${h.url}" data-selected="${i === activeIndex}" role="option">
+          <div class="search-hit-title">${h.title}</div>
+          <div class="search-hit-excerpt">${h.excerpt}</div>
+        </a>`
+      )
+      .join("");
+  }
+
+  let debounce: ReturnType<typeof setTimeout> | null = null;
+  input?.addEventListener("input", () => {
+    if (debounce) clearTimeout(debounce);
+    debounce = setTimeout(async () => {
+      const q = input.value.trim();
+      if (!q) {
+        hits = [];
+        activeIndex = -1;
+        renderHits();
+        return;
+      }
+      const pf = await ensurePagefind();
+      if (!pf) {
+        if (resultsEl) {
+          resultsEl.innerHTML = `<div class="search-empty">Search index is generated on build (<code>pnpm build</code>).</div>`;
+        }
+        return;
+      }
+      const search = await pf.search(q);
+      const loaded = await Promise.all(search.results.slice(0, 8).map((r: any) => r.data()));
+      hits = loaded.map((d: any) => ({
+        url: d.url,
+        title: d.meta?.title || d.url,
+        excerpt: d.excerpt || "",
+      }));
+      activeIndex = hits.length ? 0 : -1;
+      renderHits();
+    }, 90);
+  });
+
+  openBtn?.addEventListener("click", openModal);
+  closeBtn?.addEventListener("click", closeModal);
+  modal?.addEventListener("click", (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  window.addEventListener("keydown", (e) => {
+    const inField = /INPUT|TEXTAREA/.test((e.target as HTMLElement)?.tagName || "");
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+      e.preventDefault();
+      if (modal?.hidden) openModal();
+      else closeModal();
+      return;
+    }
+    if (!inField && e.key === "/" && modal?.hidden) {
+      e.preventDefault();
+      openModal();
+      return;
+    }
+    if (modal && !modal.hidden) {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeModal();
+      } else if (e.key === "ArrowDown" && hits.length) {
+        e.preventDefault();
+        activeIndex = (activeIndex + 1) % hits.length;
+        renderHits();
+      } else if (e.key === "ArrowUp" && hits.length) {
+        e.preventDefault();
+        activeIndex = (activeIndex - 1 + hits.length) % hits.length;
+        renderHits();
+      } else if (e.key === "Enter" && activeIndex >= 0 && hits[activeIndex]) {
+        e.preventDefault();
+        window.location.href = hits[activeIndex].url;
+      }
+    }
+  });
+</script>

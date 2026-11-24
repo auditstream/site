@@ -1,0 +1,140 @@
+---
+import "@fontsource-variable/mona-sans/wdth.css";
+import "@fontsource/ibm-plex-mono/400.css";
+import "@fontsource/ibm-plex-mono/400-italic.css";
+import "@fontsource/ibm-plex-mono/500.css";
+import "@fontsource/ibm-plex-mono/600.css";
+import "../styles/tokens.css";
+
+import Navbar from "../components/Navbar.astro";
+import SearchModal from "../components/SearchModal.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  currentPath?: string;
+  enableSmoothScroll?: boolean;
+  showProgress?: boolean;
+}
+
+const {
+  title,
+  description,
+  currentPath = "/",
+  enableSmoothScroll = false,
+  showProgress = true,
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" data-mode="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#0c0f13" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Auditstream" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <!-- Blocking micro-script prevents light/dark FOUC -->
+    <script is:inline>
+      (function () {
+        var saved = localStorage.getItem("auditstream-mode");
+        var mode = saved === "light" || saved === "dark" ? saved : "dark";
+        document.documentElement.setAttribute("data-mode", mode);
+      })();
+    </script>
+  </head>
+  <body id="top">
+    <Navbar currentPath={currentPath} />
+    {showProgress && <div class="progress-rail" aria-hidden="true" />}
+
+    <slot />
+
+    <SearchModal />
+
+    <!-- Theme toggle + fallback scroll progress -->
+    <script>
+      const htmlEl = document.documentElement;
+      const modeLabel = document.getElementById("mode-label");
+      const modeBtn = document.getElementById("btn-mode");
+
+      function syncModeLabel() {
+        const mode = htmlEl.getAttribute("data-mode") || "dark";
+        if (modeLabel) modeLabel.textContent = mode === "dark" ? "Light" : "Dark";
+      }
+
+      function toggleMode() {
+        const next = htmlEl.getAttribute("data-mode") === "dark" ? "light" : "dark";
+        htmlEl.setAttribute("data-mode", next);
+        localStorage.setItem("auditstream-mode", next);
+        syncModeLabel();
+      }
+
+      syncModeLabel();
+      modeBtn?.addEventListener("click", toggleMode);
+      window.addEventListener("keydown", (e) => {
+        const inField = /INPUT|TEXTAREA/.test((e.target as HTMLElement)?.tagName || "");
+        const modalOpen = !document.getElementById("search-modal")?.hidden;
+        if (!inField && !modalOpen && !e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "l") {
+          toggleMode();
+        }
+      });
+
+      if (!CSS.supports("animation-timeline: scroll()")) {
+        const rail = document.querySelector<HTMLElement>(".progress-rail");
+        const update = () => {
+          const max = document.documentElement.scrollHeight - window.innerHeight;
+          if (rail && max > 0) rail.style.transform = `scaleX(${Math.min(1, window.scrollY / max)})`;
+        };
+        window.addEventListener("scroll", update, { passive: true });
+        update();
+      }
+
+      // Wire all copy buttons across landing and docs
+      document.querySelectorAll<HTMLButtonElement>("[data-copy]").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+          const text = btn.getAttribute("data-copy") || "";
+          try {
+            await navigator.clipboard.writeText(text);
+            const prev = btn.textContent;
+            btn.textContent = "Copied";
+            setTimeout(() => {
+              btn.textContent = prev || "Copy";
+            }, 1400);
+          } catch {}
+        });
+      });
+    </script>
+
+    {enableSmoothScroll && (
+      <script>
+        import Lenis from "lenis";
+
+        if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+          const lenis = new Lenis({
+            autoRaf: true,
+            allowNestedScroll: true,
+            prevent: () => document.body.style.overflow === "hidden",
+          });
+          // Clean anchor jumps with Lenis
+          document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((a) => {
+            a.addEventListener("click", (e) => {
+              const id = a.getAttribute("href");
+              if (!id || id === "#") return;
+              const target = document.querySelector<HTMLElement>(id);
+              if (target) {
+                e.preventDefault();
+                lenis.scrollTo(target, { offset: id === "#top" ? 0 : -62 });
+              }
+            });
+          });
+        }
+      </script>
+    )}
+  </body>
+</html>

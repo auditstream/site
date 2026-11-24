@@ -1,0 +1,1090 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import BrandMark from "../components/BrandMark.astro";
+import { highlightCode } from "../lib/highlight";
+import "../styles/landing.css";
+
+// All code snippets pre-rendered at build time via Shiki dual themes (0 KB highlighter JS!)
+// Every line formatted <= 54 columns so zero horizontal overflow occurs at 1024px–1920px!
+
+const trace0Html = await highlightCode(
+  `UPDATE invoice\nSET status = $1\nWHERE id = $2\n/*auditstream='eyJ0eXBlIjoidXNlciIsImlkIjoidXNyXzQyIn0'*/`,
+  "sql",
+  { lineNumbers: true, highlightAuditComment: true }
+);
+
+const trace1Html = await highlightCode(
+  `-- Row-level UPDATE trigger (WHEN OLD.* IS DISTINCT FROM NEW.*)\n-- actor_source = 'comment' (unpadded base64url, IDs only)\nactor   : { "type": "user", "id": "usr_42" }\nchanged : [ "status" ]  -- "open" -> "paid"`,
+  "sql",
+  { lineNumbers: true }
+);
+
+const trace2Html = await highlightCode(
+  `INSERT INTO auditstream.changes\n  (xact_id, source, table_name, op, changed, actor)\nVALUES (\n  pg_current_xact_id(), 'db', 'invoice', 'UPDATE',\n  ARRAY['status'], '{"type":"user","id":"usr_42"}'\n);`,
+  "sql",
+  { lineNumbers: true }
+);
+
+const trace3Html = await highlightCode(
+  `auditstream export --format jsonl --out changes.jsonl\n# window: xact_id >= cursor AND xact_id < pg_snapshot_xmin()\n# exported 1,428 rows (JSON Lines) · ack after flush`,
+  "bash",
+  { lineNumbers: true }
+);
+
+const prismaRaw = `import { PrismaClient } from "@prisma/client";
+import { audit } from "@auditstream/node";
+import { auditstreamPlugin } from "@auditstream/prisma";
+
+const db = new PrismaClient({
+  comments: [auditstreamPlugin()],
+});
+
+await audit.as(
+  {
+    type: "ai_agent",
+    id: "billing-agent",
+    onBehalfOf: { type: "user", id: "usr_42" },
+    tenant: "org_acme",
+  },
+  async () => {
+    await db.invoice.update({
+      where: { id: "inv_901" },
+      data: { status: "paid" },
+    });
+  }
+);`;
+
+const prismaHtml = await highlightCode(prismaRaw, "ts", { lineNumbers: true });
+
+const drizzleRaw = `import { drizzle } from "drizzle-orm/node-postgres";
+import { eq } from "drizzle-orm";
+import { audit } from "@auditstream/node";
+import { wrapPgPool } from "@auditstream/drizzle";
+import { invoice } from "./schema";
+
+// Drizzle 0.45 wrapper (or .comment() in Drizzle 1.x)
+const db = drizzle(wrapPgPool(pool));
+
+await audit.as(
+  { type: "user", id: "usr_42", tenant: "org_acme" },
+  async () => {
+    await db.update(invoice)
+      .set({ status: "paid" })
+      .where(eq(invoice.id, "inv_901"));
+  }
+);`;
+
+const drizzleHtml = await highlightCode(drizzleRaw, "ts", { lineNumbers: true });
+
+const nodeRaw = `import { audit } from "@auditstream/node";
+
+// AsyncLocalStorage.run() — works in Node, Bun, Deno,
+// and Cloudflare Workers (nodejs_als)
+await audit.as(
+  { type: "api_key", id: "key_prod_09" },
+  async () => {
+    // Database writes are captured by PG triggers.
+    // App-only events go through auditstream.log_event:
+    await audit.log("invoice.exported", {
+      target: { table: "invoice", id: "inv_901" },
+      data: { format: "jsonl" },
+    });
+  }
+);`;
+
+const nodeHtml = await highlightCode(nodeRaw, "ts", { lineNumbers: true });
+
+const querySqlHtml = await highlightCode(
+  `-- App role has SELECT only (INSERT/UPDATE/DELETE denied)\nSELECT xact_id, occurred_at, actor, changed,\n       before->>'status' AS prev,\n       after->>'status'  AS next\nFROM   auditstream.changes\nWHERE  table_name = 'invoice'\n  AND  record_id  = '{"id":"inv_901"}'::jsonb\nORDER BY xact_id DESC, id DESC;`,
+  "sql",
+  { lineNumbers: true }
+);
+
+const jsonlHtml = await highlightCode(
+  `{\n  "schema_version": 1,\n  "event_id": "019ab7c1-442e-7a10-9c2a-81f02b9c1140",\n  "xact_id": "48291044",\n  "occurred_at": "2026-11-24T04:11:09.184Z",\n  "source": "db", "table": "public.invoice", "op": "UPDATE",\n  "actor_source": "comment",\n  "actor": {\n    "type": "ai_agent", "id": "billing-agent",\n    "onBehalfOf": { "type": "user", "id": "usr_42" }\n  },\n  "changed": ["status"],\n  "before": { "status": "open" },\n  "after":  { "status": "paid" }\n}`,
+  "json",
+  { lineNumbers: true }
+);
+
+const qs1Cmd = "auditstream init --format prisma --tables invoice,users";
+const qs1Html = await highlightCode(
+  `${qs1Cmd}\n# wrote partitioned auditstream.changes + triggers\n# statement-level INSERT/DELETE · row-level UPDATE`,
+  "bash",
+  { lineNumbers: true }
+);
+
+const qs2Cmd = "pnpm add @auditstream/node @auditstream/prisma";
+const qs2Html = await highlightCode(qs2Cmd, "bash", { lineNumbers: true });
+
+const qs3Cmd = "auditstream history --table invoice && auditstream export --format jsonl";
+const qs3Html = await highlightCode(
+  `auditstream history --table invoice --limit 10\nauditstream export --format jsonl --out audit.jsonl\n# xact_id window exported · acked after sink flush`,
+  "bash",
+  { lineNumbers: true }
+);
+---
+
+<BaseLayout
+  title="Auditstream — Open-source audit trail engine for PostgreSQL"
+  description="Open-source audit trail engine written in Rust. Records who changed what in PostgreSQL 15–19 with before and after values, an append-only history table, and lossless xid8 export."
+  currentPath="/"
+  enableSmoothScroll={true}
+  showProgress={true}
+>
+  <main class="main">
+    <!-- ======================================================================
+         HERO — Pixel-flush Dual-Line Lockup + Live Telemetry Instrument
+         ====================================================================== -->
+    <section class="section hero">
+      <div class="shell">
+        <div class="hero-top-row">
+          <div class="eyebrow">
+            <span class="eyebrow-dot" />
+            <span>FORENSIC LEDGER · POSTGRESQL 15–19 · RUST</span>
+          </div>
+          <div class="mono" style="font-size:0.7rem;color:var(--ink-3);">
+            ZERO DAEMON · ZERO WAL SLOTS · ZERO NEW INFRA
+          </div>
+        </div>
+
+        <div class="hero-fit-box" id="hero-fit-box">
+          <h1 class="hero-h1">
+            <span class="mask-line">
+              <span class="fit-line" style="--i:0;">Every row changed<span class="dot-accent">.</span></span>
+            </span>
+            <span class="mask-line">
+              <span class="fit-line" style="--i:1;">Proven in Postgres<span class="dot-accent">.</span></span>
+            </span>
+          </h1>
+        </div>
+
+        <div class="hero-grid">
+          <div>
+            <p class="lead">
+              Auditstream is an open-source audit trail engine in Rust. Adapters attach the actor as a
+              trailing <code class="ic">sqlcommenter</code> tag, generated triggers record
+              <code class="ic">before</code> and <code class="ic">after</code> in
+              <code class="ic">auditstream.changes</code>, and the CLI exports on demand with a lossless
+              <code class="ic">xid8</code> cursor.
+            </p>
+
+            <div style="margin-top:1.65rem;display:flex;flex-wrap:wrap;gap:0.7rem;">
+              <a href="#quickstart" class="btn btn-primary">Install auditstream</a>
+              <a href="/docs" class="btn btn-secondary">Read the docs</a>
+            </div>
+
+            <div class="hero-specs">
+              <div>
+                <div class="spec-k">Postgres</div>
+                <div class="spec-v">15 – 19</div>
+              </div>
+              <div>
+                <div class="spec-k">24/7 Daemon</div>
+                <div class="spec-v">None (0)</div>
+              </div>
+              <div>
+                <div class="spec-k">TypeScript ESM</div>
+                <div class="spec-v">Prisma 7 · Drizzle · Node</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LIVE TELEMETRY INSTRUMENT (Pre-rendered Shiki HTML!) -->
+          <div class="plate plate-reg" aria-label="Audit trail capture lifecycle">
+            <div class="plate-bar">
+              <span id="trace-title">01 · Trailing sqlcommenter tag (base64url)</span>
+              <div style="display:flex;align-items:center;gap:0.5rem;">
+                <span class="pill pill-accent" id="trace-badge">NO EXPLICIT TX</span>
+                <button type="button" class="chip-btn" id="trace-toggle" style="height:1.55rem;padding:0 0.5rem;">
+                  Pause
+                </button>
+              </div>
+            </div>
+
+            <div class="telemetry-diagram">
+              <svg class="telemetry-svg" viewBox="0 0 680 54" fill="none" aria-hidden="true">
+                <line x1="56" y1="20" x2="624" y2="20" stroke="var(--rule-strong)" stroke-width="1" />
+                <line
+                  id="rail-active"
+                  x1="56"
+                  y1="20"
+                  x2="56"
+                  y2="20"
+                  stroke="var(--accent)"
+                  stroke-width="2"
+                  style="transition:all 420ms var(--ease-out);"
+                />
+                <g class="t-node" data-idx="0">
+                  <rect x="44" y="8" width="24" height="24" fill="var(--plate)" stroke="var(--accent)" stroke-width="1.5" />
+                  <circle cx="56" cy="20" r="3.5" fill="var(--accent)" />
+                  <text x="56" y="47" text-anchor="middle" fill="var(--ink)" font-family="IBM Plex Mono, monospace" font-size="9.5">APP / SQL</text>
+                </g>
+                <g class="t-node" data-idx="1">
+                  <rect x="233" y="8" width="24" height="24" fill="var(--plate)" stroke="var(--rule-strong)" stroke-width="1.5" />
+                  <circle cx="245" cy="20" r="3.5" fill="var(--ink-3)" />
+                  <text x="245" y="47" text-anchor="middle" fill="var(--ink-3)" font-family="IBM Plex Mono, monospace" font-size="9.5">PG TRIGGER</text>
+                </g>
+                <g class="t-node" data-idx="2">
+                  <rect x="422" y="8" width="24" height="24" fill="var(--plate)" stroke="var(--rule-strong)" stroke-width="1.5" />
+                  <circle cx="434" cy="20" r="3.5" fill="var(--ink-3)" />
+                  <text x="434" y="47" text-anchor="middle" fill="var(--ink-3)" font-family="IBM Plex Mono, monospace" font-size="9.5">CHANGES (xid8)</text>
+                </g>
+                <g class="t-node" data-idx="3">
+                  <rect x="612" y="8" width="24" height="24" fill="var(--plate)" stroke="var(--rule-strong)" stroke-width="1.5" />
+                  <circle cx="624" cy="20" r="3.5" fill="var(--ink-3)" />
+                  <text x="624" y="47" text-anchor="middle" fill="var(--ink-3)" font-family="IBM Plex Mono, monospace" font-size="9.5">JSONL / CSV</text>
+                </g>
+              </svg>
+            </div>
+
+            <div class="stage-tabs" id="stage-tabs">
+              <button type="button" class="stage-tab" data-step="0" data-active="true"><span class="num">01</span>SQL Comment</button>
+              <button type="button" class="stage-tab" data-step="1" data-active="false"><span class="num">02</span>Trigger Diff</button>
+              <button type="button" class="stage-tab" data-step="2" data-active="false"><span class="num">03</span>Changes Table</button>
+              <button type="button" class="stage-tab" data-step="3" data-active="false"><span class="num">04</span>xid8 Export</button>
+            </div>
+
+            <div class="telemetry-body">
+              <div class="telemetry-panel" data-panel="0" set:html={trace0Html} />
+              <div class="telemetry-panel" data-panel="1" hidden set:html={trace1Html} />
+              <div class="telemetry-panel" data-panel="2" hidden set:html={trace2Html} />
+              <div class="telemetry-panel" data-panel="3" hidden set:html={trace3Html} />
+              <div style="font-size:0.79rem;color:var(--ink-2);line-height:1.5;" id="trace-caption">
+                Unpadded base64url can never contain <code class="ic">*/</code> or inject SQL. IDs only — no names, emails, or IPs leak into <code class="ic">pg_stat_activity</code>.
+              </div>
+            </div>
+
+            <div class="ledger-strip">
+              <span>xact_id <strong style="color:var(--ink);">48291044</strong> · public.invoice · UPDATE</span>
+              <span style="display:inline-flex;gap:0.4rem;">
+                <span class="pill pill-before">− open</span>
+                <span class="pill pill-after">+ paid</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 01 — ATTRIBUTION & AI AGENT ACTORS (auditstream-js)
+         ====================================================================== -->
+    <section class="section section-alt" id="attribution">
+      <div class="shell split">
+        <div class="reveal">
+          <div class="eyebrow"><span class="eyebrow-dot" />01 · ATTRIBUTION &amp; CONTRACT</div>
+          <h2 class="h2" style="margin-top:0.85rem;">Author in a trailing comment, not a pinned session.</h2>
+          <p class="lead" style="margin-top:1.1rem;">
+            Application code never writes audit rows itself. <code class="ic">audit.as()</code> awaits your
+            writes inside <code class="ic">AsyncLocalStorage.run()</code> and appends an unpadded base64url
+            <code class="ic">sqlcommenter</code> tag — supporting humans, API keys, services, and
+            <strong style="color:var(--ink);font-weight:600;">AI agents acting <code class="ic">onBehalfOf</code> a user</strong>.
+          </p>
+          <p class="lead" style="margin-top:0.85rem;">
+            Because comments stay on the statement, standalone Prisma 7 queries need no explicit transaction
+            and never pin connections on RDS Proxy. Malformed payloads never abort your write.
+          </p>
+
+          <div class="callout-pair">
+            <div class="callout-cell">
+              <div class="spec-k">Trailing comment (default)</div>
+              <div class="spec-v" style="color:var(--after);white-space:normal;">6,630 tps (−40%) · Pool-safe</div>
+            </div>
+            <div class="callout-cell">
+              <div class="spec-k">set_config (fallback)</div>
+              <div class="spec-v" style="color:var(--ink-2);white-space:normal;">5,825 tps (−48%) · Explicit tx</div>
+            </div>
+          </div>
+
+          <div class="resolution-strip">
+            <span style="color:var(--ink-3);">ACTOR PRECEDENCE:</span>
+            <span style="color:var(--accent);">1. set_config</span> →
+            <span style="color:var(--accent);">2. /*auditstream='…'*/</span> →
+            <span>3. request.jwt.claims (Supabase)</span> →
+            <span>4. session_user</span>
+          </div>
+        </div>
+
+        <div class="plate plate-reg reveal">
+          <div class="plate-bar" style="padding:0 0.75rem 0 0;">
+            <div class="tabs" role="tablist" aria-label="TypeScript adapter examples">
+              <button type="button" class="tab" role="tab" data-adapter="prisma" aria-selected="true">Prisma 7</button>
+              <button type="button" class="tab" role="tab" data-adapter="drizzle" aria-selected="false">Drizzle</button>
+              <button type="button" class="tab" role="tab" data-adapter="node" aria-selected="false">Node / App events</button>
+            </div>
+            <button type="button" class="chip-btn" id="copy-adapter" data-copy={prismaRaw} style="height:1.65rem;">Copy</button>
+          </div>
+          <div class="tab-panel" data-adapter-panel="prisma" set:html={prismaHtml} />
+          <div class="tab-panel" data-adapter-panel="drizzle" hidden set:html={drizzleHtml} />
+          <div class="tab-panel" data-adapter-panel="node" hidden set:html={nodeHtml} />
+          <div class="plate-bar" style="border-top:1px solid var(--rule);border-bottom:0;">
+            <span id="adapter-filename">@auditstream/prisma · Prisma 7.1+ SQL comments plugin</span>
+            <span class="pill pill-accent">ESM only · spec 0.1</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 02 — PARTITIONED APPEND-ONLY HISTORY TABLE
+         ====================================================================== -->
+    <section class="section" id="history">
+      <div class="shell split">
+        <div class="reveal">
+          <div class="eyebrow"><span class="eyebrow-dot" />02 · AUDITSTREAM.CHANGES</div>
+          <h2 class="h2" style="margin-top:0.85rem;">The history table <em>is</em> the product.</h2>
+          <p class="lead" style="margin-top:1.1rem;">
+            <code class="ic">auditstream.changes</code> is partitioned by month on <code class="ic">occurred_at</code>,
+            owned by a dedicated <code class="ic">NOLOGIN</code> role, and written exclusively through
+            <code class="ic">SECURITY DEFINER</code> triggers. Your application role receives
+            <code class="ic">SELECT</code> only — its <code class="ic">INSERT</code>, <code class="ic">UPDATE</code>,
+            and <code class="ic">DELETE</code> tamper attempts are rejected by Postgres itself.
+          </p>
+          <p class="lead" style="margin-top:0.85rem;">
+            INSERT and DELETE fire once per statement via transition tables (<code class="ic">REFERENCING NEW/OLD TABLE</code>);
+            UPDATE stays row-level with <code class="ic">WHEN (OLD.* IS DISTINCT FROM NEW.*)</code> so no-op and
+            excluded-column writes record nothing.
+          </p>
+        </div>
+
+        <div class="plate plate-reg reveal">
+          <div class="plate-bar" style="padding:0 0.9rem 0 0;">
+            <div class="tabs" role="tablist" aria-label="Inspect committed audit row">
+              <button type="button" class="tab" role="tab" data-rowview="diff" aria-selected="true">Diff view</button>
+              <button type="button" class="tab" role="tab" data-rowview="sql" aria-selected="false">Query SQL</button>
+              <button type="button" class="tab" role="tab" data-rowview="jsonl" aria-selected="false">Export JSONL</button>
+            </div>
+            <span style="color:var(--accent);padding:0.35rem 0 0.35rem 0.9rem;">xact_id = 48291044</span>
+          </div>
+
+          <div class="tab-panel" data-rowview-panel="diff">
+            <div class="diff-split">
+              <div class="diff-pane">
+                <div class="diff-head"><span style="color:var(--before);">− BEFORE (OLD)</span><span style="color:var(--ink-3);">jsonb</span></div>
+                <div class="diff-line">&#123;</div>
+                <div class="diff-line">  "id": "inv_901",</div>
+                <div class="diff-line">  "amount_cents": 4900,</div>
+                <div class="diff-line del">− "status": "open",</div>
+                <div class="diff-line del">− "paid_at": null</div>
+                <div class="diff-line">&#125;</div>
+              </div>
+              <div class="diff-pane">
+                <div class="diff-head"><span style="color:var(--after);">+ AFTER (NEW)</span><span style="color:var(--ink-3);">jsonb</span></div>
+                <div class="diff-line">&#123;</div>
+                <div class="diff-line">  "id": "inv_901",</div>
+                <div class="diff-line">  "amount_cents": 4900,</div>
+                <div class="diff-line add">+ "status": "paid",</div>
+                <div class="diff-line add">+ "paid_at": "2026-11-24T04:11Z"</div>
+                <div class="diff-line">&#125;</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-panel" data-rowview-panel="sql" hidden set:html={querySqlHtml} />
+          <div class="tab-panel" data-rowview-panel="jsonl" hidden set:html={jsonlHtml} />
+
+          <div class="plate-bar" style="border-top:1px solid var(--rule);border-bottom:0;">
+            <span>actor: <strong style="color:var(--accent);">ai_agent:billing-agent</strong> (onBehalfOf <strong style="color:var(--ink);">usr_42</strong>)</span>
+            <span>SELECT-ONLY FOR APP ROLE</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 03 — SIGNATURE VISUAL: INTERACTIVE xid8 SAFE-HORIZON PROOF
+         ====================================================================== -->
+    <section class="field-band" id="export">
+      <div class="shell">
+        <div class="eyebrow"><span class="eyebrow-dot" />03 · LOSSLESS EXPORT · xid8 WINDOW</div>
+        <h2 class="h2" style="margin-top:0.85rem;max-width:21ch;">Export anywhere, without a 24/7 consumer.</h2>
+        <p class="lead" style="margin-top:1.1rem;max-width:46rem;">
+          Logical replication needs an always-on consumer — a stopped slot retains WAL and can fill your disk.
+          Auditstream exports pull-based batches on demand using
+          <code class="ic" style="background:var(--field-2);border-color:var(--on-field-rule-strong);color:var(--on-field);">xact_id &gt;= cursor AND xact_id &lt; pg_snapshot_xmin()</code>,
+          acknowledging the cursor only after the sink flushes.
+        </p>
+
+        <div class="horizon-board reveal">
+          <div class="horizon-bar">
+            <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+              <span style="color:var(--on-field);font-weight:600;">CONCURRENT COMMITS vs. SAFE HORIZON</span>
+              <span class="pill pill-accent" id="hz-badge">HORIZON: xact_id &lt; 48291042</span>
+            </div>
+            <div class="horizon-toggle" role="group" aria-label="Simulate export runs">
+              <button type="button" class="horizon-btn" data-run="1" data-active="true">Run #1 · tx 42 still open</button>
+              <button type="button" class="horizon-btn" data-run="2" data-active="false">Run #2 · tx 42 commits</button>
+            </div>
+          </div>
+
+          <div class="horizon-canvas">
+            <svg class="horizon-svg" viewBox="0 0 960 284" fill="none" role="img" aria-label="Diagram showing xid8 safe horizon cursor across 5 concurrent PostgreSQL transactions">
+              <g stroke="var(--on-field-rule)" stroke-dasharray="3 4">
+                <line x1="160" y1="32" x2="160" y2="244" />
+                <line x1="340" y1="32" x2="340" y2="244" />
+                <line x1="520" y1="32" x2="520" y2="244" />
+                <line x1="690" y1="32" x2="690" y2="244" />
+                <line x1="855" y1="32" x2="855" y2="244" />
+              </g>
+              <g fill="var(--on-field-3)" font-family="IBM Plex Mono, monospace" font-size="10">
+                <text x="160" y="20" text-anchor="middle">t0</text>
+                <text x="340" y="20" text-anchor="middle">t1</text>
+                <text x="520" y="20" text-anchor="middle">t2 (Export #1)</text>
+                <text x="690" y="20" text-anchor="middle">t3</text>
+                <text x="855" y="20" text-anchor="middle">t4 (Export #2)</text>
+              </g>
+
+              <rect id="hz-zone" x="160" y="34" width="360" height="44" fill="rgba(52, 211, 153, 0.08)" stroke="rgba(52, 211, 153, 0.30)" style="transition:all 420ms var(--ease-out);" />
+              <text id="hz-zone-lbl" x="510" y="45" text-anchor="end" fill="#34d399" font-family="IBM Plex Mono, monospace" font-size="8.5" letter-spacing="0.08em" opacity="0.85">SAFE EXPORT RANGE</text>
+
+              <g font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--on-field)">
+                <text x="12" y="61">xid 48291041</text>
+                <text x="12" y="104" fill="var(--hold)" id="lbl-tx42">xid 48291042</text>
+                <text x="12" y="147">xid 48291043</text>
+                <text x="12" y="190" fill="var(--accent)">xid 48291044</text>
+                <text x="12" y="233" fill="var(--on-field-3)">xid 48291045</text>
+              </g>
+
+              <g stroke="var(--on-field-rule)" stroke-width="1">
+                <line x1="12" y1="78" x2="942" y2="78" />
+                <line x1="12" y1="121" x2="942" y2="121" />
+                <line x1="12" y1="164" x2="942" y2="164" />
+                <line x1="12" y1="207" x2="942" y2="207" />
+              </g>
+
+              <rect x="176" y="46" width="154" height="22" fill="rgba(52,211,153,0.18)" stroke="#34d399" stroke-width="1.3" />
+              <circle cx="330" cy="57" r="4" fill="#34d399" />
+              <text x="186" y="61" fill="#e9f2fb" font-family="IBM Plex Mono, monospace" font-size="10">COMMIT · EXPORTED</text>
+
+              <rect id="bar-tx42" x="210" y="89" width="445" height="22" fill="rgba(230,179,90,0.16)" stroke="#e6b35a" stroke-width="1.3" stroke-dasharray="5 3" />
+              <circle id="dot-tx42" cx="655" cy="100" r="4" fill="#e6b35a" />
+              <text id="txt-tx42" x="220" y="104" fill="#e6b35a" font-family="IBM Plex Mono, monospace" font-size="10">IN FLIGHT AT t2 — HOLDS xmin (COMMITS LATER AT t3)</text>
+
+              <rect id="bar-tx43" x="242" y="132" width="224" height="22" fill="rgba(107,166,255,0.15)" stroke="#6ba6ff" stroke-width="1.3" />
+              <circle id="dot-tx43" cx="466" cy="143" r="4" fill="#6ba6ff" />
+              <text id="txt-tx43" x="252" y="147" fill="#e9f2fb" font-family="IBM Plex Mono, monospace" font-size="10">COMMITTED · WAITS FOR HORIZON</text>
+
+              <rect id="bar-tx44" x="284" y="175" width="212" height="22" fill="rgba(107,166,255,0.15)" stroke="#6ba6ff" stroke-width="1.3" />
+              <circle id="dot-tx44" cx="496" cy="186" r="4" fill="#6ba6ff" />
+              <text id="txt-tx44" x="294" y="190" fill="#e9f2fb" font-family="IBM Plex Mono, monospace" font-size="10">invoice='paid' · WAITS</text>
+
+              <rect x="680" y="218" width="248" height="22" fill="rgba(230,179,90,0.12)" stroke="rgba(230,179,90,0.65)" stroke-width="1.2" stroke-dasharray="5 3" />
+              <text x="690" y="233" fill="var(--on-field-2)" font-family="IBM Plex Mono, monospace" font-size="10">IN FLIGHT AT t4 (NEXT xmin)</text>
+
+              <g id="hz-line-group" style="transition:transform 420ms var(--ease-out);" transform="translate(0, 0)">
+                <line x1="520" y1="28" x2="520" y2="256" stroke="#6ba6ff" stroke-width="2" />
+                <rect x="434" y="256" width="172" height="22" fill="#4f90f5" />
+                <text id="hz-line-label" x="520" y="271" text-anchor="middle" fill="#061221" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600">xmin = 48291042</text>
+              </g>
+            </svg>
+          </div>
+
+          <div class="horizon-foot" id="hz-explanation">
+            <div>
+              <strong>Proven in testing:</strong> A cursor on <span class="mono">id &gt; last_id</span> lost a row when
+              <span class="mono">xid 42</span> committed after <span class="mono">xid 43</span> and <span class="mono">xid 44</span>.
+            </div>
+            <div>
+              <strong>Lossless xid8 window:</strong> Run #1 stops cleanly at <span class="mono">xact_id &lt; pg_snapshot_xmin() (48291042)</span>.
+              Click <strong>Run #2</strong> above to watch <span class="mono">xid 42, 43, 44</span> flush in order with stable <span class="mono">event_id</span> deduplication.
+            </div>
+          </div>
+        </div>
+
+        <div class="pipeline-strip reveal">
+          <div class="pipeline-cell">
+            <div class="k">01 · CONTRACT (spec/)</div>
+            <h3>Versioned &amp; Tested</h3>
+            <p>Normative RFC 2119 spec with language-neutral conformance fixtures in Rust &amp; TS.</p>
+          </div>
+          <div class="pipeline-cell">
+            <div class="k">02 · CAPTURE (auditstream-pg)</div>
+            <h3>Hybrid Triggers</h3>
+            <p>Statement-level INSERT/DELETE (3× faster bulk), row-level UPDATE, TRUNCATE trigger.</p>
+          </div>
+          <div class="pipeline-cell">
+            <div class="k">03 · ENGINE (Rust)</div>
+            <h3>Single Static Binary</h3>
+            <p>Hexagonal Cargo workspace (<span class="mono">unsafe_code = forbid</span>). Runs on demand or cron.</p>
+          </div>
+          <div class="pipeline-cell">
+            <div class="k">04 · EXPORT (auditstream-export)</div>
+            <h3>At-Least-Once Sinks</h3>
+            <p>JSON Lines &amp; CSV in v0.1; Webhooks, S3, SIEM, and MCP (<span class="mono">rmcp</span>) later.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 04 — INVERTED WARM MINERAL PAPER DATASHEET (REAL EVIDENCE!)
+         ====================================================================== -->
+    <section class="as-datasheet" id="datasheet">
+      <div class="shell">
+        <div class="eyebrow"><span class="eyebrow-dot" />04 · VERIFIED EVIDENCE · 2026-11-24</div>
+        <h2 class="h2" style="margin-top:0.85rem;">Measured on Postgres 15–19. Honest limits.</h2>
+        <p class="lead" style="margin-top:1rem;max-width:48rem;">
+          Every claim below was benchmarked directly on PostgreSQL 16.15 (<code class="ic">pgbench</code>, 4 clients)
+          and verified across local Postgres 15–19, PgBouncer 1.26, Neon (PG 18.7), and Supabase Supavisor (PG 17.12).
+          <a href="/docs/evidence" style="color:var(--accent);text-decoration:underline;text-underline-offset:3px;">Read the full Evidence log →</a>
+        </p>
+
+        <!-- Real 3-column Architecture Comparison -->
+        <div class="matrix-wrap reveal">
+          <table class="matrix">
+            <thead>
+              <tr>
+                <th>Operational requirement</th>
+                <th class="col-win" style="color:var(--accent);">Auditstream · Comment (default)</th>
+                <th>Auditstream · set_config (fallback)</th>
+                <th>Logical Replication (pgoutput)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Database setup</th>
+                <td class="col-win mono">Any PG 15–19 (free tiers too)</td>
+                <td class="mono">Any PG 15–19</td>
+                <td class="mono" style="color:var(--before);">wal_level=logical · RDS reboot</td>
+              </tr>
+              <tr>
+                <th>Before &amp; after values</th>
+                <td class="col-win mono" style="color:var(--after);">OLD / NEW in trigger</td>
+                <td class="mono" style="color:var(--after);">OLD / NEW in trigger</td>
+                <td class="mono" style="color:var(--before);">REPLICA IDENTITY FULL per table</td>
+              </tr>
+              <tr>
+                <th>24/7 consumer daemon</th>
+                <td class="col-win mono" style="color:var(--after);">None — export on demand</td>
+                <td class="mono" style="color:var(--after);">None — export on demand</td>
+                <td class="mono" style="color:var(--before);">Required (slot can fill disk)</td>
+              </tr>
+              <tr>
+                <th>Connection poolers</th>
+                <td class="col-win mono" style="color:var(--after);">PgBouncer · Neon · Supavisor</td>
+                <td class="mono" style="color:var(--hold);">Pins session in RDS Proxy</td>
+                <td class="mono">Needs explicit tx per write</td>
+              </tr>
+              <tr>
+                <th>Worst-case single-row UPDATE</th>
+                <td class="col-win mono">6,630 tps (−40% vs 11,105)</td>
+                <td class="mono">5,825 tps (−48% vs 11,105)</td>
+                <td class="mono">Lower write cost · higher WAL</td>
+              </tr>
+              <tr>
+                <th>Known limits (honest)</th>
+                <td class="col-win mono" style="color:var(--ink-2);">No Aurora DSQL · RDS Proxy untested</td>
+                <td class="mono" style="color:var(--ink-2);">Use under Prisma Accelerate</td>
+                <td class="mono" style="color:var(--ink-2);">Deferred behind EventSource</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Real pgbench numbers from evidence.md -->
+        <div class="bench-grid reveal">
+          <div class="plate plate-reg" style="padding:1.4rem;">
+            <div class="mono" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--ink-3);">
+              PostgreSQL 16.15 · pgbench (4 clients) · Real measured throughput
+            </div>
+            <p style="margin:0.5rem 0 1.3rem;font-size:0.84rem;color:var(--ink-2);line-height:1.58;">
+              Single-row updates are the worst case; bulk inserts run <strong>3× faster</strong> with statement-level
+              transition tables (<code class="ic">155–180 ms</code> vs <code class="ic">541–550 ms</code> for 10,000 rows).
+            </p>
+            <div style="display:grid;gap:1rem;">
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:0.35rem;">
+                  <span class="mono">Single-row INSERT · statement-level trigger</span>
+                  <span class="mono" style="color:var(--after);font-weight:600;">7,906 tps (vs 9,572 base)</span>
+                </div>
+                <div class="bar-track"><div class="bar-fill emerald" style="width:82.6%;" /></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:0.35rem;">
+                  <span class="mono">Single-row UPDATE · <strong>SQL comment</strong></span>
+                  <span class="mono" style="color:var(--accent);font-weight:600;">6,630 tps (−40%)</span>
+                </div>
+                <div class="bar-track"><div class="bar-fill" style="width:59.7%;" /></div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:0.35rem;">
+                  <span class="mono">Single-row UPDATE · set_config fallback</span>
+                  <span class="mono" style="color:var(--ink-3);">5,825 tps (−48%)</span>
+                </div>
+                <div class="bar-track"><div class="bar-fill muted" style="width:52.4%;" /></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="plate" style="padding:1.4rem;display:flex;flex-direction:column;justify-content:space-between;gap:1rem;">
+            <div>
+              <div class="mono" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.09em;color:var(--ink-3);">
+                Concurrency &amp; Tamper Proof
+              </div>
+              <h3 style="margin:0.5rem 0 0.45rem;font-size:1.12rem;font-weight:620;letter-spacing:-0.02em;">
+                18,748 pooled writes. Zero leaked actors.
+              </h3>
+              <p style="margin:0;font-size:0.84rem;color:var(--ink-2);line-height:1.6;">
+                Tested through PgBouncer 1.26, Neon pooler (HTTP &amp; WebSocket), and Supabase Supavisor
+                with more clients than server connections: <strong>9,436</strong> <code class="ic">set_config</code> rows and
+                <strong>9,312</strong> actor-less rows interleaved with zero crossover.
+              </p>
+            </div>
+            <div class="mono" style="font-size:0.7rem;color:var(--accent);padding-top:0.75rem;border-top:1px solid var(--rule);">
+              PG 15.20 · 16.15 · 17.12 · 18.7 · 19.0 — IDENTICAL 17/17 SUITE
+            </div>
+          </div>
+        </div>
+
+        <div class="proven-strip reveal">
+          <div class="proven-cell">
+            <div class="spec-k">10,000-row INSERT</div>
+            <div class="spec-v" style="color:var(--after);">155–180 ms (3× faster)</div>
+          </div>
+          <div class="proven-cell">
+            <div class="spec-k">Prisma 7.10 &amp; Drizzle</div>
+            <div class="spec-v">80 concurrent · 0 wrong</div>
+          </div>
+          <div class="proven-cell">
+            <div class="spec-k">App Role Tamper Tests</div>
+            <div class="spec-v" style="color:var(--after);">INSERT / UPDATE / DELETE denied</div>
+          </div>
+          <div class="proven-cell">
+            <div class="spec-k">Cloud Poolers Proven</div>
+            <div class="spec-v">Neon · Supabase · PgBouncer</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 05 — REAL 5-WAVE v0.1 ROADMAP + EventSource
+         ====================================================================== -->
+    <section class="section section-alt" id="roadmap">
+      <div class="shell">
+        <div class="eyebrow"><span class="eyebrow-dot" />05 · ROADMAP · 59 ISSUES · 5 WAVES</div>
+        <h2 class="h2" style="margin-top:0.85rem;">
+          Built in five waves, behind <span class="mono" style="color:var(--accent);font-size:0.9em;font-weight:500;">EventSource</span>.
+        </h2>
+        <p class="lead" style="margin-top:1rem;max-width:48rem;">
+          The contract in <code class="ic">spec/</code> gates both repositories. v0.1 ships triggers,
+          <code class="ic">auditstream.changes</code>, JSONL/CSV export, and TypeScript adapters;
+          S3/Webhooks/SIEM, MCP (<code class="ic">rmcp</code>), and optional WAL replication via
+          <code class="ic">pg_logical_emit_message</code> follow behind the same port traits.
+        </p>
+
+        <div class="roadmap-grid">
+          <article class="phase current reveal">
+            <div class="phase-num">W1</div>
+            <span class="mono" style="font-size:0.66rem;color:var(--accent);">ACTIVE · CONTRACT</span>
+            <h3>Spec v0.1 &amp; CI</h3>
+            <p>Normative <span class="mono">spec/</span>, JSON schemas, conformance fixtures, Cargo &amp; pnpm foundations.</p>
+          </article>
+          <article class="phase reveal">
+            <div class="phase-num">W2</div>
+            <span class="mono" style="font-size:0.66rem;color:var(--ink-3);">WAVE 2 · CORE</span>
+            <h3>Core &amp; @auditstream/node</h3>
+            <p>Domain types, port traits, base64url transport codec passing shared fixtures in Rust &amp; TS.</p>
+          </article>
+          <article class="phase reveal">
+            <div class="phase-num">W3</div>
+            <span class="mono" style="font-size:0.66rem;color:var(--ink-3);">WAVE 3 · CAPTURE</span>
+            <h3>Triggers, Export &amp; ORMs</h3>
+            <p><span class="mono">auditstream-pg</span>, JSONL/CSV sinks, Prisma 7 plugin, Drizzle 0.45 &amp; 1.x wrappers.</p>
+          </article>
+          <article class="phase reveal">
+            <div class="phase-num">W4</div>
+            <span class="mono" style="font-size:0.66rem;color:var(--ink-3);">WAVE 4 · CLI</span>
+            <h3>CLI &amp; App Examples</h3>
+            <p><span class="mono">init</span>, <span class="mono">verify</span>, <span class="mono">history</span>, <span class="mono">export</span> + Next.js &amp; Hono example apps.</p>
+          </article>
+          <article class="phase reveal">
+            <div class="phase-num">W5</div>
+            <span class="mono" style="font-size:0.66rem;color:var(--ink-3);">WAVE 5 · RELEASE</span>
+            <h3>Dist, Docs &amp; Beyond</h3>
+            <p>npm, Homebrew, shell installer, <span class="mono">ghcr.io</span>. Later: S3, SIEM, MCP &amp; WAL <span class="mono">EventSource</span>.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 06 — QUICKSTART + STICKY SPEC SHEET
+         ====================================================================== -->
+    <section class="section" id="quickstart">
+      <div class="shell qs-grid">
+        <ol class="qs-list">
+          <li class="qs-item reveal">
+            <span class="qs-num">01</span>
+            <div>
+              <h3 style="margin:0;font-size:1.16rem;font-weight:600;">Generate migration &amp; triggers</h3>
+              <p style="margin:0.32rem 0 0.85rem;font-size:0.85rem;color:var(--ink-3);">
+                Writes the monthly-partitioned <code class="ic">auditstream.changes</code> table and triggers for Prisma, Drizzle, or plain SQL.
+              </p>
+              <div class="plate">
+                <div class="plate-bar">
+                  <span>terminal · auditstream CLI</span>
+                  <button type="button" class="chip-btn" data-copy={qs1Cmd} style="height:1.55rem;">Copy</button>
+                </div>
+                <div set:html={qs1Html} />
+              </div>
+            </div>
+          </li>
+
+          <li class="qs-item reveal">
+            <span class="qs-num">02</span>
+            <div>
+              <h3 style="margin:0;font-size:1.16rem;font-weight:600;">Install the TypeScript adapter</h3>
+              <p style="margin:0.32rem 0 0.85rem;font-size:0.85rem;color:var(--ink-3);">
+                ESM-only packages for Node 22.12+, Bun, Deno, and Cloudflare Workers.
+              </p>
+              <div class="plate">
+                <div class="plate-bar">
+                  <span>terminal · auditstream-js</span>
+                  <button type="button" class="chip-btn" data-copy={qs2Cmd} style="height:1.55rem;">Copy</button>
+                </div>
+                <div set:html={qs2Html} />
+              </div>
+            </div>
+          </li>
+
+          <li class="qs-item reveal">
+            <span class="qs-num">03</span>
+            <div>
+              <h3 style="margin:0;font-size:1.16rem;font-weight:600;">Inspect diffs or export on demand</h3>
+              <p style="margin:0.32rem 0 0.85rem;font-size:0.85rem;color:var(--ink-3);">
+                Query history from the CLI or export JSON Lines / CSV using the commit-safe <code class="ic">xid8</code> cursor.
+              </p>
+              <div class="plate">
+                <div class="plate-bar">
+                  <span>terminal · history &amp; export</span>
+                  <button type="button" class="chip-btn" data-copy={qs3Cmd} style="height:1.55rem;">Copy</button>
+                </div>
+                <div set:html={qs3Html} />
+              </div>
+            </div>
+          </li>
+        </ol>
+
+        <aside class="sticky-card plate-reg">
+          <div style="padding:1.75rem 1.75rem 1.5rem;position:relative;">
+            <span style="position:absolute;top:0.85rem;left:0.85rem;width:8px;height:8px;border-radius:50%;background:var(--accent-fill);" />
+            <div style="position:absolute;top:1.45rem;right:1.5rem;color:var(--accent);">
+              <BrandMark size={38} />
+            </div>
+            <h2 class="h2" style="font-size:1.82rem;padding-right:3.2rem;">Audit Postgres without new infra.</h2>
+            <p style="margin:0.85rem 0 1.4rem;font-size:0.89rem;line-height:1.62;color:var(--ink-2);">
+              One Rust binary for capture and export, thin ESM adapters for actor attribution, and a
+              versioned spec with shared conformance tests.
+            </p>
+            <div style="display:flex;flex-wrap:wrap;gap:0.65rem;">
+              <a href="/docs/getting-started" class="btn btn-primary">Quickstart guide</a>
+              <a href="/docs/contract" class="btn btn-secondary">Read spec v0.1</a>
+            </div>
+          </div>
+          <dl class="dl">
+            <div class="dl-row"><dt>Database</dt><dd>PostgreSQL 15 – 19</dd></div>
+            <div class="dl-row"><dt>Engine</dt><dd>Rust · npm, Homebrew, shell, ghcr.io</dd></div>
+            <div class="dl-row"><dt>Adapters</dt><dd>@auditstream/node, prisma, drizzle</dd></div>
+            <div class="dl-row"><dt>Node / Runtimes</dt><dd>Node 22.12+ · Bun · Deno · Workers</dd></div>
+            <div class="dl-row"><dt>License</dt><dd>MIT (no CLA, no DCO)</dd></div>
+          </dl>
+        </aside>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="shell footer-grid">
+      <div>
+        <div class="brand" style="color:var(--ink);">
+          <BrandMark size={20} />
+          <span>auditstream</span>
+        </div>
+        <p style="margin:0.7rem 0 0;max-width:34rem;line-height:1.6;">
+          Open-source audit trail engine for PostgreSQL. Built with Rust and TypeScript under the MIT license.
+          Security disclosures: <a href="mailto:security@auditstream.dev" style="color:var(--ink);text-decoration:underline;">security@auditstream.dev</a>.
+        </p>
+      </div>
+      <div class="footer-links">
+        <a href="/docs">Docs</a>
+        <a href="/docs/capture">Capture</a>
+        <a href="/docs/contract">Spec v0.1</a>
+        <a href="/docs/adapters">Adapters</a>
+        <a href="/docs/evidence">Evidence</a>
+        <a href="https://github.com/auditstream/auditstream" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </div>
+    </div>
+  </footer>
+</BaseLayout>
+
+<script define:vars={{ prismaRaw, drizzleRaw, nodeRaw }}>
+  /* --------------------------------------------------------------------------
+     1. Pixel-Flush Hero Variable Font Fit (drives BOTH font-stretch & wdth!)
+     -------------------------------------------------------------------------- */
+  function setWidth(el, w) {
+    el.style.setProperty("--fit", w.toFixed(1) + "%");
+    el.style.setProperty("--wdth", w.toFixed(1));
+  }
+
+  function fitHeroLines() {
+    const box = document.getElementById("hero-fit-box");
+    if (!box) return;
+    const lines = Array.from(box.querySelectorAll(".fit-line"));
+    const targetW = box.clientWidth;
+    if (!targetW) return;
+
+    const refBase = Math.min(120, Math.max(34, targetW / 10.6));
+    lines.forEach((el) => {
+      el.style.transition = "none";
+      el.style.whiteSpace = "nowrap";
+      el.style.setProperty("--line-size", refBase + "px");
+      setWidth(el, 122);
+    });
+
+    const narrowestAt122 = Math.min(...lines.map((el) => el.getBoundingClientRect().width));
+    let fittedSize = refBase * ((targetW * 0.994) / narrowestAt122);
+
+    lines.forEach((el) => {
+      el.style.setProperty("--line-size", fittedSize.toFixed(2) + "px");
+      setWidth(el, 78);
+    });
+    const widestAt78 = Math.max(...lines.map((el) => el.getBoundingClientRect().width));
+    if (widestAt78 > targetW * 0.994) {
+      fittedSize = fittedSize * ((targetW * 0.994) / widestAt78);
+    }
+
+    lines.forEach((el) => {
+      el.style.setProperty("--line-size", fittedSize.toFixed(2) + "px");
+      const measure = (s) => {
+        setWidth(el, s);
+        return el.getBoundingClientRect().width;
+      };
+      let lo = 75, hi = 125;
+      for (let i = 0; i < 11; i++) {
+        const mid = (lo + hi) / 2;
+        if (measure(mid) > targetW * 0.996) hi = mid;
+        else lo = mid;
+      }
+      setWidth(el, lo);
+      requestAnimationFrame(() => {
+        el.style.transition = "";
+      });
+    });
+  }
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(fitHeroLines);
+  }
+  window.addEventListener("resize", fitHeroLines);
+  setTimeout(fitHeroLines, 80);
+
+  /* --------------------------------------------------------------------------
+     2. Hero 4-Stage Telemetry Replay (switches pre-rendered Shiki panels!)
+     -------------------------------------------------------------------------- */
+  const TRACE_META = [
+    {
+      title: "01 · Trailing sqlcommenter tag (base64url)",
+      badge: "NO EXPLICIT TX",
+      railX: 56,
+      caption: 'Unpadded base64url can never contain <code class="ic">*/</code> or inject SQL. IDs only — no names, emails, or IPs leak into <code class="ic">pg_stat_activity</code>.',
+    },
+    {
+      title: "02 · PostgreSQL trigger computes before & after",
+      badge: "SECURITY DEFINER",
+      railX: 245,
+      caption: 'No-op updates and excluded-column-only edits write nothing. Malformed payloads store <code class="ic">actor = NULL</code> and never abort the write.',
+    },
+    {
+      title: "03 · Committed to partitioned auditstream.changes",
+      badge: "xact_id = 48291044",
+      railX: 434,
+      caption: 'Monthly-partitioned table owned by a <code class="ic">NOLOGIN</code> role. App roles get <code class="ic">SELECT</code> only — tamper writes are denied by Postgres.',
+    },
+    {
+      title: "04 · Pull-based xid8 window export",
+      badge: "ACK AFTER FLUSH",
+      railX: 624,
+      caption: 'Exports JSON Lines or CSV on demand with stable <code class="ic">event_id</code> deduplication — no 24/7 consumer and no WAL replication slot.',
+    },
+  ];
+
+  let traceIdx = 0;
+  let tracePaused = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const railActive = document.getElementById("rail-active");
+  const traceNodes = Array.from(document.querySelectorAll(".t-node"));
+  const traceToggle = document.getElementById("trace-toggle");
+
+  function renderTrace(idx) {
+    traceIdx = idx;
+    const t = TRACE_META[idx];
+    document.getElementById("trace-title").textContent = t.title;
+    document.getElementById("trace-badge").textContent = t.badge;
+    document.getElementById("trace-caption").innerHTML = t.caption;
+    railActive?.setAttribute("x2", String(t.railX));
+
+    document.querySelectorAll(".telemetry-panel").forEach((p, i) => {
+      p.hidden = i !== idx;
+    });
+    traceNodes.forEach((g, i) => {
+      const rect = g.querySelector("rect");
+      const dot = g.querySelector("circle");
+      const txt = g.querySelector("text");
+      const lit = i <= idx;
+      rect?.setAttribute("stroke", lit ? "var(--accent)" : "var(--rule-strong)");
+      dot?.setAttribute("fill", lit ? "var(--accent)" : "var(--ink-3)");
+      txt?.setAttribute("fill", i === idx ? "var(--ink)" : "var(--ink-3)");
+    });
+    document.querySelectorAll("#stage-tabs .stage-tab").forEach((b, i) => {
+      b.setAttribute("data-active", String(i === idx));
+    });
+  }
+
+  document.querySelectorAll("#stage-tabs .stage-tab").forEach((b) => {
+    b.addEventListener("click", () => {
+      renderTrace(Number(b.getAttribute("data-step")));
+      tracePaused = true;
+      if (traceToggle) traceToggle.textContent = "Play";
+    });
+  });
+  if (traceToggle) {
+    traceToggle.textContent = tracePaused ? "Play" : "Pause";
+    traceToggle.addEventListener("click", () => {
+      tracePaused = !tracePaused;
+      traceToggle.textContent = tracePaused ? "Play" : "Pause";
+    });
+  }
+  renderTrace(0);
+  setInterval(() => {
+    if (!tracePaused) renderTrace((traceIdx + 1) % TRACE_META.length);
+  }, 3900);
+
+  /* --------------------------------------------------------------------------
+     3. Adapter Tabs & History Row 3-View Inspector
+     -------------------------------------------------------------------------- */
+  const ADAPTER_INFO = {
+    prisma: { file: "@auditstream/prisma · Prisma 7.1+ SQL comments plugin", raw: prismaRaw },
+    drizzle: { file: "@auditstream/drizzle · Drizzle 0.45 wrapper & 1.x .comment()", raw: drizzleRaw },
+    node: { file: "@auditstream/node · AsyncLocalStorage.run() & audit.log()", raw: nodeRaw },
+  };
+
+  document.querySelectorAll("[data-adapter]").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const key = tab.getAttribute("data-adapter");
+      document.querySelectorAll("[data-adapter]").forEach((t) => t.setAttribute("aria-selected", String(t === tab)));
+      document.querySelectorAll("[data-adapter-panel]").forEach((p) => {
+        p.hidden = p.getAttribute("data-adapter-panel") !== key;
+      });
+      const info = ADAPTER_INFO[key];
+      const fname = document.getElementById("adapter-filename");
+      const copyBtn = document.getElementById("copy-adapter");
+      if (fname && info) fname.textContent = info.file;
+      if (copyBtn && info) copyBtn.setAttribute("data-copy", info.raw);
+    });
+  });
+
+  document.querySelectorAll("[data-rowview]").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const key = tab.getAttribute("data-rowview");
+      document.querySelectorAll("[data-rowview]").forEach((t) => t.setAttribute("aria-selected", String(t === tab)));
+      document.querySelectorAll("[data-rowview-panel]").forEach((p) => {
+        p.hidden = p.getAttribute("data-rowview-panel") !== key;
+      });
+    });
+  });
+
+  /* --------------------------------------------------------------------------
+     4. Interactive xid8 Safe Horizon Proof (Run #1 vs Run #2)
+     -------------------------------------------------------------------------- */
+  function setHorizonRun(run) {
+    const isRun2 = run === "2";
+    document.querySelectorAll("[data-run]").forEach((b) => b.setAttribute("data-active", String(b.getAttribute("data-run") === run)));
+
+    const lineGroup = document.getElementById("hz-line-group");
+    const lineLabel = document.getElementById("hz-line-label");
+    const badge = document.getElementById("hz-badge");
+    const zone = document.getElementById("hz-zone");
+    const zoneLbl = document.getElementById("hz-zone-lbl");
+    const bar42 = document.getElementById("bar-tx42");
+    const dot42 = document.getElementById("dot-tx42");
+    const txt42 = document.getElementById("txt-tx42");
+    const lbl42 = document.getElementById("lbl-tx42");
+    const bar43 = document.getElementById("bar-tx43");
+    const dot43 = document.getElementById("dot-tx43");
+    const txt43 = document.getElementById("txt-tx43");
+    const bar44 = document.getElementById("bar-tx44");
+    const dot44 = document.getElementById("dot-tx44");
+    const txt44 = document.getElementById("txt-tx44");
+    const exp = document.getElementById("hz-explanation");
+
+    if (!isRun2) {
+      lineGroup?.setAttribute("transform", "translate(0, 0)");
+      if (lineLabel) lineLabel.textContent = "xmin = 48291042";
+      if (badge) badge.textContent = "HORIZON: xact_id < 48291042";
+      zone?.setAttribute("width", "360");
+      zone?.setAttribute("height", "44");
+      zoneLbl?.setAttribute("x", "510");
+
+      bar42?.setAttribute("fill", "rgba(230,179,90,0.16)");
+      bar42?.setAttribute("stroke", "#e6b35a");
+      bar42?.setAttribute("stroke-dasharray", "5 3");
+      dot42?.setAttribute("fill", "#e6b35a");
+      txt42?.setAttribute("fill", "#e6b35a");
+      if (txt42) txt42.textContent = "IN FLIGHT AT t2 — HOLDS xmin (COMMITS LATER AT t3)";
+      lbl42?.setAttribute("fill", "var(--hold)");
+
+      bar43?.setAttribute("fill", "rgba(107,166,255,0.15)");
+      bar43?.setAttribute("stroke", "#6ba6ff");
+      dot43?.setAttribute("fill", "#6ba6ff");
+      if (txt43) txt43.textContent = "COMMITTED · WAITS FOR HORIZON";
+
+      bar44?.setAttribute("fill", "rgba(107,166,255,0.15)");
+      bar44?.setAttribute("stroke", "#6ba6ff");
+      dot44?.setAttribute("fill", "#6ba6ff");
+      if (txt44) txt44.textContent = "invoice='paid' · WAITS";
+
+      if (exp) {
+        exp.innerHTML = `
+          <div><strong>Proven in testing:</strong> A cursor on <span class="mono">id &gt; last_id</span> lost a row when <span class="mono">xid 42</span> committed after <span class="mono">xid 43</span> and <span class="mono">xid 44</span>.</div>
+          <div><strong>Lossless xid8 window:</strong> Run #1 stops cleanly at <span class="mono">xact_id &lt; pg_snapshot_xmin() (48291042)</span>. Click <strong>Run #2</strong> above to watch <span class="mono">xid 42, 43, 44</span> flush in order with stable <span class="mono">event_id</span> deduplication.</div>
+        `;
+      }
+    } else {
+      lineGroup?.setAttribute("transform", "translate(335, 0)");
+      if (lineLabel) lineLabel.textContent = "xmin = 48291045";
+      if (badge) badge.textContent = "HORIZON: xact_id < 48291045";
+      zone?.setAttribute("width", "695");
+      zone?.setAttribute("height", "173");
+      zoneLbl?.setAttribute("x", "845");
+
+      bar42?.setAttribute("fill", "rgba(52,211,153,0.18)");
+      bar42?.setAttribute("stroke", "#34d399");
+      bar42?.removeAttribute("stroke-dasharray");
+      dot42?.setAttribute("fill", "#34d399");
+      txt42?.setAttribute("fill", "#e9f2fb");
+      if (txt42) txt42.textContent = "COMMITTED AT t3 · EXPORTED IN BATCH #2 (NOT LOST!)";
+      lbl42?.setAttribute("fill", "#34d399");
+
+      bar43?.setAttribute("fill", "rgba(52,211,153,0.18)");
+      bar43?.setAttribute("stroke", "#34d399");
+      dot43?.setAttribute("fill", "#34d399");
+      if (txt43) txt43.textContent = "EXPORTED IN BATCH #2";
+
+      bar44?.setAttribute("fill", "rgba(52,211,153,0.18)");
+      bar44?.setAttribute("stroke", "#34d399");
+      dot44?.setAttribute("fill", "#34d399");
+      if (txt44) txt44.textContent = "invoice='paid' · EXPORTED";
+
+      if (exp) {
+        exp.innerHTML = `
+          <div><strong>Zero rows lost, at-least-once delivery:</strong> Once <span class="mono">xid 42</span> commits at <span class="mono">t3</span>, Run #2 sees <span class="mono">xmin = 48291045</span> and exports <span class="mono">xid 42, 43, 44</span> ordered by <span class="mono">xact_id, id</span>.</div>
+          <div><strong>Zero WAL retention risk:</strong> The cursor is acknowledged only after the sink flushes — run every minute, hourly, or on demand without holding a replication slot open.</div>
+        `;
+      }
+    }
+  }
+
+  document.querySelectorAll("[data-run]").forEach((b) => {
+    b.addEventListener("click", () => setHorizonRun(b.getAttribute("data-run")));
+  });
+</script>

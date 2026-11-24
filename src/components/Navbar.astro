@@ -1,0 +1,57 @@
+---
+import BrandMark from "./BrandMark.astro";
+
+interface Props {
+  currentPath?: string;
+}
+const { currentPath = "/" } = Astro.props;
+const isDocs = currentPath.startsWith("/docs");
+---
+
+<header class="nav">
+  <div class="shell nav-inner">
+    <a href={isDocs ? "/" : "#top"} class="brand" aria-label="Auditstream home">
+      <BrandMark size={22} />
+      <span>auditstream</span>
+      <span class="brand-tag">v0.1</span>
+    </a>
+
+    <nav class="nav-links" aria-label="Primary">
+      <a href="/#attribution">Adapters</a>
+      <a href="/#history">Changes</a>
+      <a href="/#export">xid8 Cursor</a>
+      <a href="/#datasheet">Evidence</a>
+      <a href="/docs" aria-current={isDocs ? "page" : undefined}>Docs</a>
+      <a href="https://github.com/auditstream/auditstream" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </nav>
+
+    <div class="nav-actions">
+      <button type="button" class="chip-btn" id="open-search" aria-label="Search documentation">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8" />
+          <path d="m21 21-4.3-4.3" />
+        </svg>
+        <span class="hide-sm">Search</span>
+        <span class="kbd-hint" style="opacity:0.45">⌘K</span>
+      </button>
+      <button type="button" class="chip-btn" id="btn-mode" aria-label="Toggle color mode">
+        <span id="mode-label">Light</span>
+        <span class="kbd-hint" style="opacity:0.45">L</span>
+      </button>
+      {!isDocs && (
+        <a href="/docs" class="chip-btn show-sm-only">Docs</a>
+      )}
+    </div>
+  </div>
+</header>
+
+<style>
+  .show-sm-only {
+    display: none;
+  }
+  @media (max-width: 768px) {
+    .show-sm-only {
+      display: inline-flex;
+    }
+  }
+</style>
