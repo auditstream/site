@@ -64,16 +64,20 @@ Prints schema version, installed triggers per table, partition range, and row co
 
 ### `auditstream history`
 
-Queries recent changes newest-first (`occurred_at DESC, id DESC`), matching direct actors and delegated `onBehalfOf` actors:
+Queries recent changes newest-first (`occurred_at DESC, id DESC`), matching direct actors/tenants and delegated `onBehalfOf` entries:
 
 ```bash
 auditstream history \
   --table public.invoice \
   --record-id 1 \
   --actor usr_42 \
+  --tenant org_acme \
   --since 2026-11-01 \
   --limit 20
 ```
+
+- `--actor <ID>` matches `actor.id` or `actor.onBehalfOf.id`.
+- `--tenant <ID>` matches `actor.tenant` or `actor.onBehalfOf.tenant` (note that `actor.tenant` is self-asserted actor metadata and does not replace PostgreSQL row-level security).
 
 Example table output (pass `--format json` for newline-delimited `event.schema.json` records including `before` and `after`):
 
@@ -92,9 +96,21 @@ auditstream export \
   --format jsonl \
   --output audit.jsonl \
   --cursor-file cursor.json \
+  --tenant org_acme \
   --batch-size 1000
 ```
 
-- Supports `--format jsonl` (default) or `--format csv`, `--since`, `--until`, `--actor`, `--source db|app`, and `--from-start` to replay from the beginning.
-- Refuses to resume a cursor against a different database, schema, filter set, or output path.
+- Supports `--format jsonl` (default) or `--format csv`, `--since`, `--until`, `--actor`, `--tenant`, `--source db|app`, and `--from-start` to replay from the beginning.
+- Refuses to resume a cursor against a different database, schema, filter set, redaction policy, or output path.
 - Cleanly handles `SIGPIPE` when piped (for example `auditstream export | head -n 5`).
+
+#### Export-time redaction (`auditstream.toml`)
+
+Even when a column was not excluded at trigger capture time, you can mask or strip top-level fields inside `before` and `after` before events reach the export sink. Rules are compiled up front, fail closed on error, and are bound into export checkpoints:
+
+```toml
+[[export.redaction.rules]]
+table = "public.invoice"      # "table", "schema.table", or "*" (use `action` for app events)
+columns = ["ssn", "tax_id"]
+mode = "mask"                 # "mask" (default) or "remove"
+```

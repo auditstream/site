@@ -10,7 +10,7 @@ eyebrow: ADAPTERS · AUDITSTREAM-JS
 
 | Package | Responsibility | Peer dependencies |
 | :--- | :--- | :--- |
-| `@auditstream/node` | `AsyncLocalStorage` (`run()` only), `audit.as()`, `audit.log(exec, event)`, `audit.history(exec, query)`, transport codec, `/express`, `/hono`, `/next` | `express`, `hono`, `next` (optional) |
+| `@auditstream/node` | `AsyncLocalStorage` (`run()` only), `audit.as()`, `audit.log(exec, event)`, `audit.history(exec, query)`, `audit.query(exec, query)`, transport codec, `/express`, `/hono`, `/next` | `express`, `hono`, `next` (optional) |
 | `@auditstream/prisma` | `auditstream()` SQL comments plugin (Prisma 7.1+) + `auditTransaction()` `set_config` fallback | `@prisma/client >=7.1.0 <8`, `@auditstream/node` |
 | `@auditstream/drizzle` | Drizzle 1.x `auditComment()` helper + driver subpaths `/pg` (`wrapPgPool`), `/postgres-js` (`wrapPostgresJs`), and `/neon-http` (`wrapNeonHttp`) | `drizzle-orm ^0.45.2 \|\| >=1.0.0-rc.1 <2.0.0`, `@auditstream/node` |
 
@@ -130,6 +130,27 @@ await audit.log(exec, {
   data: { format: "jsonl" },
 });
 ```
+
+### Filtered, keyset-paginated feeds (`audit.query`)
+
+Use `audit.query()` for filtered, keyset-paginated queries (zero `COUNT(*)`) across both database trigger rows (`source: "db"`) and application events (`source: "app"`):
+
+```ts
+import { type AuditQuery, type AuditQueryPage, audit } from "@auditstream/node";
+
+const query: AuditQuery = {
+  tenant: "org_acme",
+  source: "app",
+  opPrefix: "invoice.",
+  since: "2026-11-01T00:00:00Z",
+  limit: 25,
+};
+
+const page: AuditQueryPage = await audit.query(exec, query);
+// Pass page.nextCursor back as `cursor` when page.hasMore is true
+```
+
+> **Backend-only API:** `audit.query()` returns raw `HistoryEntry` rows including internal database metadata (`db_user`, `xact_id`, `table_oid`, `actor_source`) and raw `before`/`after` payloads. Always enforce authentication and tenant authorization on the server and project each row into an allowlisted DTO before sending data to browsers. See the runnable **Next.js 16 + Prisma 7 Activity Feed** (`examples/next-prisma` in [`auditstream-js`](https://github.com/auditstream/auditstream-js/tree/main/examples/next-prisma)) for a copy-paste BFF pattern (Auditstream intentionally omits a styled React UI package — see ADR-0009).
 
 ## Critical concurrency rules (proven by tests)
 
