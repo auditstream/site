@@ -5,60 +5,213 @@ interface Props {
   currentPath?: string;
 }
 const { currentPath = "/" } = Astro.props;
-const isDocs = currentPath.startsWith("/docs");
+const isBenchmarks = currentPath.startsWith("/docs/evidence");
+const isDocs = currentPath.startsWith("/docs") && !isBenchmarks;
 ---
 
 <header class="nav">
   <div class="shell nav-inner">
-    <a href={isDocs ? "/" : "#top"} class="brand" aria-label="Auditstream home">
-      <BrandMark size={22} />
-      <span>auditstream</span>
-      <span class="brand-tag">v0.1</span>
+    <a href={currentPath === "/" ? "#top" : "/"} class="brand" aria-label="Auditstream home">
+      <BrandMark size={20} />
+      <span>Auditstream</span>
     </a>
 
-    <nav class="nav-links" aria-label="Primary">
-      <a href="/#attribution">Adapters</a>
-      <a href="/#history">Changes</a>
-      <a href="/#export">xid8 Cursor</a>
-      <a href="/#datasheet">Evidence</a>
-      <a href="/docs" aria-current={isDocs ? "page" : undefined}>Docs</a>
-      <a href="https://github.com/auditstream/auditstream" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true" style="font-size:0.75em;color:var(--ink-3);">↗</span></a>
-    </nav>
+    <div class="nav-right">
+      <nav class="nav-links" aria-label="Primary">
+        <a href="/docs/" aria-current={isDocs ? "page" : undefined}>Docs</a>
+        <a href="/docs/evidence/" aria-current={isBenchmarks ? "page" : undefined}>Benchmarks</a>
+        <a
+          href="https://github.com/auditstream/auditstream"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="nav-ext"
+        >
+          GitHub <span aria-hidden="true">↗</span>
+        </a>
+      </nav>
 
-    <div class="nav-actions">
-      <button type="button" class="chip-btn" id="open-search" aria-label="Search documentation">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-          <circle cx="11" cy="11" r="8" />
-          <path d="m21 21-4.3-4.3" />
-        </svg>
-        <span class="hide-sm">Search</span>
-        <span class="kbd-hint">⌘K</span>
-      </button>
-      <button type="button" class="chip-btn" id="btn-mode" aria-label="Toggle color mode">
-        <svg class="icon-sun" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
-          <circle cx="12" cy="12" r="4" />
-          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-        </svg>
-        <svg class="icon-moon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" aria-hidden="true">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-        </svg>
-        <span id="mode-label" class="hide-sm">Light</span>
-        <span class="kbd-hint">L</span>
-      </button>
-      {!isDocs && (
-        <a href="/docs" class="chip-btn show-sm-only">Docs</a>
-      )}
+      <div class="nav-actions">
+        <button type="button" class="chip-btn" id="open-search" aria-label="Search documentation">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.3-4.3" />
+          </svg>
+          <span class="hide-sm">Search</span>
+          <span class="kbd-hint">⌘K</span>
+        </button>
+
+        <button
+          type="button"
+          class="chip-btn mobile-menu-btn"
+          id="mobile-menu-toggle"
+          aria-expanded="false"
+          aria-controls="mobile-nav-drawer"
+          aria-label="Open navigation menu"
+        >
+          <svg
+            class="icon-menu-open"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+          <svg
+            class="icon-menu-close"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path d="M6 6l12 12M18 6L6 18" />
+          </svg>
+        </button>
+      </div>
     </div>
   </div>
+
+  <nav id="mobile-nav-drawer" class="mobile-drawer" hidden aria-label="Mobile navigation">
+    <div class="shell mobile-drawer-inner">
+      <a href="/docs/" aria-current={isDocs ? "page" : undefined}>Docs</a>
+      <a href="/docs/getting-started/">Getting Started</a>
+      <a href="/docs/evidence/" aria-current={isBenchmarks ? "page" : undefined}>Benchmarks</a>
+      <a href="https://github.com/auditstream/auditstream" target="_blank" rel="noopener noreferrer">
+        <span>GitHub</span>
+        <span aria-hidden="true" class="drawer-ext">↗</span>
+      </a>
+    </div>
+  </nav>
 </header>
 
 <style>
-  .show-sm-only {
+  .nav-ext span {
+    color: var(--ink-3);
+  }
+
+  .mobile-menu-btn {
+    display: none;
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    padding: 0;
+  }
+
+  .mobile-menu-btn .icon-menu-close {
     display: none;
   }
-  @media (max-width: 900px) {
-    .show-sm-only {
+
+  .mobile-menu-btn[aria-expanded="true"] .icon-menu-open {
+    display: none;
+  }
+
+  .mobile-menu-btn[aria-expanded="true"] .icon-menu-close {
+    display: block;
+  }
+
+  .mobile-drawer {
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule-strong);
+    background: var(--surface);
+  }
+
+  .mobile-drawer[hidden] {
+    display: none;
+  }
+
+  .mobile-drawer-inner {
+    display: flex;
+    flex-direction: column;
+    padding-block: 0.4rem 0.65rem;
+  }
+
+  .mobile-drawer-inner a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.25rem;
+    border-bottom: 1px solid var(--rule);
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+
+  .mobile-drawer-inner a:last-child {
+    border-bottom: 0;
+  }
+
+  .mobile-drawer-inner a:hover,
+  .mobile-drawer-inner a[aria-current="page"] {
+    color: var(--accent);
+  }
+
+  .drawer-ext {
+    color: var(--ink-3);
+  }
+
+  @media (max-width: 768px) {
+    .mobile-menu-btn {
       display: inline-flex;
     }
   }
 </style>
+
+<script>
+  const toggleBtn = document.getElementById("mobile-menu-toggle");
+  const drawer = document.getElementById("mobile-nav-drawer");
+
+  function setDrawerOpen(open: boolean) {
+    if (!toggleBtn || !drawer) return;
+    drawer.hidden = !open;
+    toggleBtn.setAttribute("aria-expanded", String(open));
+    toggleBtn.setAttribute("aria-label", open ? "Close navigation menu" : "Open navigation menu");
+  }
+
+  toggleBtn?.addEventListener("click", () => {
+    const isOpen = toggleBtn.getAttribute("aria-expanded") === "true";
+    setDrawerOpen(!isOpen);
+  });
+
+  drawer?.querySelectorAll("a").forEach((link) => {
+    link.addEventListener("click", () => setDrawerOpen(false));
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!drawer || drawer.hidden || !toggleBtn) return;
+    const target = e.target as Node | null;
+    if (target && !drawer.contains(target) && !toggleBtn.contains(target)) {
+      setDrawerOpen(false);
+    }
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && drawer && !drawer.hidden) {
+      setDrawerOpen(false);
+      toggleBtn?.focus();
+    }
+  });
+
+  window.addEventListener(
+    "resize",
+    () => {
+      if (window.innerWidth > 768 && drawer && !drawer.hidden) {
+        setDrawerOpen(false);
+      }
+    },
+    { passive: true }
+  );
+</script>

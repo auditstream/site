@@ -1,28 +1,21 @@
 ---
 title: Getting Started
-description: Supported PostgreSQL, Node.js, Prisma, and Drizzle versions plus the three-step v0.1 setup flow.
-section: Start
+description: Install the Auditstream CLI, run a 60-second PostgreSQL demo, wire your TypeScript adapter, and review supported versions.
+section: Get Started
 order: 2
-eyebrow: START · QUICKSTART
+eyebrow: GET STARTED · QUICKSTART
 ---
 
-## Supported versions in v0.1
+Current releases: CLI v0.1.0 · TypeScript SDKs v0.2.0 · Spec v0.1.1 · PostgreSQL 15–19
 
-| Dependency | Supported range | Notes |
-| :--- | :--- | :--- |
-| **PostgreSQL** | 15 to 19 | PostgreSQL 14 reached EOL on 2026-11-12; identical suite output verified on 15.20, 16.15, 17.12, 18.7, and 19.0 |
-| **Node.js** | 22.12 or newer | Tested on Node 22, 24, and 26; ESM-only packages |
-| **Prisma** | `@prisma/client` 7.1+ (within 7.x) | Uses official SQL comments plugin; Prisma 6 is unsupported; Prisma 8 awaits stable release |
-| **Drizzle** | 0.45 and 1.x | `auditComment()` on Drizzle 1.x; `/pg`, `/postgres-js`, and `/neon-http` driver wrappers on 0.45 |
-| **Runtimes** | Node.js, Bun, Deno, Cloudflare Workers | Uses `AsyncLocalStorage.run()` only (`nodejs_als` flag or compatibility date `2026-08-04` or later on Workers) |
+## 1. Install the CLI
 
-## 1. Install the CLI and try it in 60 seconds
-
-Install the prebuilt `auditstream` binary through any supported channel:
+Install the prebuilt `auditstream` v0.1.0 binary through any supported channel:
 
 ```bash
 # Shell (macOS and Linux)
-curl --proto '=https' --tlsv1.2 -LsSf https://github.com/auditstream/auditstream/releases/latest/download/auditstream-installer.sh | sh
+curl --proto '=https' --tlsv1.2 -LsSf \
+  https://github.com/auditstream/auditstream/releases/latest/download/auditstream-installer.sh | sh
 
 # Homebrew (macOS and Linux)
 brew install auditstream/tap/auditstream
@@ -42,7 +35,7 @@ powershell -ExecutionPolicy Bypass -c "irm https://github.com/auditstream/audits
 
 Or build from source with Cargo (`git clone https://github.com/auditstream/auditstream && cd auditstream && cargo install --path crates/auditstream --locked`).
 
-Verify everything end-to-end against a disposable PostgreSQL container (including `--exclude` PII redaction):
+Try it end-to-end in 60 seconds against a disposable PostgreSQL container (including `--exclude` PII redaction):
 
 ```bash
 docker run -d --rm --name as-demo -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:18
@@ -73,26 +66,29 @@ auditstream init --migrations prisma --table public.invoice --table public.users
 `auditstream init` inspects your schema and generates migrations for Prisma, Drizzle, or plain SQL containing:
 - The `auditstream` schema and `auditstream_owner` `NOLOGIN` role;
 - Monthly partitions for `auditstream.changes` created three months ahead plus a `DEFAULT` partition;
-- A BRIN index on `occurred_at` and a partial `HASH` lookup index on `record_id` (`WHERE record_id IS NOT NULL`);
-- Statement-level `INSERT` / `DELETE` triggers, row-level `UPDATE` triggers, and `TRUNCATE` triggers;
-- `SELECT`-only grants for your application role.
+- A BRIN index on `occurred_at` and a partial HASH lookup index on `record_id` (`WHERE record_id IS NOT NULL`);
+- Statement-level INSERT and DELETE triggers, row-level UPDATE triggers, and TRUNCATE triggers;
+- SELECT-only grants for your application role (see [Cloud, Poolers & Security](/docs/cloud-and-security/) for managed database role setup).
 
-## 2. Wire an adapter in TypeScript
+## 2. Wire an adapter
 
-Install `@auditstream/node` alongside your ORM adapter:
+Install `@auditstream/node` v0.2.0 alongside your ORM adapter and PostgreSQL driver adapter:
 
 ```bash
-pnpm add @auditstream/node @auditstream/prisma
+pnpm add @auditstream/node @auditstream/prisma @prisma/adapter-pg pg
 ```
 
-Wrap requests or mutations with `audit.as(actor, fn)` — always awaiting queries inside the callback:
+Pass the `PrismaPg` adapter and `auditstream()` SQL comments plugin to `PrismaClient`, then wrap requests or mutations with `audit.as(actor, fn)` — always awaiting queries inside the callback:
 
 ```ts
+import pg from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 import { audit } from "@auditstream/node";
 import { auditstream } from "@auditstream/prisma";
 
 const db = new PrismaClient({
+  adapter: new PrismaPg(new pg.Pool({ connectionString: process.env.DATABASE_URL })),
   comments: [auditstream()],
 });
 
@@ -104,7 +100,9 @@ await audit.as({ type: "user", id: "usr_42", tenant: "org_acme" }, async () => {
 });
 ```
 
-## 3. Verify, inspect, and export
+Never configure `statementNameGenerator` on `PrismaPg` alongside SQL comments. Using Drizzle, Hono, Express, or Next.js 16? See [TypeScript Adapters](/docs/adapters/). Using Go, Python, Ruby, Java, or plain SQL? See [Cloud, Poolers & Security](/docs/cloud-and-security/#plain-sql-other-languages).
+
+## 3. Verify and export
 
 ```bash
 # Check for missing/disabled triggers or rows stuck in the DEFAULT partition
@@ -116,3 +114,20 @@ auditstream history --table public.invoice --limit 20
 # Export immutable batches using the commit-safe xid8 cursor
 auditstream export --format jsonl --output audit.jsonl --cursor-file cursor.json
 ```
+
+## Supported versions
+
+| Dependency | Supported range | Notes |
+| :--- | :--- | :--- |
+| **PostgreSQL** | 15 to 19 | PostgreSQL 14 reached EOL on 2026-11-12; identical suite output verified on 15.20, 16.15, 17.12, 18.7, and 19.0 |
+| **Node.js** | 22.12 or newer | Tested on Node 22, 24, and 26; ESM-only packages |
+| **Prisma** | `@prisma/client` 7.1+ (7.x) | Uses official SQL comments plugin; Prisma 6 is unsupported; Prisma 8 awaits stable release |
+| **Drizzle** | 0.45 and 1.x | `auditComment()` on Drizzle 1.x; `/pg`, `/postgres-js`, and `/neon-http` driver wrappers on 0.45 |
+| **Runtimes** | Node.js, Bun, Deno, Cloudflare Workers | Uses `AsyncLocalStorage.run()` only (`nodejs_als` flag or compatibility date 2026-08-04 or later on Workers) |
+
+## Next steps
+
+- Wire request-level middleware and query feeds in [TypeScript Adapters](/docs/adapters/).
+- Automate CI drift checks, redaction rules, and scheduled exports with [CLI & Day-2 Operations](/docs/cli/).
+- Review pooler behavior, least-privilege roles, and Neon/Supabase guidance in [Cloud, Poolers & Security](/docs/cloud-and-security/).
+- Inspect verified PostgreSQL 19 overhead and limits in [Evidence & Benchmarks](/docs/evidence/).

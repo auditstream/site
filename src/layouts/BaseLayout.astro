@@ -1,8 +1,12 @@
 ---
+import "@fontsource/ibm-plex-sans/latin-400.css";
+import "@fontsource/ibm-plex-sans/latin-500.css";
+import "@fontsource/ibm-plex-sans/latin-600.css";
 import "@fontsource/ibm-plex-mono/latin-400.css";
 import "@fontsource/ibm-plex-mono/latin-500.css";
 import "@fontsource/ibm-plex-mono/latin-600.css";
-import monaSansUrl from "@fontsource-variable/mona-sans/files/mona-sans-latin-wdth-normal.woff2?url";
+import ibmSans400Url from "@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2?url";
+import ibmSans600Url from "@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-600-normal.woff2?url";
 import ibmMono400Url from "@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2?url";
 import "../styles/tokens.css";
 
@@ -14,6 +18,7 @@ interface Props {
   description: string;
   currentPath?: string;
   showProgress?: boolean;
+  noindex?: boolean;
 }
 
 const {
@@ -21,39 +26,53 @@ const {
   description,
   currentPath = "/",
   showProgress = true,
+  noindex = false,
 } = Astro.props;
 
-const siteBase = Astro.site ?? new URL("https://auditstream.dev");
-const canonicalUrl = new URL(currentPath, siteBase).toString();
-const ogImageUrl = new URL("/og-image.png", siteBase).toString();
-const jsonLd = currentPath === "/" ? JSON.stringify({
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  name: "Auditstream",
-  applicationCategory: "DeveloperApplication",
-  operatingSystem: "Linux, macOS, Windows",
-  license: "https://opensource.org/licenses/MIT",
-  url: "https://auditstream.dev",
-  codeRepository: "https://github.com/auditstream/auditstream",
-  description,
-}) : null;
+function normalizeCanonicalPath(path: string): string {
+  if (!path || path === "/") return "/";
+  const clean = path.startsWith("/") ? path : `/${path}`;
+  if (clean.endsWith("/") || /\.[a-z0-9]+$/i.test(clean)) return clean;
+  return `${clean}/`;
+}
 
-const fontFaceCss = `@font-face{font-family:'Mona Sans Variable';font-style:normal;font-display:swap;font-weight:200 900;font-stretch:75% 125%;src:url(${monaSansUrl}) format('woff2-variations');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}@font-face{font-family:'Mona Sans Fallback';src:local('Arial');ascent-override:96%;descent-override:24%;line-gap-override:0%;size-adjust:102%;}`;
+const siteBase = Astro.site ?? new URL("https://auditstream.dev");
+const normalizedPath = normalizeCanonicalPath(currentPath);
+const canonicalUrl = new URL(normalizedPath, siteBase).toString();
+const ogImageUrl = new URL("/og-image.png", siteBase).toString();
+const jsonLd =
+  normalizedPath === "/"
+    ? JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "SoftwareApplication",
+        name: "Auditstream",
+        applicationCategory: "DeveloperApplication",
+        operatingSystem: "Linux, macOS, Windows",
+        license: "https://opensource.org/licenses/MIT",
+        url: "https://auditstream.dev",
+        codeRepository: "https://github.com/auditstream/auditstream",
+        description,
+      })
+    : null;
 ---
 
 <!doctype html>
-<html lang="en" data-mode="dark">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={canonicalUrl} />
-    <meta name="theme-color" content="#0c0f13" />
+    {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonicalUrl} />}
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#fafaf8" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="preload" href={monaSansUrl} as="font" type="font/woff2" crossorigin />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="preload" href={ibmSans400Url} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={ibmSans600Url} as="font" type="font/woff2" crossorigin />
     <link rel="preload" href={ibmMono400Url} as="font" type="font/woff2" crossorigin />
-    <style is:inline set:html={fontFaceCss} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
@@ -68,57 +87,20 @@ const fontFaceCss = `@font-face{font-family:'Mona Sans Variable';font-style:norm
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImageUrl} />
     {jsonLd && <script type="application/ld+json" is:inline set:html={jsonLd} />}
-    <!-- Blocking micro-script prevents light/dark FOUC -->
-    <script is:inline>
-      (function () {
-        var saved = localStorage.getItem("auditstream-mode");
-        var mode = saved === "light" || saved === "dark" ? saved : "dark";
-        document.documentElement.setAttribute("data-mode", mode);
-        var tc = document.querySelector('meta[name="theme-color"]');
-        if (tc) tc.setAttribute("content", mode === "light" ? "#efeee8" : "#0c0f13");
-      })();
-    </script>
   </head>
   <body id="top">
-    <Navbar currentPath={currentPath} />
+    <a href="#main-content" class="skip-link">Skip to content</a>
+    <Navbar currentPath={normalizedPath} />
     {showProgress && <div class="progress-rail" aria-hidden="true" />}
 
     <slot />
 
     <SearchModal />
 
-    <!-- Theme toggle, copy buttons & native smooth anchor clicks (no wheel hijacking!) -->
     <script>
-      const htmlEl = document.documentElement;
-      const modeLabel = document.getElementById("mode-label");
-      const modeBtn = document.getElementById("btn-mode");
-
-      function syncModeLabel() {
-        const mode = htmlEl.getAttribute("data-mode") || "dark";
-        if (modeLabel) modeLabel.textContent = mode === "dark" ? "Light" : "Dark";
-        const tc = document.querySelector('meta[name="theme-color"]');
-        if (tc) tc.setAttribute("content", mode === "light" ? "#efeee8" : "#0c0f13");
-      }
-
-      function toggleMode() {
-        const next = htmlEl.getAttribute("data-mode") === "dark" ? "light" : "dark";
-        htmlEl.setAttribute("data-mode", next);
-        localStorage.setItem("auditstream-mode", next);
-        syncModeLabel();
-      }
-
-      syncModeLabel();
-      modeBtn?.addEventListener("click", toggleMode);
-      window.addEventListener("keydown", (e) => {
-        const inField = /INPUT|TEXTAREA|SELECT/.test((e.target as HTMLElement)?.tagName || "");
-        const modalOpen = !document.getElementById("search-modal")?.hidden;
-        if (!inField && !modalOpen && !e.metaKey && !e.ctrlKey && !e.altKey && e.key.toLowerCase() === "l") {
-          toggleMode();
-        }
-      });
-
-      // Smooth jump ONLY on anchor link clicks — native compositor scroll stays untouched for wheel/trackpad
       const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      // Smooth jump ONLY on explicit anchor link clicks — native wheel/trackpad scroll stays untouched
       document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((a) => {
         a.addEventListener("click", (e) => {
           const id = a.getAttribute("href");
@@ -141,11 +123,38 @@ const fontFaceCss = `@font-face{font-family:'Mona Sans Variable';font-style:norm
         update();
       }
 
-      // Event delegation so static & progressive Copy buttons (including Docs <pre>) work uniformly
+      function extractCleanCode(container: Element | null): string {
+        if (!container) return "";
+        const override = container.getAttribute("data-copy-override");
+        if (override !== null) return override;
+        const pre = container.tagName === "PRE" ? container : container.querySelector("pre");
+        if (!pre) return "";
+        const clone = pre.cloneNode(true) as HTMLElement;
+        clone.querySelectorAll(".ln").forEach((ln) => ln.remove());
+        return (clone.textContent || "").replace(/\n$/, "");
+      }
+
+      // Event delegation so static, tabbed & build-time Docs Copy buttons work uniformly
       document.addEventListener("click", async (e) => {
-        const btn = (e.target as HTMLElement | null)?.closest<HTMLButtonElement>("[data-copy]");
+        const btn = (e.target as HTMLElement | null)?.closest<HTMLButtonElement>(
+          "[data-copy], [data-copy-target], .doc-copy-btn"
+        );
         if (!btn) return;
-        const text = btn.getAttribute("data-copy") || "";
+
+        let text = "";
+        if (btn.hasAttribute("data-copy")) {
+          text = btn.getAttribute("data-copy") || "";
+        } else if (btn.hasAttribute("data-copy-target")) {
+          const sel = btn.getAttribute("data-copy-target") || "";
+          const root = sel ? document.querySelector(sel) : null;
+          const activePanel = root?.querySelector<HTMLElement>('[data-active="true"]') ?? root;
+          text = extractCleanCode(activePanel);
+        } else if (btn.classList.contains("doc-copy-btn")) {
+          const frame = btn.closest(".doc-code-frame");
+          text = extractCleanCode(frame);
+        }
+
+        if (!text) return;
         try {
           await navigator.clipboard.writeText(text);
           const prev = btn.dataset.copyLabel || btn.textContent || "Copy";

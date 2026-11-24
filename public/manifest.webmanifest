@@ -1,0 +1,21 @@
+{
+  "name": "Auditstream",
+  "short_name": "Auditstream",
+  "description": "Open-source audit trail engine for PostgreSQL 15–19 written in Rust.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fafaf8",
+  "theme_color": "#fafaf8",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}

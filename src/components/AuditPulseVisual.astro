@@ -1,0 +1,1044 @@
+---
+// Single spacious Retina focal micro-motion — pure DOM IBM Plex Mono/Sans + inline SVG bridge.
+// Master 6.0s CSS clock (Cause -> Transport/Trigger -> Stamped Effect), compositor-only animations,
+// auto-pauses offscreen/hidden, complete static settled fallback under prefers-reduced-motion.
+---
+
+<figure
+  class="ap-card"
+  id="audit-pulse-visual"
+  aria-label="Live capture flow: 1. Tag query attaches an auditstream SQL comment to an UPDATE, 2. PG Trigger captures the change inside the same xid8 transaction, and 3. Diff recorded stamps an immutable before-and-after row into auditstream.changes."
+>
+  <div class="ap-chrome">
+    <ol class="ap-steps" aria-label="Capture sequence">
+      <li class="ap-step ap-step-1">
+        <span class="ap-step-base">1. Tag query</span>
+        <span class="ap-step-active" aria-hidden="true">1. Tag query</span>
+      </li>
+      <li class="ap-step-sep" aria-hidden="true">→</li>
+      <li class="ap-step ap-step-2">
+        <span class="ap-step-base">2. Trigger fires</span>
+        <span class="ap-step-active" aria-hidden="true">2. Trigger fires</span>
+      </li>
+      <li class="ap-step-sep" aria-hidden="true">→</li>
+      <li class="ap-step ap-step-3">
+        <span class="ap-step-base">3. Diff recorded</span>
+        <span class="ap-step-active" aria-hidden="true">3. Diff recorded</span>
+      </li>
+    </ol>
+    <span class="ap-chrome-right">PostgreSQL 15–19 · Zero daemon</span>
+  </div>
+
+  <div class="ap-stage">
+    <!-- Left Pane: Phase 1 — Application Write -->
+    <div class="ap-pane ap-pane-left">
+      <span class="ap-pane-wash ap-pane-left-wash" aria-hidden="true"></span>
+
+      <div class="ap-pane-head">
+        <span class="ap-pane-label ap-label-left">
+          <span class="ap-label-base">APPLICATION WRITE</span>
+          <span class="ap-label-active" aria-hidden="true">APPLICATION WRITE</span>
+        </span>
+      </div>
+
+      <div class="ap-sql" role="presentation">
+        <div class="ap-sql-line">
+          <span class="st-kw">UPDATE</span> <span class="st-fg">invoice</span>
+        </div>
+        <div class="ap-sql-line">
+          <span class="st-kw">SET</span>    <span class="st-fg">status</span> <span class="st-punc">=</span> <span class="st-str">'paid'</span>
+        </div>
+        <div class="ap-sql-line">
+          <span class="st-kw">WHERE</span>  <span class="st-fg">id</span> <span class="st-punc">=</span> <span class="st-str">'inv_901'</span>
+        </div>
+        <div class="ap-sql-line ap-sql-comment-row">
+          <span class="ap-comment-pill">
+            <span class="ap-comment-active" aria-hidden="true"></span>
+            <span class="ap-comment-text">/*auditstream='eyJ0eXBlIjoiYWlf…'*/</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="ap-pane-foot ap-pane-foot-left">
+        <span class="ap-actor-bar">
+          <span class="ap-actor-bar-active" aria-hidden="true"></span>
+          <span class="ap-actor-bar-content">
+            <span class="ap-foot-strong">ai_agent:billing-agent</span>
+            <span aria-hidden="true">→</span>
+            <span>onBehalfOf user:usr_42</span>
+          </span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Center Bridge: Phase 2 — Crisp Inline SVG Track + Moving Packet + PG Trigger Pill -->
+    <div class="ap-bridge" aria-hidden="true">
+      <!-- Mobile vertical vector bridge (< 820px) -->
+      <svg class="ap-svg-v" viewBox="0 0 28 48" fill="none">
+        <circle cx="14" cy="4" r="2.5" class="ap-track-node" />
+        <line x1="14" y1="6" x2="14" y2="42" class="ap-track-line" />
+        <path d="M9.75 37L14 43.25L18.25 37" class="ap-track-arrow" />
+        <line x1="14" y1="6" x2="14" y2="41" pathLength="100" class="ap-pulse-v" />
+        <g class="ap-packet-v">
+          <rect x="10" y="0" width="8" height="12" rx="4" class="ap-packet-cobalt" />
+          <circle cx="14" cy="8.5" r="1.5" class="ap-packet-core" />
+        </g>
+      </svg>
+
+      <div class="ap-trigger-group">
+        <div class="ap-track-row">
+          <!-- Desktop unobstructed horizontal vector bus with center trigger tap -->
+          <svg class="ap-svg-h" viewBox="0 0 140 34" fill="none">
+            <circle cx="4" cy="14" r="2.5" class="ap-track-node" />
+            <line x1="6" y1="14" x2="132" y2="14" class="ap-track-line" />
+            <path d="M126.5 9.75L133.25 14L126.5 18.25" class="ap-track-arrow" />
+            <line x1="70" y1="18" x2="70" y2="34" class="ap-track-stem" />
+            <line x1="70" y1="18" x2="70" y2="34" class="ap-track-stem-active" />
+
+            <!-- Incoming cobalt comet & packet: Left pane -> center trigger node -->
+            <line x1="6" y1="14" x2="66" y2="14" pathLength="100" class="ap-pulse-in" />
+            <g class="ap-packet-in">
+              <rect x="0" y="10" width="14" height="8" rx="4" class="ap-packet-cobalt" />
+              <circle cx="10.25" cy="14" r="1.6" class="ap-packet-core" />
+            </g>
+
+            <!-- Outgoing emerald comet & packet: center trigger node -> auditstream.changes -->
+            <line x1="74" y1="14" x2="132" y2="14" pathLength="100" class="ap-pulse-out" />
+            <g class="ap-packet-out">
+              <rect x="0" y="10" width="14" height="8" rx="4" class="ap-packet-emerald" />
+              <circle cx="10.25" cy="14" r="1.6" class="ap-packet-core" />
+            </g>
+
+            <!-- Center trigger intercept node -->
+            <circle cx="70" cy="14" r="4.5" class="ap-hub-node" />
+            <circle cx="70" cy="14" r="4.5" class="ap-hub-node-active" />
+          </svg>
+
+          <span class="ap-trigger-pill">
+            <span class="ap-trigger-base">PG Trigger</span>
+            <span class="ap-trigger-active" aria-hidden="true">PG Trigger</span>
+          </span>
+        </div>
+        <span class="ap-trigger-sub">same xid8</span>
+      </div>
+    </div>
+
+    <!-- Right Pane: Phase 3 — Waiting Slot -> Stamped Immutable Audit Row -->
+    <div class="ap-pane ap-pane-right">
+      <span class="ap-pane-wash ap-pane-right-wash" aria-hidden="true"></span>
+
+      <div class="ap-pane-head">
+        <span class="ap-pane-label">auditstream.changes</span>
+        <span class="ap-recorded">
+          <svg class="ap-check-svg" width="13" height="13" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path
+              class="ap-check-path"
+              d="M3.2 8.4L6.6 11.8L12.8 4.6"
+              pathLength="100"
+              stroke="currentColor"
+              stroke-width="2.2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="ap-recorded-text">Recorded</span>
+        </span>
+      </div>
+
+      <div class="ap-ledger-slot">
+        <!-- Visible during Phases 1 & 2 (0%-48%), fades cleanly as the new row stamps in -->
+        <div class="ap-waiting" aria-hidden="true">
+          <span class="ap-waiting-dot"></span>
+          <span class="ap-waiting-title">Waiting for commit…</span>
+          <span class="ap-waiting-sub">Pending trigger inside same xid8</span>
+        </div>
+
+        <!-- Stamps in cleanly during Phase 3 (50%-92%) with crisp micro-stagger -->
+        <div class="ap-record">
+          <div class="ap-record-head">
+            <div class="ap-record-meta">public.invoice · inv_901 · UPDATE</div>
+            <div class="ap-record-actor">
+              <strong class="ap-actor-main">ai_agent:billing-agent</strong>
+              <span class="ap-actor-sub"> · for user:usr_42</span>
+            </div>
+          </div>
+
+          <div class="ap-diffs">
+            <div class="ap-diff ap-diff-del">
+              <span class="ap-diff-sign" aria-hidden="true">−</span>
+              <span>status: "open"</span>
+            </div>
+            <div class="ap-diff ap-diff-add">
+              <span class="ap-diff-sign" aria-hidden="true">+</span>
+              <span>status: "paid"</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ap-pane-foot">
+        <span>SELECT-only app role · 0 pooler leaks</span>
+      </div>
+    </div>
+  </div>
+</figure>
+
+<style>
+  .ap-card {
+    --cycle: 6s;
+    width: 100%;
+    max-width: 60rem;
+    margin: clamp(2rem, 4vw, 3rem) auto 0;
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--radius-lg);
+    background: var(--surface);
+    box-shadow: var(--shadow-focal);
+    overflow: hidden;
+    text-align: left;
+  }
+
+  /* Top Chrome 3-Step Synced Progress Strip */
+  .ap-chrome {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    padding: 0.6rem 1.25rem;
+    border-bottom: 1px solid var(--rule);
+    background: var(--ground-2);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-3);
+  }
+
+  .ap-steps {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.35rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .ap-step {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.16rem 0.5rem;
+    border-radius: var(--radius-pill);
+    border: 1px solid transparent;
+    font-weight: 500;
+    line-height: 1.35;
+    white-space: nowrap;
+  }
+
+  .ap-step-base {
+    color: var(--ink-3);
+  }
+
+  .ap-step-active {
+    position: absolute;
+    inset: -1px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: inherit;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ap-step-1 .ap-step-active {
+    color: var(--accent);
+    background: var(--accent-soft);
+    border: 1px solid var(--accent-border);
+    animation: ap-step-1 var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-step-2 .ap-step-active {
+    color: var(--after);
+    background: var(--after-bg);
+    border: 1px solid var(--after-border);
+    animation: ap-step-2 var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-step-3 .ap-step-active {
+    color: var(--after);
+    background: var(--after-bg);
+    border: 1px solid var(--after-border);
+    animation: ap-step-3 var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-step-sep {
+    color: var(--ink-3);
+    opacity: 0.55;
+    user-select: none;
+  }
+
+  .ap-chrome-right {
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  /* Main 3-Column Stage */
+  .ap-stage {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 112px minmax(0, 1fr);
+    align-items: stretch;
+  }
+
+  .ap-pane {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 1.65rem;
+    min-width: 0;
+  }
+
+  .ap-pane > :not(.ap-pane-wash) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .ap-pane-wash {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .ap-pane-left-wash {
+    background: var(--accent-soft);
+    animation: ap-wash-left var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-pane-right-wash {
+    background: var(--after-bg);
+    animation: ap-wash-right var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-pane-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-height: 1.75rem;
+  }
+
+  .ap-pane-label {
+    position: relative;
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    color: var(--ink-3);
+  }
+
+  .ap-label-active {
+    position: absolute;
+    inset: 0;
+    color: var(--accent);
+    opacity: 0;
+    pointer-events: none;
+    animation: ap-phase-1 var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  /* Left Pane SQL Block */
+  .ap-sql {
+    margin: 1rem 0 1.25rem;
+    font-family: var(--font-mono);
+    font-size: 0.84375rem;
+    line-height: 1.78;
+    font-variant-numeric: tabular-nums;
+    font-variant-ligatures: none;
+    overflow-x: auto;
+    scrollbar-width: thin;
+  }
+
+  .ap-sql .st-kw { color: var(--st-kw); font-weight: 500; }
+  .ap-sql .st-fg { color: var(--st-fg); }
+  .ap-sql .st-str { color: var(--st-str); }
+  .ap-sql .st-punc { color: var(--st-punc); }
+
+  .ap-sql-line { white-space: pre; }
+
+  .ap-sql-comment-row {
+    margin-top: 0.35rem;
+    white-space: normal;
+  }
+
+  .ap-comment-pill {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+    padding: 0.16rem 0.5rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--accent-border);
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .ap-comment-pill::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ap-comment-text {
+    position: relative;
+    z-index: 1;
+  }
+
+  .ap-comment-active {
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    border: 1.5px solid var(--accent);
+    background: color-mix(in srgb, var(--accent) 13%, var(--surface));
+    opacity: 0;
+    pointer-events: none;
+    animation: ap-phase-1 var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  /* Left Actor Footer Highlight */
+  .ap-actor-bar {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    padding: 0.2rem 0.5rem;
+    margin-left: -0.5rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+  }
+
+  .ap-actor-bar-active {
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    border: 1px solid var(--accent-border);
+    background: var(--surface);
+    opacity: 0;
+    pointer-events: none;
+    animation: ap-phase-1 var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-actor-bar-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+  }
+
+  /* Center SVG Bridge */
+  .ap-bridge {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding-block: 1rem;
+    z-index: 2;
+  }
+
+  .ap-trigger-group {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.45rem;
+    width: 100%;
+  }
+
+  .ap-track-row {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .ap-svg-h {
+    display: block;
+    width: 140px;
+    height: 34px;
+    margin-inline: -14px;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .ap-svg-v {
+    display: none;
+    pointer-events: none;
+  }
+
+  .ap-track-node { fill: var(--rule-strong); }
+  .ap-track-line,
+  .ap-track-stem {
+    stroke: var(--rule-strong);
+    stroke-width: 1.5;
+  }
+
+  .ap-track-stem-active {
+    stroke: var(--after);
+    stroke-width: 2;
+    opacity: 0;
+    animation: ap-trigger-fill var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-hub-node {
+    fill: var(--surface);
+    stroke: var(--rule-strong);
+    stroke-width: 1.5;
+  }
+
+  .ap-hub-node-active {
+    fill: var(--after);
+    stroke: var(--after);
+    stroke-width: 1.5;
+    opacity: 0;
+    animation: ap-trigger-fill var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-track-arrow {
+    stroke: var(--rule-strong);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .ap-pulse-in {
+    stroke: var(--accent);
+    stroke-width: 2.75;
+    stroke-linecap: round;
+    stroke-dasharray: 42 100;
+    stroke-dashoffset: 42;
+    opacity: 0;
+    animation: ap-pulse-in var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-pulse-out {
+    stroke: var(--after);
+    stroke-width: 2.75;
+    stroke-linecap: round;
+    stroke-dasharray: 42 100;
+    stroke-dashoffset: 42;
+    opacity: 0;
+    animation: ap-pulse-out var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-pulse-v {
+    stroke: var(--accent);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-dasharray: 34 100;
+    stroke-dashoffset: 34;
+    opacity: 0;
+    animation: ap-pulse-v var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-packet-cobalt { fill: var(--accent); }
+  .ap-packet-emerald { fill: var(--after); }
+  .ap-packet-core { fill: var(--surface); }
+
+  .ap-packet-in {
+    opacity: 0;
+    animation: ap-packet-in var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-packet-out {
+    opacity: 0;
+    animation: ap-packet-out var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-packet-v {
+    opacity: 0;
+    animation: ap-packet-v var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-trigger-pill {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: -1px;
+    padding: 0.28rem 0.68rem;
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--radius-pill);
+    background: var(--surface);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+    animation: ap-trigger-scale var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-trigger-base {
+    position: relative;
+    z-index: 1;
+  }
+
+  .ap-trigger-active {
+    position: absolute;
+    inset: -1px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: inherit;
+    border: 1px solid var(--after);
+    background: var(--after);
+    color: var(--surface);
+    font-weight: 500;
+    opacity: 0;
+    pointer-events: none;
+    animation: ap-trigger-fill var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-trigger-sub {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  /* Right Pane: Recorded Badge & Zero-CLS Ledger Slot */
+  .ap-recorded {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.32rem;
+    padding: 0.16rem 0.62rem;
+    border: 1px solid var(--after);
+    border-radius: var(--radius-pill);
+    background: var(--after);
+    color: var(--surface);
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+    opacity: 0;
+    animation: ap-recorded var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-check-path {
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: ap-check var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-ledger-slot {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    flex: 1;
+    margin: 0.9rem 0 1.25rem;
+  }
+
+  .ap-waiting,
+  .ap-record {
+    grid-area: 1 / 1;
+    min-width: 0;
+  }
+
+  .ap-waiting {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 1.15rem 1rem;
+    border: 1.5px dashed var(--rule-strong);
+    border-radius: var(--radius-md);
+    background: var(--ground);
+    text-align: center;
+    animation: ap-waiting var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-waiting-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: var(--radius-pill);
+    background: var(--ink-3);
+    opacity: 0.55;
+    animation: ap-waiting-dot var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-waiting-title {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+
+  .ap-waiting-sub {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-3);
+  }
+
+  .ap-record {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .ap-record-head {
+    opacity: 0;
+    animation: ap-stamp-head var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-record-meta {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    color: var(--ink-2);
+  }
+
+  .ap-record-actor {
+    margin-top: 0.28rem;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+  }
+
+  .ap-actor-main { color: var(--ink); font-weight: 600; }
+  .ap-actor-sub { color: var(--ink-2); }
+
+  .ap-diffs {
+    margin-top: 0.85rem;
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .ap-diff {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.42rem 0.75rem;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 0.84375rem;
+    line-height: 1.45;
+    opacity: 0;
+  }
+
+  .ap-diff-sign { font-weight: 600; user-select: none; }
+
+  .ap-diff-del {
+    background: var(--before-bg);
+    color: var(--before);
+    border: 1px solid var(--before-border);
+    animation: ap-stamp-del var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-diff-add {
+    background: var(--after-bg);
+    color: var(--after);
+    border: 1px solid var(--after-border);
+    animation: ap-stamp-add var(--cycle) var(--ease-smooth) infinite;
+  }
+
+  .ap-pane-foot {
+    margin-top: auto;
+    padding-top: 0.95rem;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--ink-3);
+  }
+
+  .ap-foot-strong { color: var(--ink-2); font-weight: 500; }
+
+  /* ============================================================================
+     Master 6.0s Choreography
+     Phase 1 (0%-28%):  Tag query — left pane wash, SQL comment tag, actor footer
+     Phase 2 (25%-54%): Trigger captures — cobalt packet -> emerald PG Trigger -> emerald delivery
+     Phase 3 (50%-92%): Diff recorded — waiting fades out, row micro-staggers in, calm ~2s hold
+     Reset   (92%-100%): Smooth return to waiting state
+     ============================================================================ */
+
+  @keyframes ap-step-1 {
+    0% { opacity: 0; }
+    4%, 26% { opacity: 1; }
+    31%, 100% { opacity: 0; }
+  }
+
+  @keyframes ap-step-2 {
+    0%, 24% { opacity: 0; }
+    28%, 51% { opacity: 1; }
+    56%, 100% { opacity: 0; }
+  }
+
+  @keyframes ap-step-3 {
+    0%, 49% { opacity: 0; }
+    53%, 92% { opacity: 1; }
+    97%, 100% { opacity: 0; }
+  }
+
+  @keyframes ap-wash-left {
+    0% { opacity: 0; }
+    5%, 25% { opacity: 0.55; }
+    33%, 100% { opacity: 0; }
+  }
+
+  @keyframes ap-phase-1 {
+    0% { opacity: 0; }
+    4%, 26% { opacity: 1; }
+    33%, 100% { opacity: 0; }
+  }
+
+  @keyframes ap-pulse-in {
+    0%, 24% { stroke-dashoffset: 42; opacity: 0; }
+    27% { stroke-dashoffset: 32; opacity: 1; }
+    39% { stroke-dashoffset: -100; opacity: 1; }
+    42%, 100% { stroke-dashoffset: -108; opacity: 0; }
+  }
+
+  @keyframes ap-packet-in {
+    0%, 24% { transform: translateX(4px); opacity: 0; }
+    27% { transform: translateX(8px); opacity: 1; }
+    37% { transform: translateX(52px); opacity: 1; }
+    40%, 100% { transform: translateX(58px); opacity: 0; }
+  }
+
+  @keyframes ap-trigger-fill {
+    0%, 35% { opacity: 0; }
+    38%, 56% { opacity: 1; }
+    63%, 100% { opacity: 0; }
+  }
+
+  @keyframes ap-trigger-scale {
+    0%, 35% { transform: scale(1); }
+    40% { transform: scale(1.05); }
+    54%, 100% { transform: scale(1); }
+  }
+
+  @keyframes ap-pulse-out {
+    0%, 40% { stroke-dashoffset: 42; opacity: 0; }
+    43% { stroke-dashoffset: 32; opacity: 1; }
+    53% { stroke-dashoffset: -100; opacity: 1; }
+    56%, 100% { stroke-dashoffset: -108; opacity: 0; }
+  }
+
+  @keyframes ap-packet-out {
+    0%, 40% { transform: translateX(70px); opacity: 0; }
+    43% { transform: translateX(76px); opacity: 1; }
+    51% { transform: translateX(116px); opacity: 1; }
+    54%, 100% { transform: translateX(124px); opacity: 0; }
+  }
+
+  @keyframes ap-pulse-v {
+    0%, 24% { stroke-dashoffset: 34; opacity: 0; }
+    28% { stroke-dashoffset: 24; opacity: 1; }
+    50% { stroke-dashoffset: -100; opacity: 1; }
+    54%, 100% { stroke-dashoffset: -108; opacity: 0; }
+  }
+
+  @keyframes ap-packet-v {
+    0%, 24% { transform: translateY(2px); opacity: 0; }
+    28% { transform: translateY(6px); opacity: 1; }
+    49% { transform: translateY(28px); opacity: 1; }
+    53%, 100% { transform: translateY(34px); opacity: 0; }
+  }
+
+  @keyframes ap-waiting {
+    0%, 46% { opacity: 1; transform: scale(1); }
+    48% { opacity: 0.72; transform: scale(0.992); }
+    51.5%, 95.5% { opacity: 0; transform: scale(0.975); }
+    99%, 100% { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes ap-waiting-dot {
+    0%, 100% { opacity: 0.45; transform: scale(0.92); }
+    22% { opacity: 1; transform: scale(1.1); }
+    44% { opacity: 0.45; transform: scale(0.92); }
+  }
+
+  @keyframes ap-wash-right {
+    0%, 49% { opacity: 0; }
+    56%, 64% { opacity: 0.45; }
+    76%, 100% { opacity: 0; }
+  }
+
+  @keyframes ap-stamp-head {
+    0%, 50% { opacity: 0; transform: translateY(10px); }
+    51% { opacity: 0; transform: translateY(10px); }
+    57%, 92% { opacity: 1; transform: translateY(0); }
+    95.5% { opacity: 0; transform: translateY(-4px); }
+    97%, 100% { opacity: 0; transform: translateY(10px); }
+  }
+
+  @keyframes ap-stamp-del {
+    0%, 53% { opacity: 0; transform: translateY(10px); }
+    54% { opacity: 0; transform: translateY(10px); }
+    61%, 92% { opacity: 1; transform: translateY(0); }
+    95.5% { opacity: 0; transform: translateY(-4px); }
+    97%, 100% { opacity: 0; transform: translateY(10px); }
+  }
+
+  @keyframes ap-stamp-add {
+    0%, 57% { opacity: 0; transform: translateY(10px); }
+    58% { opacity: 0; transform: translateY(10px); }
+    65%, 92% { opacity: 1; transform: translateY(0); }
+    95.5% { opacity: 0; transform: translateY(-4px); }
+    97%, 100% { opacity: 0; transform: translateY(10px); }
+  }
+
+  @keyframes ap-recorded {
+    0%, 59% { opacity: 0; transform: translateY(4px) scale(0.95); }
+    60% { opacity: 0; transform: translateY(4px) scale(0.95); }
+    66%, 92% { opacity: 1; transform: translateY(0) scale(1); }
+    95.5%, 100% { opacity: 0; transform: translateY(4px) scale(0.95); }
+  }
+
+  @keyframes ap-check {
+    0%, 60% { stroke-dashoffset: 100; }
+    68%, 92% { stroke-dashoffset: 0; }
+    97%, 100% { stroke-dashoffset: 100; }
+  }
+
+  .ap-card.is-paused *,
+  .ap-card.is-paused *::before,
+  .ap-card.is-paused *::after {
+    animation-play-state: paused !important;
+  }
+
+  @media (min-width: 820px) and (max-width: 960px) {
+    .ap-pane {
+      padding: 1.35rem 1.25rem;
+    }
+
+    .ap-sql {
+      font-size: 0.8125rem;
+    }
+  }
+
+  /* Mobile vertical stack (< 820px) */
+  @media (max-width: 819px) {
+    .ap-chrome {
+      padding: 0.65rem 1rem;
+      gap: 0.45rem 0.75rem;
+    }
+
+    .ap-stage {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .ap-pane {
+      padding: 1.2rem 1.15rem;
+    }
+
+    .ap-bridge {
+      flex-direction: row;
+      justify-content: center;
+      gap: 0.8rem;
+      min-height: 48px;
+      padding: 0.35rem 1.15rem;
+      border-top: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+      background: var(--ground);
+    }
+
+    .ap-svg-h { display: none; }
+    .ap-svg-v { display: block; width: 28px; height: 48px; flex-shrink: 0; }
+    .ap-trigger-group { flex-direction: row; width: auto; gap: 0.6rem; }
+    .ap-track-row { width: auto; }
+    .ap-trigger-pill { margin-top: 0; }
+  }
+
+  @media (max-width: 480px) {
+    .ap-pane {
+      padding: 1.1rem 1rem;
+    }
+
+    .ap-sql {
+      font-size: 0.75rem;
+    }
+
+    .ap-comment-pill {
+      padding: 0.14rem 0.4rem;
+    }
+
+    .ap-step {
+      padding: 0.14rem 0.42rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ap-card *,
+    .ap-card *::before,
+    .ap-card *::after {
+      animation: none !important;
+    }
+
+    .ap-waiting {
+      display: none !important;
+    }
+
+    .ap-pane-left-wash,
+    .ap-pane-right-wash {
+      opacity: 0 !important;
+    }
+
+    .ap-step-active,
+    .ap-comment-active,
+    .ap-actor-bar-active,
+    .ap-trigger-active,
+    .ap-track-stem-active,
+    .ap-hub-node-active {
+      opacity: 1 !important;
+    }
+
+    .ap-pulse-in,
+    .ap-pulse-out,
+    .ap-pulse-v,
+    .ap-packet-in,
+    .ap-packet-out,
+    .ap-packet-v {
+      opacity: 0 !important;
+    }
+
+    .ap-record-head,
+    .ap-diff-del,
+    .ap-diff-add,
+    .ap-recorded {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+
+    .ap-check-path {
+      stroke-dashoffset: 0 !important;
+      opacity: 1 !important;
+    }
+  }
+</style>
+
+<script>
+  const card = document.getElementById("audit-pulse-visual");
+  if (card && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    let inView = true;
+    const sync = () => card.classList.toggle("is-paused", !inView || document.hidden);
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(
+        (entries) => {
+          inView = Boolean(entries[0]?.isIntersecting);
+          sync();
+        },
+        { threshold: 0.05 }
+      ).observe(card);
+    }
+    document.addEventListener("visibilitychange", sync);
+  }
+</script>

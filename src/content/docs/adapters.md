@@ -1,14 +1,26 @@
 ---
 title: TypeScript Adapters
-description: ESM-only packages for Node.js, Prisma 7, and Drizzle — built around AsyncLocalStorage.run() with zero capture logic in JS.
-section: Adapters
-order: 5
-eyebrow: ADAPTERS · AUDITSTREAM-JS
+description: ESM-only packages (v0.2.0) for Node.js, Prisma 7, and Drizzle — built around AsyncLocalStorage.run() with zero capture logic in JS.
+section: Get Started
+order: 3
+eyebrow: GET STARTED · ADAPTERS
 ---
 
-`auditstream-js` publishes three **ESM-only** packages versioned together as a fixed group. `@auditstream/node` manages actor context; ORM adapters only forward that actor to PostgreSQL.
+[`auditstream-js`](https://github.com/auditstream/auditstream-js) publishes three **ESM-only** packages (v0.2.0), versioned together as a fixed group. `@auditstream/node` manages actor context; ORM adapters only forward that actor to PostgreSQL.
 
-| Package | Responsibility | Peer dependencies |
+## Install
+
+```bash
+# Prisma 7.1+
+pnpm add @auditstream/node @auditstream/prisma
+
+# Drizzle 0.45 or 1.x
+pnpm add @auditstream/node @auditstream/drizzle
+```
+
+> **Triggers live in PostgreSQL:** Adapters never create audit tables or triggers. Generate and apply your capture migrations first with the `auditstream` CLI ([Getting Started](/docs/getting-started/)).
+
+| Package (v0.2.0) | Responsibility | Peer dependencies |
 | :--- | :--- | :--- |
 | `@auditstream/node` | `AsyncLocalStorage` (`run()` only), `audit.as()`, `audit.log(exec, event)`, `audit.history(exec, query)`, `audit.query(exec, query)`, transport codec, `/express`, `/hono`, `/next` | `express`, `hono`, `next` (optional) |
 | `@auditstream/prisma` | `auditstream()` SQL comments plugin (Prisma 7.1+) + `auditTransaction()` `set_config` fallback | `@prisma/client >=7.1.0 <8`, `@auditstream/node` |
@@ -18,11 +30,13 @@ eyebrow: ADAPTERS · AUDITSTREAM-JS
 
 A dual ESM/CommonJS build can load `@auditstream/node` twice in the same process, creating two separate `AsyncLocalStorage` instances and silently dropping the actor. Shipping ESM-only with `@auditstream/node` as a peer dependency — and sharing both the `AsyncLocalStorage` store and scope cache via `Symbol.for(...)` — eliminates that hazard even across multi-chunk server bundles.
 
-## Wire once per request (framework middlewares)
+## Framework middleware
 
-You do **not** need to wrap every database call manually with `audit.as()`. Wire the actor scope once at your HTTP or action boundary:
+You do **not** need to wrap every database call manually with `audit.as()`. Wire the actor scope once at your HTTP or action boundary.
 
-### Hono (`@auditstream/node/hono`)
+### Hono
+
+Use `@auditstream/node/hono`:
 
 ```ts
 import { Hono } from "hono";
@@ -41,7 +55,9 @@ app.use(
 );
 ```
 
-### Express (`@auditstream/node/express`)
+### Express
+
+Use `@auditstream/node/express`:
 
 ```ts
 import express from "express";
@@ -55,9 +71,9 @@ app.use(
 );
 ```
 
-### Next.js 16 (`@auditstream/node/next`)
+### Next.js 16
 
-`AsyncLocalStorage` does not cross Next.js `proxy`. Derive the actor from your verified session inside Route Handlers (`withAudit`) and Server Actions (`auditAction`):
+`AsyncLocalStorage` does not cross Next.js `proxy`. Derive the actor from your verified session inside Route Handlers (`withAudit`) and Server Actions (`auditAction`) using `@auditstream/node/next`:
 
 ```ts
 import { withAudit, auditAction } from "@auditstream/node/next";
@@ -78,16 +94,24 @@ export const approveInvoice = auditAction(
 );
 ```
 
-## ORM adapters & application helpers
+## ORM & query helpers
 
-### Prisma 7 (`@auditstream/prisma`)
+### Prisma 7
+
+Use `@auditstream/prisma`:
 
 ```ts
+import pg from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 import { auditstream, auditTransaction } from "@auditstream/prisma";
 
 // Default: trailing sqlcommenter tag (no explicit transaction required)
-const db = new PrismaClient({ comments: [auditstream()] });
+// Never configure statementNameGenerator on PrismaPg alongside SQL comments
+const db = new PrismaClient({
+  adapter: new PrismaPg(new pg.Pool({ connectionString: process.env.DATABASE_URL })),
+  comments: [auditstream()],
+});
 
 // Fallback for Prisma Accelerate (uses transaction-local set_config):
 await auditTransaction(db, async (tx) => {
@@ -95,7 +119,9 @@ await auditTransaction(db, async (tx) => {
 });
 ```
 
-### Drizzle 0.45 & 1.x (`@auditstream/drizzle`)
+### Drizzle
+
+Use `@auditstream/drizzle` for Drizzle 0.45 and 1.x:
 
 ```ts
 import pg from "pg";
@@ -109,7 +135,9 @@ const pool = wrapPgPool(new pg.Pool({ connectionString: process.env.DATABASE_URL
 const db = drizzle({ client: pool });
 ```
 
-### Querying history & logging app events (`@auditstream/node`)
+### History & app events
+
+Read timelines and log non-database domain events directly from `@auditstream/node`:
 
 ```ts
 import { audit } from "@auditstream/node";
@@ -131,9 +159,9 @@ await audit.log(exec, {
 });
 ```
 
-### Filtered, keyset-paginated feeds (`audit.query`)
+### Paginated feeds
 
-Use `audit.query()` for filtered, keyset-paginated queries (zero `COUNT(*)`) across both database trigger rows (`source: "db"`) and application events (`source: "app"`):
+Use `audit.query()` for filtered, keyset-paginated feeds (zero `COUNT(*)`) across both database trigger rows (`source: "db"`) and application events (`source: "app"`):
 
 ```ts
 import { type AuditQuery, type AuditQueryPage, audit } from "@auditstream/node";
@@ -150,15 +178,23 @@ const page: AuditQueryPage = await audit.query(exec, query);
 // Pass page.nextCursor back as `cursor` when page.hasMore is true
 ```
 
-> **Backend-only API:** `audit.query()` returns raw `HistoryEntry` rows including internal database metadata (`db_user`, `xact_id`, `table_oid`, `actor_source`) and raw `before`/`after` payloads. Always enforce authentication and tenant authorization on the server and project each row into an allowlisted DTO before sending data to browsers. See the runnable **Next.js 16 + Prisma 7 Activity Feed** (`examples/next-prisma` in [`auditstream-js`](https://github.com/auditstream/auditstream-js/tree/main/examples/next-prisma)) for a copy-paste BFF pattern (Auditstream intentionally omits a styled React UI package — see ADR-0009).
+> **Backend-only API:** `audit.query()` returns raw `HistoryEntry` rows including internal database metadata (`db_user`, `xact_id`, `table_oid`, `actor_source`) and raw `before`/`after` payloads. Always enforce authentication and tenant authorization on the server and project each row into an allowlisted DTO before sending data to browsers. See the runnable **Next.js 16 + Prisma 7 Activity Feed** (`examples/next-prisma` in [`auditstream-js`](https://github.com/auditstream/auditstream-js/tree/main/examples/next-prisma)) for a copy-paste BFF pattern (Auditstream intentionally omits a styled React UI package — see [ADR-0009](https://github.com/auditstream/auditstream/blob/main/docs/decisions/0009-no-ui-package-or-in-db-partition-sealing.md)).
 
-## Critical concurrency rules (proven by tests)
+## Concurrency rules
+
+Proven directly against live PostgreSQL concurrency tests:
 
 - **Always await inside `audit.as()`.** Prisma and Drizzle queries are lazy and only execute when awaited. Returning an unawaited query from `als.run()` lost the actor in 7 of 7 tested operations; `audit.as()` awaits its callback inside the scope.
 - **Read the actor at `pool.query` entry.** `pg-pool` can invoke a queued `client.query` callback on whichever request released a connection. Reading the actor inside `client.query` attributed 4 of 20 concurrent writes to the wrong actor; reading at `pool.query` entry yielded **0 wrong actors across 60+ concurrent writes**.
-- **Runtime boundaries.** Uses `AsyncLocalStorage.run()` exclusively (`enterWith()` does not exist on Cloudflare Workers; enable `nodejs_als` or compatibility date `2026-08-04` or later). In Next.js 16, wrap Route Handlers (`withAudit`) and Server Actions (`auditAction`) from `@auditstream/node/next` rather than relying on `proxy` shared state.
+- **Runtime boundaries.** Uses `AsyncLocalStorage.run()` exclusively (`enterWith()` does not exist on Cloudflare Workers; enable `nodejs_als` or compatibility date 2026-08-04 or later). In Next.js 16, wrap Route Handlers (`withAudit`) and Server Actions (`auditAction`) from `@auditstream/node/next` rather than relying on `proxy` shared state.
 - **App-only events.** Adapters never construct database audit rows. Non-DB events (such as exports or logins) call `audit.log(exec, { action, target, data })`, which invokes `auditstream.log_event($1::text, $2::jsonb, $3::jsonb)`.
 
-## Transport hot-path caching (`@auditstream/node`)
+## Hot-path caching
 
-Because `audit.as()` validates and deeply freezes each active `AuditScope`, `@auditstream/node` caches its canonical JSON, UTF-8 bytes, unpadded base64url tag, and trailing comment suffix in a process-wide `WeakMap` (`auditstream-js#64`), while `isTagged()` uses a bounded `O(1)` trailing-character scan instead of per-query regex matching. Caller-constructed mutable scopes passed directly to `encodeScope()` or `tagSql()` are never cached. On Node `v26.13.1`, repeated `encodeScope(audit.current())` calls drop from `1,395 ns` to **`10.4 ns`** (**134× faster**), and `tagSql()` inside `audit.as()` runs **5.0×–6.4× faster** (`157–240 ns/op`).
+Because `audit.as()` validates and deeply freezes each active `AuditScope`, `@auditstream/node` caches its canonical JSON, UTF-8 bytes, unpadded base64url tag, and trailing comment suffix in a process-wide `WeakMap` (auditstream-js#64), while `isTagged()` uses a bounded O(1) trailing-character scan instead of per-query regex matching. Caller-constructed mutable scopes passed directly to `encodeScope()` or `tagSql()` are never cached. On Node v26.13.1, repeated `encodeScope(audit.current())` calls drop from 1,395 ns to **10.4 ns** (**134× faster**), and `tagSql()` inside `audit.as()` runs **5.0×–6.4× faster** (157–240 ns/op; see [Evidence & Benchmarks](/docs/evidence/)).
+
+## Next steps
+
+- Check wire encoding and actor validation rules in [Contract (Spec v0.1.1)](/docs/contract/).
+- Review PgBouncer, Neon, Supabase, and Prisma Accelerate guidance in [Cloud, Poolers & Security](/docs/cloud-and-security/).
+- Explore full runnable apps in [`auditstream/auditstream-js`](https://github.com/auditstream/auditstream-js).

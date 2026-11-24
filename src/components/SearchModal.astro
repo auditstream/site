@@ -1,11 +1,54 @@
 ---
-// Instant client-side search modal powered by Pagefind (loaded lazily on first open — 0 KB until used!)
+// Instant client-side search modal powered by Pagefind (loaded lazily on first open — 0 KB until used)
+const CORE_SHORTCUTS = [
+  {
+    url: "/docs/getting-started/",
+    title: "Getting Started",
+    excerpt: "Supported PostgreSQL 15–19 versions, CLI install channels, and 60-second setup.",
+  },
+  {
+    url: "/docs/adapters/",
+    title: "TypeScript Adapters",
+    excerpt: "Prisma 7, Drizzle 0.45 & 1.x, Hono/Express/Next.js middleware, and AsyncLocalStorage rules.",
+  },
+  {
+    url: "/docs/cli/",
+    title: "CLI & Day-2 Ops",
+    excerpt: "init, status, verify --fix, history, export-time redaction, and commit-safe xid8 cursors.",
+  },
+  {
+    url: "/docs/cloud-and-security/",
+    title: "Cloud, Poolers & Security",
+    excerpt: "PgBouncer, Neon, Supavisor, NOLOGIN owner isolation, and tamper-resistance boundaries.",
+  },
+  {
+    url: "/docs/evidence/",
+    title: "Evidence & Benchmarks",
+    excerpt: "Durable disk PG 19, PgBouncer 2.4M tx stress proof, 500k-row scale, and honest limits.",
+  },
+];
 ---
 
-<div class="search-backdrop" id="search-modal" hidden role="dialog" aria-modal="true" aria-label="Search documentation">
-  <div class="search-dialog plate-reg">
+<div
+  class="search-backdrop"
+  id="search-modal"
+  hidden
+  role="dialog"
+  aria-modal="true"
+  aria-label="Search documentation"
+>
+  <div class="search-dialog">
     <div class="search-head">
-      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--ink-3);flex-shrink:0;" aria-hidden="true">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        class="search-icon"
+        aria-hidden="true"
+      >
         <circle cx="11" cy="11" r="8" />
         <path d="m21 21-4.3-4.3" />
       </svg>
@@ -14,6 +57,7 @@
         id="search-input"
         class="search-input"
         role="combobox"
+        aria-label="Search documentation"
         aria-expanded="false"
         aria-controls="search-results"
         aria-autocomplete="list"
@@ -21,32 +65,90 @@
         autocomplete="off"
         spellcheck="false"
       />
-      <button type="button" class="chip-btn" id="close-search" style="height:1.65rem;padding:0 0.5rem;">Esc</button>
+      <button type="button" class="chip-btn is-compact" id="close-search" aria-label="Close search">Esc</button>
     </div>
 
-    <div class="search-results" id="search-results" role="listbox">
-      <div class="search-empty">Type to search Auditstream documentation…</div>
+    <div class="search-meta-bar">
+      <span id="search-status" aria-live="polite">Quick links · 5 core docs</span>
+      <span>Pagefind</span>
     </div>
+
+    <div class="search-results" id="search-results" role="listbox" aria-label="Search results">
+      {CORE_SHORTCUTS.map((item, idx) => (
+        <a
+          id={`search-hit-${idx}`}
+          class="search-hit"
+          href={item.url}
+          data-selected={idx === 0 ? "true" : "false"}
+          aria-selected={idx === 0 ? "true" : "false"}
+          role="option"
+        >
+          <div class="search-hit-title">{item.title}</div>
+          <div class="search-hit-excerpt">{item.excerpt}</div>
+        </a>
+      ))}
+    </div>
+
+    <div class="search-empty" id="search-empty" hidden></div>
 
     <div class="search-foot">
       <span>↑↓ navigate · ↵ open · Esc close</span>
-      <span>Powered by Pagefind</span>
+      <span>Press / or ⌘K anywhere</span>
     </div>
   </div>
 </div>
 
+<style>
+  .search-icon {
+    color: var(--ink-3);
+    flex-shrink: 0;
+  }
+</style>
+
 <script>
+  const CORE_SHORTCUTS = [
+    {
+      url: "/docs/getting-started/",
+      title: "Getting Started",
+      excerpt: "Supported PostgreSQL 15–19 versions, CLI install channels, and 60-second setup.",
+    },
+    {
+      url: "/docs/adapters/",
+      title: "TypeScript Adapters",
+      excerpt: "Prisma 7, Drizzle 0.45 & 1.x, Hono/Express/Next.js middleware, and AsyncLocalStorage rules.",
+    },
+    {
+      url: "/docs/cli/",
+      title: "CLI & Day-2 Ops",
+      excerpt: "init, status, verify --fix, history, export-time redaction, and commit-safe xid8 cursors.",
+    },
+    {
+      url: "/docs/cloud-and-security/",
+      title: "Cloud, Poolers & Security",
+      excerpt: "PgBouncer, Neon, Supavisor, NOLOGIN owner isolation, and tamper-resistance boundaries.",
+    },
+    {
+      url: "/docs/evidence/",
+      title: "Evidence & Benchmarks",
+      excerpt: "Durable disk PG 19, PgBouncer 2.4M tx stress proof, 500k-row scale, and honest limits.",
+    },
+  ];
+
   const modal = document.getElementById("search-modal");
   const dialog = modal?.querySelector<HTMLElement>(".search-dialog");
   const input = document.getElementById("search-input") as HTMLInputElement | null;
   const resultsEl = document.getElementById("search-results");
+  const emptyEl = document.getElementById("search-empty");
+  const statusEl = document.getElementById("search-status");
   const openBtn = document.getElementById("open-search");
   const closeBtn = document.getElementById("close-search");
 
   let pagefind: any = null;
-  let activeIndex = -1;
-  let hits: Array<{ url: string; title: string; excerpt: string }> = [];
+  let pagefindLoading = false;
+  let activeIndex = 0;
+  let hits: Array<{ url: string; title: string; excerpt: string }> = CORE_SHORTCUTS;
   let lastFocused: HTMLElement | null = null;
+  let querySeq = 0;
 
   function escapeHtml(raw: string): string {
     return raw.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -54,6 +156,7 @@
 
   async function ensurePagefind() {
     if (pagefind) return pagefind;
+    pagefindLoading = true;
     try {
       const pfPath = "/pagefind/pagefind.js";
       pagefind = await import(/* @vite-ignore */ pfPath);
@@ -61,7 +164,58 @@
       return pagefind;
     } catch {
       return null;
+    } finally {
+      pagefindLoading = false;
     }
+  }
+
+  function showEmptyState(statusText: string, bodyHtml: string) {
+    if (statusEl) statusEl.textContent = statusText;
+    if (resultsEl) {
+      resultsEl.innerHTML = "";
+      resultsEl.hidden = true;
+    }
+    if (emptyEl) {
+      emptyEl.innerHTML = bodyHtml;
+      emptyEl.hidden = false;
+    }
+    hits = [];
+    activeIndex = -1;
+    input?.removeAttribute("aria-activedescendant");
+  }
+
+  function syncActiveDescendant() {
+    if (!input || !resultsEl) return;
+    if (activeIndex >= 0 && activeIndex < hits.length) {
+      const id = `search-hit-${activeIndex}`;
+      input.setAttribute("aria-activedescendant", id);
+      document.getElementById(id)?.scrollIntoView({ block: "nearest" });
+    } else {
+      input.removeAttribute("aria-activedescendant");
+    }
+  }
+
+  function renderHits(statusText: string, escapeExcerpt: boolean) {
+    if (!resultsEl || !emptyEl) return;
+    if (statusEl) statusEl.textContent = statusText;
+    emptyEl.hidden = true;
+    resultsEl.hidden = false;
+    resultsEl.innerHTML = hits
+      .map(
+        (h, i) => `
+        <a id="search-hit-${i}" class="search-hit" href="${escapeHtml(h.url)}" data-selected="${i === activeIndex}" aria-selected="${i === activeIndex}" role="option">
+          <div class="search-hit-title">${escapeHtml(h.title)}</div>
+          <div class="search-hit-excerpt">${escapeExcerpt ? escapeHtml(h.excerpt) : h.excerpt}</div>
+        </a>`
+      )
+      .join("");
+    syncActiveDescendant();
+  }
+
+  function showShortcuts() {
+    hits = CORE_SHORTCUTS;
+    activeIndex = 0;
+    renderHits("Quick links · 5 core docs", true);
   }
 
   function openModal() {
@@ -70,6 +224,7 @@
     modal.hidden = false;
     input.setAttribute("aria-expanded", "true");
     document.body.style.overflow = "hidden";
+    if (!input.value.trim()) showShortcuts();
     input.focus();
     input.select();
     ensurePagefind();
@@ -85,63 +240,60 @@
     lastFocused = null;
   }
 
-  function syncActiveDescendant() {
-    if (!input || !resultsEl) return;
-    if (activeIndex >= 0 && activeIndex < hits.length) {
-      const id = `search-hit-${activeIndex}`;
-      input.setAttribute("aria-activedescendant", id);
-      document.getElementById(id)?.scrollIntoView({ block: "nearest" });
-    } else {
-      input.removeAttribute("aria-activedescendant");
-    }
-  }
-
-  function renderHits() {
-    if (!resultsEl) return;
-    if (!hits.length) {
-      resultsEl.innerHTML = `<div class="search-empty">${input?.value.trim() ? "No matching pages found." : "Type to search Auditstream documentation…"}</div>`;
-      syncActiveDescendant();
-      return;
-    }
-    resultsEl.innerHTML = hits
-      .map(
-        (h, i) => `
-        <a id="search-hit-${i}" class="search-hit" href="${escapeHtml(h.url)}" data-selected="${i === activeIndex}" aria-selected="${i === activeIndex}" role="option">
-          <div class="search-hit-title">${escapeHtml(h.title)}</div>
-          <div class="search-hit-excerpt">${h.excerpt}</div>
-        </a>`
-      )
-      .join("");
-    syncActiveDescendant();
-  }
-
   let debounce: ReturnType<typeof setTimeout> | null = null;
   input?.addEventListener("input", () => {
     if (debounce) clearTimeout(debounce);
+    const seq = ++querySeq;
+    const q = input.value.trim();
+
+    if (!q) {
+      showShortcuts();
+      return;
+    }
+
+    if (!pagefind || pagefindLoading) {
+      showEmptyState("Loading search index…", "Loading documentation index…");
+    }
+
     debounce = setTimeout(async () => {
-      const q = input.value.trim();
-      if (!q) {
-        hits = [];
-        activeIndex = -1;
-        renderHits();
-        return;
-      }
       const pf = await ensurePagefind();
+      if (seq !== querySeq) return;
       if (!pf) {
-        if (resultsEl) {
-          resultsEl.innerHTML = `<div class="search-empty">Search index is generated on build (<code>pnpm build</code>).</div>`;
-        }
+        showEmptyState(
+          "Search unavailable",
+          `<div>Search is temporarily unavailable. Browse the docs sidebar instead.</div>
+           <div class="search-recovery-links">
+             <a href="/docs/">All Docs</a>
+             <a href="/docs/getting-started/">Getting Started</a>
+             <a href="/docs/cli/">CLI Reference</a>
+           </div>`
+        );
         return;
       }
       const search = await pf.search(q);
+      if (seq !== querySeq) return;
       const loaded = await Promise.all(search.results.slice(0, 8).map((r: any) => r.data()));
+      if (seq !== querySeq) return;
       hits = loaded.map((d: any) => ({
         url: d.url,
         title: d.meta?.title || d.url,
         excerpt: d.excerpt || "",
       }));
-      activeIndex = hits.length ? 0 : -1;
-      renderHits();
+      if (!hits.length) {
+        showEmptyState(
+          "0 results",
+          `<div>No matching pages for “${escapeHtml(q)}”.</div>
+           <div class="search-recovery-links">
+             <a href="/docs/">Browse Docs</a>
+             <a href="/docs/getting-started/">Getting Started</a>
+             <a href="/docs/cli/">CLI &amp; Day-2 Ops</a>
+           </div>`
+        );
+        return;
+      }
+      activeIndex = 0;
+      const total = search.results.length;
+      renderHits(`${total} ${total === 1 ? "result" : "results"}`, false);
     }, 90);
   });
 
@@ -152,14 +304,17 @@
   });
 
   window.addEventListener("keydown", (e) => {
-    const inField = /INPUT|TEXTAREA/.test((e.target as HTMLElement)?.tagName || "");
+    const target = e.target as HTMLElement | null;
+    const inField = Boolean(
+      target && (/INPUT|TEXTAREA|SELECT/.test(target.tagName) || target.isContentEditable)
+    );
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
       e.preventDefault();
       if (modal?.hidden) openModal();
       else closeModal();
       return;
     }
-    if (!inField && e.key === "/" && modal?.hidden) {
+    if (!inField && !e.metaKey && !e.ctrlKey && !e.altKey && e.key === "/" && modal?.hidden) {
       e.preventDefault();
       openModal();
       return;
@@ -171,7 +326,7 @@
       } else if (e.key === "Tab" && dialog) {
         const focusables = Array.from(
           dialog.querySelectorAll<HTMLElement>('input, button, a[href], [tabindex]:not([tabindex="-1"])')
-        ).filter((el) => !el.hasAttribute("disabled"));
+        ).filter((el) => !el.hasAttribute("disabled") && el.offsetParent !== null);
         if (focusables.length) {
           const first = focusables[0];
           const last = focusables[focusables.length - 1];
@@ -186,11 +341,11 @@
       } else if (e.key === "ArrowDown" && hits.length) {
         e.preventDefault();
         activeIndex = (activeIndex + 1) % hits.length;
-        renderHits();
+        renderHits(statusEl?.textContent || "", !input?.value.trim());
       } else if (e.key === "ArrowUp" && hits.length) {
         e.preventDefault();
         activeIndex = (activeIndex - 1 + hits.length) % hits.length;
-        renderHits();
+        renderHits(statusEl?.textContent || "", !input?.value.trim());
       } else if (e.key === "Enter" && activeIndex >= 0 && hits[activeIndex]) {
         e.preventDefault();
         window.location.href = hits[activeIndex].url;
