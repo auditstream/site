@@ -8,16 +8,20 @@
   --font-sans: "Mona Sans Variable", "Mona Sans Fallback", system-ui, -apple-system, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-smooth-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-quick: 150ms;
+  --dur-fast: 250ms;
+  --dur-med: 350ms;
   --sheet: clamp(68rem, 88vw, 86rem);
 
-  /* Light Mode (Warm Mineral Paper) */
+  /* Light Mode (Warm Mineral Paper) — all text tokens >= 4.5:1 WCAG AA */
   --ground: #efeee8;
   --ground-2: #e5e3db;
   --plate: #f8f7f3;
   --plate-2: #f1f0ea;
   --ink: #101418;
   --ink-2: #3b444f;
-  --ink-3: #646f7d;
+  --ink-3: #545f6d;
   --rule: rgba(16, 20, 24, 0.12);
   --rule-strong: rgba(16, 20, 24, 0.28);
 
@@ -32,8 +36,8 @@
   --before-bg: rgba(184, 50, 39, 0.10);
   --after: #0c7559;
   --after-bg: rgba(12, 117, 89, 0.10);
-  --hold: #a86408;
-  --hold-bg: rgba(168, 100, 8, 0.11);
+  --hold: #945605;
+  --hold-bg: rgba(148, 86, 5, 0.11);
 
   /* Deep Blueprint Field Band */
   --field: #091726;
@@ -41,23 +45,24 @@
   --field-plate: #07121e;
   --on-field: #e9f2fb;
   --on-field-2: #9cb9d6;
-  --on-field-3: #6b8cae;
+  --on-field-3: #7c9fc2;
   --on-field-rule: rgba(233, 242, 251, 0.14);
   --on-field-rule-strong: rgba(233, 242, 251, 0.28);
   --field-grid: rgba(107, 166, 255, 0.075);
 
   --nav-bg: rgba(239, 238, 232, 0.96);
   --reg-mark: rgba(16, 20, 24, 0.34);
+  --curtain-shadow: rgba(16, 20, 24, 0.14);
 
   /* Compact Shiki Token Palette (Light) */
   --st-fg: #101418;
-  --st-cm: #687482;
+  --st-cm: #5a6674;
   --st-kw: #1a4ea8;
   --st-fn: #0c1015;
   --st-str: #0c6e54;
   --st-num: #1d56b8;
   --st-prop: #2c3540;
-  --st-punc: #6b7685;
+  --st-punc: #5a6674;
 }
 
 html[data-mode="dark"] {
@@ -67,7 +72,7 @@ html[data-mode="dark"] {
   --plate-2: #0f1318;
   --ink: #edf1f5;
   --ink-2: #a3aebc;
-  --ink-3: #6f7b8a;
+  --ink-3: #8290a0;
   --rule: rgba(237, 241, 245, 0.10);
   --rule-strong: rgba(237, 241, 245, 0.24);
 
@@ -88,23 +93,24 @@ html[data-mode="dark"] {
   --field-plate: #06101b;
   --on-field: #e9f2fb;
   --on-field-2: #9ab7d4;
-  --on-field-3: #6888a8;
+  --on-field-3: #7d9ec0;
   --on-field-rule: rgba(233, 242, 251, 0.13);
   --on-field-rule-strong: rgba(233, 242, 251, 0.26);
   --field-grid: rgba(107, 166, 255, 0.08);
 
   --nav-bg: rgba(12, 15, 19, 0.96);
   --reg-mark: rgba(237, 241, 245, 0.30);
+  --curtain-shadow: rgba(0, 0, 0, 0.42);
 
   /* Compact Shiki Token Palette (Dark) */
   --st-fg: #e6ecf2;
-  --st-cm: #738294;
+  --st-cm: #7f8fa2;
   --st-kw: #93b4dc;
   --st-fn: #f0f4f8;
   --st-str: #7fd4b8;
   --st-num: #6ba6ff;
   --st-prop: #c5d1de;
-  --st-punc: #7c8a9b;
+  --st-punc: #8594a6;
 }
 
 /* Inverted Warm Mineral Paper Datasheet inside Dark Mode */
@@ -115,7 +121,7 @@ html[data-mode="dark"] .as-datasheet {
   --plate-2: #f1f0ea;
   --ink: #101418;
   --ink-2: #3b444f;
-  --ink-3: #646f7d;
+  --ink-3: #545f6d;
   --rule: rgba(16, 20, 24, 0.12);
   --rule-strong: rgba(16, 20, 24, 0.28);
   --accent: #1a4ea8;
@@ -125,8 +131,8 @@ html[data-mode="dark"] .as-datasheet {
   --before-bg: rgba(184, 50, 39, 0.10);
   --after: #0c7559;
   --after-bg: rgba(12, 117, 89, 0.10);
-  --hold: #a86408;
-  --hold-bg: rgba(168, 100, 8, 0.11);
+  --hold: #945605;
+  --hold-bg: rgba(148, 86, 5, 0.11);
   --reg-mark: rgba(16, 20, 24, 0.34);
 }
 
@@ -220,6 +226,7 @@ html {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -379,10 +386,33 @@ code, pre, .mono {
 .ic {
   font-family: var(--font-mono);
   font-size: 0.85em;
-  padding: 0.1em 0.4em;
-  background: var(--plate);
-  border: 1px solid var(--rule);
+  padding: 0.08em 0.34em;
+  background: color-mix(in srgb, var(--ink) 6.5%, transparent);
   color: var(--ink);
+}
+
+/* Zero-CLS CSS Grid overlay stack: all panels occupy cell 1/1 so height locks to tallest panel */
+.panel-stack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.panel-stack > * {
+  grid-area: 1 / 1;
+  min-width: 0;
+  transition: opacity var(--dur-quick) var(--ease-smooth-out);
+}
+
+.panel-stack > [data-active="false"] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.panel-stack > [data-active="true"] {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* Pills & Buttons */
@@ -432,13 +462,27 @@ code, pre, .mono {
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.45rem;
-  transition: border-color 140ms, color 140ms;
+  transition: border-color var(--dur-quick), color var(--dur-quick), background-color var(--dur-quick);
+}
+
+.chip-btn[data-copy] {
+  min-width: 4.1rem;
 }
 
 .chip-btn:hover {
   border-color: var(--rule-strong);
   color: var(--ink);
+}
+
+.kbd-hint {
+  border: 1px solid var(--rule);
+  background: var(--plate-2);
+  color: var(--ink-3);
+  padding: 0 0.28rem;
+  font-size: 0.64rem;
+  line-height: 1.45;
 }
 
 .btn {
@@ -450,7 +494,7 @@ code, pre, .mono {
   font-size: 0.86rem;
   font-weight: 540;
   border: 1px solid var(--rule-strong);
-  transition: all 150ms var(--ease-out);
+  transition: background-color var(--dur-quick) var(--ease-out), border-color var(--dur-quick) var(--ease-out), color var(--dur-quick) var(--ease-out), opacity var(--dur-quick) var(--ease-out), transform var(--dur-quick) var(--ease-out);
 }
 
 .btn-primary {
@@ -513,9 +557,10 @@ code, pre, .mono {
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 1.6rem;
+  gap: clamp(0.8rem, 1.5vw, 1.6rem);
   font-size: 0.84rem;
   color: var(--ink-2);
+  white-space: nowrap;
 }
 
 .nav-links a:hover,
@@ -527,6 +572,16 @@ code, pre, .mono {
   display: flex;
   align-items: center;
   gap: 0.45rem;
+  flex-shrink: 0;
+}
+
+#btn-mode {
+  min-width: 5.8rem;
+}
+
+html[data-mode="dark"] .icon-moon,
+html[data-mode="light"] .icon-sun {
+  display: none;
 }
 
 .progress-rail {
@@ -558,6 +613,14 @@ code, pre, .mono {
 .tabs {
   display: flex;
   align-items: center;
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .tab {
@@ -567,7 +630,8 @@ code, pre, .mono {
   color: var(--ink-3);
   border-right: 1px solid var(--rule);
   white-space: nowrap;
-  transition: all 140ms;
+  flex-shrink: 0;
+  transition: color var(--dur-quick), background-color var(--dur-quick), box-shadow var(--dur-quick);
 }
 
 .tab:hover {
@@ -683,7 +747,17 @@ code, pre, .mono {
   background: var(--plate-2);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .nav-inner { gap: 0.6rem; }
   .nav-links, .kbd-hint, .hide-sm { display: none; }
+  #btn-mode { min-width: 2.2rem; padding: 0 0.5rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -47,25 +47,31 @@ function docHref(id: string) {
 >
   <div class="docs-frame shell">
     <aside class="docs-sidebar" aria-label="Documentation navigation">
-      <div class="docs-sidebar-inner">
-        {grouped.map((g) => (
-          <div class="docs-group">
-            <div class="docs-group-title">{g.section}</div>
-            <ul>
-              {g.items.map((item) => (
-                <li>
-                  <a
-                    href={docHref(item.id)}
-                    aria-current={item.id === currentSlug ? "page" : undefined}
-                  >
-                    {item.data.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
+      <details class="docs-nav-disclosure">
+        <summary class="docs-nav-summary">
+          <span class="mono">DOCS · {title}</span>
+          <span class="docs-nav-caret mono" aria-hidden="true">Menu ▾</span>
+        </summary>
+        <div class="docs-sidebar-inner">
+          {grouped.map((g) => (
+            <div class="docs-group">
+              <div class="docs-group-title">{g.section}</div>
+              <ul>
+                {g.items.map((item) => (
+                  <li>
+                    <a
+                      href={docHref(item.id)}
+                      aria-current={item.id === currentSlug ? "page" : undefined}
+                    >
+                      {item.data.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </details>
     </aside>
 
     <article class="docs-article" data-pagefind-body>
@@ -156,10 +162,60 @@ function docHref(id: string) {
     }
   }
 
+  .docs-nav-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 0.9rem;
+    border: 1px solid var(--rule-strong);
+    background: var(--plate);
+    font-size: 0.74rem;
+    color: var(--ink);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .docs-nav-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .docs-nav-caret {
+    font-size: 0.7rem;
+    color: var(--ink-3);
+  }
+
+  .docs-nav-disclosure[open] .docs-sidebar-inner {
+    margin-top: 1rem;
+    padding: 0.9rem 1rem 0.25rem;
+    border: 1px solid var(--rule);
+    background: var(--plate);
+  }
+
+  @media (min-width: 960px) {
+    .docs-nav-summary {
+      display: none;
+    }
+    .docs-nav-disclosure {
+      display: contents;
+    }
+    .docs-nav-disclosure:not([open]) > .docs-sidebar-inner {
+      display: block !important;
+    }
+    .docs-nav-disclosure[open] .docs-sidebar-inner {
+      margin-top: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+    }
+  }
+
   .docs-sidebar-inner,
   .docs-toc-inner {
     position: sticky;
     top: 5.5rem;
+    max-height: calc(100vh - 6.5rem);
+    overflow-y: auto;
+    scrollbar-width: thin;
   }
 
   .docs-group {
@@ -199,7 +255,8 @@ function docHref(id: string) {
     color: var(--ink);
   }
 
-  .docs-sidebar a[aria-current="page"] {
+  .docs-sidebar a[aria-current="page"],
+  .docs-toc a[aria-current="location"] {
     color: var(--accent);
     border-left-color: var(--accent);
     font-weight: 540;
@@ -265,6 +322,13 @@ function docHref(id: string) {
     font-size: 0.94rem;
   }
 
+  .prose :global(p),
+  .prose :global(ul),
+  .prose :global(ol),
+  .prose :global(blockquote) {
+    max-width: 68ch;
+  }
+
   .prose :global(strong) {
     color: var(--ink);
     font-weight: 600;
@@ -288,10 +352,34 @@ function docHref(id: string) {
   .prose :global(code:not(pre code)) {
     font-family: var(--font-mono);
     font-size: 0.84em;
-    padding: 0.12em 0.4em;
-    background: var(--plate);
-    border: 1px solid var(--rule);
+    padding: 0.08em 0.34em;
+    background: color-mix(in srgb, var(--ink) 6.5%, transparent);
     color: var(--ink);
+  }
+
+  .prose :global(.doc-code-frame) {
+    margin: 1.35rem 0;
+    border: 1px solid var(--rule-strong);
+    background: var(--plate);
+  }
+
+  .prose :global(.doc-code-bar) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.42rem 0.8rem;
+    border-bottom: 1px solid var(--rule);
+    background: var(--plate-2);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
+
+  .prose :global(.doc-code-frame pre) {
+    margin: 0;
+    border: 0;
   }
 
   .prose :global(pre) {
@@ -300,15 +388,23 @@ function docHref(id: string) {
     background: var(--plate) !important;
   }
 
-  .prose :global(table) {
-    width: 100%;
-    border-collapse: collapse;
+  .prose :global(.table-wrap) {
     margin: 1.5rem 0;
     border: 1px solid var(--rule-strong);
     background: var(--plate);
-    font-size: 0.84rem;
-    display: block;
     overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule-strong) transparent;
+  }
+
+  .prose :global(table) {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+    border: 0;
+    background: transparent;
+    font-size: 0.84rem;
+    display: table;
   }
 
   .prose :global(th),
@@ -317,6 +413,10 @@ function docHref(id: string) {
     border-bottom: 1px solid var(--rule);
     text-align: left;
     vertical-align: top;
+  }
+
+  .prose :global(tbody tr:last-child td) {
+    border-bottom: 0;
   }
 
   .prose :global(thead th) {
@@ -344,6 +444,12 @@ function docHref(id: string) {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
+  }
+
+  @media (max-width: 540px) {
+    .docs-pager {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 
   .pager-card {
@@ -374,3 +480,57 @@ function docHref(id: string) {
     gap: 1rem;
   }
 </style>
+
+<script>
+  // Ensure desktop disclosure stays open natively on resize and add progressive Copy buttons + TOC scrollspy
+  const disc = document.querySelector<HTMLDetailsElement>(".docs-nav-disclosure");
+  const syncDisc = () => {
+    if (disc && window.innerWidth >= 960) disc.open = true;
+  };
+  syncDisc();
+  window.addEventListener("resize", syncDisc, { passive: true });
+
+  document.querySelectorAll<HTMLPreElement>(".prose pre").forEach((pre) => {
+    if (pre.parentElement?.classList.contains("doc-code-frame")) return;
+    const raw = (pre.textContent || "").replace(/\n$/, "");
+    const lang = pre.getAttribute("data-language") || "code";
+    const frame = document.createElement("div");
+    frame.className = "doc-code-frame";
+    const bar = document.createElement("div");
+    bar.className = "doc-code-bar";
+    const label = document.createElement("span");
+    label.textContent = lang;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "chip-btn";
+    btn.style.height = "1.55rem";
+    btn.style.padding = "0 0.5rem";
+    btn.setAttribute("data-copy", raw);
+    btn.textContent = "Copy";
+    bar.append(label, btn);
+    pre.parentNode?.insertBefore(frame, pre);
+    frame.append(bar, pre);
+  });
+
+  const tocLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>(".docs-toc a[href^='#']"));
+  if (tocLinks.length && "IntersectionObserver" in window) {
+    const headings = tocLinks
+      .map((a) => document.getElementById(a.getAttribute("href")!.slice(1)))
+      .filter((el): el is HTMLElement => Boolean(el));
+    const setActive = (id: string) => {
+      tocLinks.forEach((a) => {
+        if (a.getAttribute("href") === `#${id}`) a.setAttribute("aria-current", "location");
+        else a.removeAttribute("aria-current");
+      });
+    };
+    if (headings[0]) setActive(headings[0].id);
+    const io = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visible[0]) setActive(visible[0].target.id);
+      },
+      { rootMargin: "-72px 0px -65% 0px", threshold: 0 }
+    );
+    headings.forEach((h) => io.observe(h));
+  }
+</script>
