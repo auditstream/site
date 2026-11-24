@@ -556,6 +556,27 @@
   background: var(--after);
 }
 
+.opt-grid {
+  display: grid;
+  border: 1px solid var(--rule);
+  background: var(--plate-2);
+}
+
+.opt-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 0.75rem;
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--rule);
+  font-size: 0.75rem;
+}
+
+.opt-row:last-child {
+  border-bottom: 0;
+}
+
 .proven-strip {
   margin-top: 1.4rem;
   border: 1px solid var(--rule-strong);
@@ -591,6 +612,16 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.phase.done {
+  border-color: color-mix(in srgb, var(--after) 38%, var(--rule));
+}
+
+.phase.done .phase-num {
+  border-color: color-mix(in srgb, var(--after) 55%, var(--rule));
+  background: var(--after-bg);
+  color: var(--after);
 }
 
 .phase.current {
