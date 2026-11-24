@@ -1,6 +1,7 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
 import BrandMark from "../components/BrandMark.astro";
+import LiveWorkbench from "../components/LiveWorkbench.astro";
 import { highlightCode } from "../lib/highlight";
 import "../styles/landing.css";
 
@@ -193,20 +194,17 @@ const qs3Html = await highlightCode(
         <div class="hero-top-row">
           <div class="eyebrow">
             <span class="eyebrow-dot" />
-            <span>FORENSIC LEDGER · POSTGRESQL 15–19 · RUST</span>
-          </div>
-          <div class="mono" style="font-size:0.7rem;color:var(--ink-3);">
-            ZERO DAEMON · ZERO WAL SLOTS · ZERO NEW INFRA
+            <span>FORENSIC LEDGER · POSTGRESQL 15–19 · RUST · ZERO DAEMON</span>
           </div>
         </div>
 
         <div class="hero-fit-box" id="hero-fit-box">
           <h1 class="hero-h1">
             <span class="mask-line">
-              <span class="fit-line" style="--fit:114.6%;--wdth:114.6;">Every row changed<span class="dot-accent">.</span></span>
+              <span class="fit-line">Every row changed<span class="dot-accent">.</span></span>
             </span>
             <span class="mask-line">
-              <span class="fit-line" style="--fit:122.1%;--wdth:122.1;">Proven in Postgres<span class="dot-accent">.</span></span>
+              <span class="fit-line">Proven in Postgres<span class="dot-accent">.</span></span>
             </span>
           </h1>
         </div>
@@ -223,7 +221,7 @@ const qs3Html = await highlightCode(
 
             <div style="margin-top:1.65rem;display:flex;flex-wrap:wrap;gap:0.7rem;">
               <a href="#quickstart" class="btn btn-primary">Install auditstream</a>
-              <a href="/docs" class="btn btn-secondary">Read the docs</a>
+              <a href="#workbench" class="btn btn-secondary">Try live simulator</a>
             </div>
 
             <div class="hero-specs">
@@ -254,37 +252,46 @@ const qs3Html = await highlightCode(
               </div>
             </div>
 
-            <div class="telemetry-diagram">
-              <svg class="telemetry-svg" viewBox="0 0 680 54" fill="none" aria-hidden="true">
-                <line x1="56" y1="20" x2="624" y2="20" stroke="var(--rule-strong)" stroke-width="1" />
+            <div class="hero-stepper-rail">
+              <svg class="telemetry-svg" viewBox="0 0 680 26" fill="none" aria-hidden="true">
+                <line x1="85" y1="13" x2="595" y2="13" stroke="var(--rule-strong)" stroke-width="1" />
                 <line
                   id="rail-active"
-                  x1="56"
-                  y1="20"
-                  x2="56"
-                  y2="20"
+                  x1="85"
+                  y1="13"
+                  x2="595"
+                  y2="13"
                   stroke="var(--accent)"
                   stroke-width="2"
+                  stroke-dasharray="510"
+                  stroke-dashoffset="510"
                 />
-                <g class="t-node" data-idx="0">
-                  <rect x="44" y="8" width="24" height="24" fill="var(--plate)" stroke="var(--accent)" stroke-width="1.5" />
-                  <circle cx="56" cy="20" r="3.5" fill="var(--accent)" />
-                  <text x="56" y="47" text-anchor="middle" fill="var(--ink)" font-family="IBM Plex Mono, monospace" font-size="9.5">APP / SQL</text>
+                <line
+                  id="rail-packet"
+                  x1="85"
+                  y1="13"
+                  x2="595"
+                  y2="13"
+                  stroke="var(--after)"
+                  stroke-width="3"
+                  stroke-dasharray="28 540"
+                  stroke-dashoffset="28"
+                />
+                <g class="t-node t-node-btn" data-idx="0">
+                  <rect x="76" y="4" width="18" height="18" fill="var(--plate)" stroke="var(--accent)" stroke-width="1.5" />
+                  <circle cx="85" cy="13" r="3" fill="var(--accent)" />
                 </g>
-                <g class="t-node" data-idx="1">
-                  <rect x="233" y="8" width="24" height="24" fill="var(--plate)" stroke="var(--rule-strong)" stroke-width="1.5" />
-                  <circle cx="245" cy="20" r="3.5" fill="var(--ink-3)" />
-                  <text x="245" y="47" text-anchor="middle" fill="var(--ink-3)" font-family="IBM Plex Mono, monospace" font-size="9.5">PG TRIGGER</text>
+                <g class="t-node t-node-btn" data-idx="1">
+                  <rect x="246" y="4" width="18" height="18" fill="var(--plate)" stroke="var(--rule-strong)" stroke-width="1.5" />
+                  <circle cx="255" cy="13" r="3" fill="var(--ink-3)" />
                 </g>
-                <g class="t-node" data-idx="2">
-                  <rect x="422" y="8" width="24" height="24" fill="var(--plate)" stroke="var(--rule-strong)" stroke-width="1.5" />
-                  <circle cx="434" cy="20" r="3.5" fill="var(--ink-3)" />
-                  <text x="434" y="47" text-anchor="middle" fill="var(--ink-3)" font-family="IBM Plex Mono, monospace" font-size="9.5">CHANGES (xid8)</text>
+                <g class="t-node t-node-btn" data-idx="2">
+                  <rect x="416" y="4" width="18" height="18" fill="var(--plate)" stroke="var(--rule-strong)" stroke-width="1.5" />
+                  <circle cx="425" cy="13" r="3" fill="var(--ink-3)" />
                 </g>
-                <g class="t-node" data-idx="3">
-                  <rect x="612" y="8" width="24" height="24" fill="var(--plate)" stroke="var(--rule-strong)" stroke-width="1.5" />
-                  <circle cx="624" cy="20" r="3.5" fill="var(--ink-3)" />
-                  <text x="624" y="47" text-anchor="middle" fill="var(--ink-3)" font-family="IBM Plex Mono, monospace" font-size="9.5">JSONL / CSV</text>
+                <g class="t-node t-node-btn" data-idx="3">
+                  <rect x="586" y="4" width="18" height="18" fill="var(--plate)" stroke="var(--rule-strong)" stroke-width="1.5" />
+                  <circle cx="595" cy="13" r="3" fill="var(--ink-3)" />
                 </g>
               </svg>
             </div>
@@ -319,17 +326,36 @@ const qs3Html = await highlightCode(
               </div>
             </div>
 
-            <div class="ledger-strip">
-              <span>xact_id <strong style="color:var(--ink);">48291044</strong> · public.invoice · UPDATE</span>
-              <span style="display:inline-flex;gap:0.4rem;">
-                <span class="pill pill-before">− open</span>
-                <span class="pill pill-after">+ paid</span>
-              </span>
+            <div class="ledger-strip panel-stack">
+              <div class="ledger-strip-row" data-ledger="0" data-active="true">
+                <span>decoded: <strong style="color:var(--accent);">user:usr_42</strong> · 10.4 ns cached tag</span>
+                <span class="pill pill-accent">NO EXTRA TX</span>
+              </div>
+              <div class="ledger-strip-row" data-ledger="1" data-active="false" aria-hidden="true" inert>
+                <span>trigger diff · <strong style="color:var(--ink);">public.invoice</strong> · UPDATE</span>
+                <span style="display:inline-flex;gap:0.4rem;">
+                  <span class="pill pill-before">− open</span>
+                  <span class="pill pill-after">+ paid</span>
+                </span>
+              </div>
+              <div class="ledger-strip-row" data-ledger="2" data-active="false" aria-hidden="true" inert>
+                <span>xact_id <strong style="color:var(--ink);">48291044</strong> · auditstream.changes</span>
+                <span class="pill pill-after">SELECT-ONLY APP ROLE</span>
+              </div>
+              <div class="ledger-strip-row" data-ledger="3" data-active="false" aria-hidden="true" inert>
+                <span>window <strong style="color:var(--ink);">xact_id &lt; pg_snapshot_xmin()</strong></span>
+                <span class="pill pill-accent">1,428 JSONL ACKED</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </section>
+
+    <!-- ======================================================================
+         INTERACTIVE PROTOCOL WORKBENCH — Try real base64url + PG trigger live
+         ====================================================================== -->
+    <LiveWorkbench />
 
     <!-- ======================================================================
          SECTION 01 — ATTRIBUTION & AI AGENT ACTORS (auditstream-js)
@@ -465,7 +491,15 @@ const qs3Html = await highlightCode(
 
           <div class="plate-bar" style="border-top:1px solid var(--rule);border-bottom:0;">
             <span>actor: <strong style="color:var(--accent);">ai_agent:billing-agent</strong> (onBehalfOf <strong style="color:var(--ink);">usr_42</strong>)</span>
-            <span style="color:var(--accent);">xact_id = 48291044 · SELECT-ONLY</span>
+            <div class="tamper-actions">
+              <span style="color:var(--ink-3);font-size:0.67rem;">Test as app_role:</span>
+              <button type="button" class="tamper-btn" data-tamper="UPDATE">UPDATE</button>
+              <button type="button" class="tamper-btn" data-tamper="DELETE">DELETE</button>
+            </div>
+          </div>
+          <div class="tamper-strip" id="tamper-strip" aria-live="polite">
+            <span class="tamper-msg" id="tamper-msg">xact_id = 48291044 · role: app_user (SELECT only) · owner: auditstream_owner</span>
+            <span class="pill pill-after" id="tamper-pill">TAMPER-PROOF</span>
           </div>
         </div>
       </div>
@@ -488,12 +522,16 @@ const qs3Html = await highlightCode(
         <div class="horizon-board reveal">
           <div class="horizon-bar">
             <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
-              <span style="color:var(--on-field);font-weight:600;">CONCURRENT COMMITS vs. SAFE HORIZON</span>
-              <span class="pill pill-accent" id="hz-badge">HORIZON: xact_id &lt; 48291042</span>
+              <span style="color:var(--on-field);font-weight:600;">CONCURRENT COMMITS vs. HORIZON</span>
+              <span class="pill pill-accent" id="hz-badge" style="min-width:13.2rem;justify-content:center;">xact_id &lt; 48291042</span>
             </div>
-            <div class="horizon-toggle" role="group" aria-label="Simulate export runs">
-              <button type="button" class="horizon-btn" data-run="1" data-active="true" aria-pressed="true">Run #1 · tx 42 still open</button>
-              <button type="button" class="horizon-btn" data-run="2" data-active="false" aria-pressed="false">Run #2 · tx 42 commits</button>
+            <div style="display:flex;align-items:center;gap:0.55rem;flex-wrap:wrap;">
+              <div class="horizon-toggle" role="group" aria-label="Simulate export runs">
+                <button type="button" class="horizon-btn" data-run="1" data-active="true" aria-pressed="true">Run #1 · t2 (tx 42 open)</button>
+                <button type="button" class="horizon-btn" data-run="2" data-active="false" aria-pressed="false">Run #2 · t4 (tx 42 commits)</button>
+                <button type="button" class="horizon-btn is-danger" data-run="naive" data-active="false" aria-pressed="false">Naive id &gt; last_id</button>
+              </div>
+              <button type="button" class="chip-btn" id="hz-replay" style="height:1.85rem;background:var(--field-plate);border-color:var(--on-field-rule-strong);color:var(--on-field);">▶ Replay</button>
             </div>
           </div>
 
@@ -514,7 +552,7 @@ const qs3Html = await highlightCode(
                 <text x="855" y="20" text-anchor="middle">t4 (Export #2)</text>
               </g>
 
-              <rect id="hz-zone" x="160" y="34" width="360" height="44" fill="rgba(52, 211, 153, 0.08)" stroke="rgba(52, 211, 153, 0.30)" style="transition:all 420ms var(--ease-out);" />
+              <rect id="hz-zone" x="160" y="34" width="695" height="173" fill="rgba(52, 211, 153, 0.08)" stroke="rgba(52, 211, 153, 0.30)" style="transform:scale(0.518, 0.254);" />
               <text id="hz-zone-lbl" x="510" y="45" text-anchor="end" fill="#34d399" font-family="IBM Plex Mono, monospace" font-size="8.5" letter-spacing="0.08em" opacity="0.85">SAFE EXPORT RANGE</text>
 
               <g font-family="IBM Plex Mono, monospace" font-size="11.5" fill="var(--on-field)">
@@ -536,9 +574,9 @@ const qs3Html = await highlightCode(
               <circle cx="330" cy="57" r="4" fill="#34d399" />
               <text x="186" y="61" fill="#e9f2fb" font-family="IBM Plex Mono, monospace" font-size="10">COMMIT · EXPORTED</text>
 
-              <rect id="bar-tx42" x="210" y="89" width="445" height="22" fill="rgba(230,179,90,0.16)" stroke="#e6b35a" stroke-width="1.3" stroke-dasharray="5 3" />
-              <circle id="dot-tx42" cx="655" cy="100" r="4" fill="#e6b35a" />
-              <text id="txt-tx42" x="220" y="104" fill="#e6b35a" font-family="IBM Plex Mono, monospace" font-size="10">IN FLIGHT AT t2 — HOLDS xmin (COMMITS LATER AT t3)</text>
+              <rect id="bar-tx42" x="210" y="89" width="445" height="22" fill="rgba(230,179,90,0.16)" stroke="#e6b35a" stroke-width="1.3" stroke-dasharray="5 3" style="transform:scaleX(0.697);" />
+              <circle id="dot-tx42" cx="655" cy="100" r="4" fill="#e6b35a" style="transform:translateX(-135px);" />
+              <text id="txt-tx42" x="220" y="104" fill="#e6b35a" font-family="IBM Plex Mono, monospace" font-size="10">IN FLIGHT AT t2 — HOLDS xmin</text>
 
               <rect id="bar-tx43" x="242" y="132" width="224" height="22" fill="rgba(107,166,255,0.15)" stroke="#6ba6ff" stroke-width="1.3" />
               <circle id="dot-tx43" cx="466" cy="143" r="4" fill="#6ba6ff" />
@@ -551,9 +589,9 @@ const qs3Html = await highlightCode(
               <rect x="680" y="218" width="248" height="22" fill="rgba(230,179,90,0.12)" stroke="rgba(230,179,90,0.65)" stroke-width="1.2" stroke-dasharray="5 3" />
               <text x="690" y="233" fill="var(--on-field-2)" font-family="IBM Plex Mono, monospace" font-size="10">IN FLIGHT AT t4 (NEXT xmin)</text>
 
-              <g id="hz-line-group" style="transition:transform 420ms var(--ease-out);" transform="translate(0, 0)">
-                <line x1="520" y1="28" x2="520" y2="256" stroke="#6ba6ff" stroke-width="2" />
-                <rect x="434" y="256" width="172" height="22" fill="#4f90f5" />
+              <g id="hz-line-group" style="transform:translateX(0px);">
+                <line id="hz-line-bar" x1="520" y1="28" x2="520" y2="256" stroke="#6ba6ff" stroke-width="2" />
+                <rect id="hz-line-pill" x="434" y="256" width="172" height="22" fill="#4f90f5" />
                 <text id="hz-line-label" x="520" y="271" text-anchor="middle" fill="#061221" font-family="IBM Plex Mono, monospace" font-size="10" font-weight="600">xmin = 48291042</text>
               </g>
             </svg>
@@ -576,6 +614,14 @@ const qs3Html = await highlightCode(
               </div>
               <div>
                 <strong>Zero WAL retention risk:</strong> The cursor is acknowledged only after the sink flushes — run every minute, hourly, or on demand without holding a replication slot open.
+              </div>
+            </div>
+            <div class="horizon-foot-grid" data-hz-foot="naive" data-active="false" aria-hidden="true" inert>
+              <div>
+                <strong style="color:var(--before);">Silent audit gap under naive <span class="mono">id &gt; last_id</span>:</strong> At <span class="mono">t2</span>, the exporter reads <span class="mono">id 41, 43, 44</span> and saves <span class="mono">last_id = 44</span>.
+              </div>
+              <div>
+                <strong style="color:var(--before);">Row permanently missed:</strong> When <span class="mono">xid 42</span> commits at <span class="mono">t3</span>, its row has <span class="mono">id = 42 &lt;= 44</span> — future <span class="mono">id &gt; 44</span> runs never see it.
               </div>
             </div>
           </div>
@@ -1051,53 +1097,9 @@ const qs3Html = await highlightCode(
   }
 
   /* --------------------------------------------------------------------------
-     1. Zero-CLS Linear Hero Width Refinement (only adjusts horizontal wdth —
-        NEVER changes font-size after paint! 2 reads instead of 26 reflows!)
+     1. Crisp opacity-only one-shot reveal (zero transform on text = zero blur!)
+        Hero H1 uses pure CSS container queries — zero runtime fitHeroLines() JS!
      -------------------------------------------------------------------------- */
-  function setWidth(el, w) {
-    const clamped = Math.max(75, Math.min(125, w));
-    el.style.setProperty("--fit", clamped.toFixed(1) + "%");
-    el.style.setProperty("--wdth", clamped.toFixed(1));
-  }
-
-  function fitHeroLines() {
-    const box = document.getElementById("hero-fit-box");
-    if (!box) return;
-    const targetW = box.clientWidth * 0.996;
-    if (!targetW) return;
-    const lines = Array.from(box.querySelectorAll(".fit-line"));
-
-    const initial = lines.map((el) => ({
-      el,
-      w: el.getBoundingClientRect().width,
-      wdth: parseFloat(el.style.getPropertyValue("--wdth")) || 100,
-    }));
-
-    initial.forEach(({ el, w, wdth }) => {
-      if (!w || Math.abs(w - targetW) < 2) return;
-      const ratio = targetW / w;
-      const next = wdth + (ratio - 1) * 215;
-      setWidth(el, next);
-    });
-
-    const refined = lines.map((el) => ({
-      el,
-      w: el.getBoundingClientRect().width,
-      wdth: parseFloat(el.style.getPropertyValue("--wdth")) || 100,
-    }));
-    refined.forEach(({ el, w, wdth }) => {
-      if (!w || Math.abs(w - targetW) < 1.5) return;
-      const delta = ((targetW / w) - 1) * 215;
-      setWidth(el, wdth + delta);
-    });
-  }
-
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(fitHeroLines);
-  }
-  window.addEventListener("resize", fitHeroLines, { passive: true });
-
-  /* Crisp opacity-only one-shot reveal (zero transform on text = zero blur!) */
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   if (!prefersReducedMotion && "IntersectionObserver" in window) {
     const nodes = Array.from(document.querySelectorAll(".reveal"));
@@ -1122,71 +1124,116 @@ const qs3Html = await highlightCode(
   }
 
   /* --------------------------------------------------------------------------
-     2. Hero 4-Stage Telemetry Replay (Zero-CLS .panel-stack + offscreen pause!)
+     2. Unified Hero Telemetry Stepper (stroke-dashoffset rail + packet pulse +
+        synced ledger-strip + hover/focus/offscreen auto-pause)
      -------------------------------------------------------------------------- */
   const TRACE_META = [
-    { title: "01 · Trailing sqlcommenter tag (base64url)", badge: "NO EXPLICIT TX", railX: 56 },
-    { title: "02 · PostgreSQL trigger computes before & after", badge: "SECURITY DEFINER", railX: 245 },
-    { title: "03 · Committed to auditstream.changes", badge: "xact_id = 48291044", railX: 434 },
-    { title: "04 · Pull-based xid8 window export", badge: "ACK AFTER FLUSH", railX: 624 },
+    { title: "01 · Trailing sqlcommenter tag (base64url)", badge: "NO EXPLICIT TX", dashOffset: 510, pktTo: 28 },
+    { title: "02 · PostgreSQL trigger computes before & after", badge: "SECURITY DEFINER", dashOffset: 340, pktTo: -170 },
+    { title: "03 · Committed to auditstream.changes", badge: "xact_id = 48291044", dashOffset: 170, pktTo: -340 },
+    { title: "04 · Pull-based xid8 window export", badge: "ACK AFTER FLUSH", dashOffset: 0, pktTo: -510 },
   ];
 
   let traceIdx = 0;
   let tracePaused = prefersReducedMotion;
   let heroInView = true;
-  let heroHasFocus = false;
+  let heroHoverOrFocus = false;
+  let traceTimer = 0;
   const heroPlate = document.getElementById("hero-telemetry");
   const railActive = document.getElementById("rail-active");
+  const railPacket = document.getElementById("rail-packet");
   const traceNodes = Array.from(document.querySelectorAll(".t-node"));
   const traceToggle = document.getElementById("trace-toggle");
   const tracePanels = Array.from(document.querySelectorAll(".telemetry-panel"));
   const traceCaptions = Array.from(document.querySelectorAll("[data-caption]"));
+  const ledgerRows = Array.from(document.querySelectorAll("[data-ledger]"));
   const stageTabs = Array.from(document.querySelectorAll("#stage-tabs .stage-tab"));
 
-  function renderTrace(idx) {
+  function restartTraceTimer() {
+    clearInterval(traceTimer);
+    traceTimer = window.setInterval(() => {
+      if (!tracePaused && heroInView && !heroHoverOrFocus) {
+        renderTrace((traceIdx + 1) % TRACE_META.length, true);
+      }
+    }, 3900);
+  }
+
+  function renderTrace(idx, firePacket) {
+    const prev = traceIdx;
     traceIdx = idx;
     const t = TRACE_META[idx];
     const titleEl = document.getElementById("trace-title");
     const badgeEl = document.getElementById("trace-badge");
     if (titleEl) titleEl.textContent = t.title;
     if (badgeEl) badgeEl.textContent = t.badge;
-    railActive?.setAttribute("x2", String(t.railX));
+    if (railActive) railActive.style.strokeDashoffset = String(t.dashOffset);
+
+    if (firePacket && !prefersReducedMotion && railPacket && idx !== prev) {
+      railPacket.style.setProperty("--pkt-from", String(TRACE_META[prev].pktTo));
+      railPacket.style.setProperty("--pkt-to", String(t.pktTo));
+      railPacket.classList.remove("is-pulsing");
+      void railPacket.getBoundingClientRect();
+      railPacket.classList.add("is-pulsing");
+    }
 
     setStackActive(tracePanels, (_el, i) => i === idx);
     setStackActive(traceCaptions, (_el, i) => i === idx);
+    setStackActive(ledgerRows, (_el, i) => i === idx);
 
     traceNodes.forEach((g, i) => {
       const rect = g.querySelector("rect");
       const dot = g.querySelector("circle");
-      const txt = g.querySelector("text");
       const lit = i <= idx;
       rect?.setAttribute("stroke", lit ? "var(--accent)" : "var(--rule-strong)");
       dot?.setAttribute("fill", lit ? "var(--accent)" : "var(--ink-3)");
-      txt?.setAttribute("fill", i === idx ? "var(--ink)" : "var(--ink-3)");
     });
     stageTabs.forEach((b, i) => {
       const active = i === idx;
       b.setAttribute("data-active", String(active));
       b.setAttribute("aria-selected", String(active));
       b.setAttribute("tabindex", active ? "0" : "-1");
+      b.classList.remove("is-auto", "is-paused");
+      if (active && !tracePaused && !prefersReducedMotion) {
+        void b.offsetWidth;
+        b.classList.add("is-auto");
+        if (heroHoverOrFocus) b.classList.add("is-paused");
+      }
     });
   }
 
   wireTablist(document.getElementById("stage-tabs"), (_tab, idx) => {
-    renderTrace(idx);
     tracePaused = true;
     if (traceToggle) traceToggle.textContent = "Play";
+    renderTrace(idx, true);
   });
 
-  if (heroPlate && "IntersectionObserver" in window) {
-    new IntersectionObserver(
-      (entries) => {
-        heroInView = entries[0]?.isIntersecting ?? true;
-      },
-      { threshold: 0.05 }
-    ).observe(heroPlate);
-    heroPlate.addEventListener("focusin", () => { heroHasFocus = true; });
-    heroPlate.addEventListener("focusout", () => { heroHasFocus = false; });
+  traceNodes.forEach((g, idx) => {
+    g.addEventListener("click", () => {
+      tracePaused = true;
+      if (traceToggle) traceToggle.textContent = "Play";
+      renderTrace(idx, true);
+    });
+  });
+
+  function syncPauseClass() {
+    const activeTab = stageTabs[traceIdx];
+    if (activeTab) activeTab.classList.toggle("is-paused", tracePaused || heroHoverOrFocus || !heroInView);
+  }
+
+  if (heroPlate) {
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(
+        (entries) => {
+          heroInView = entries[0]?.isIntersecting ?? true;
+          syncPauseClass();
+        },
+        { threshold: 0.05 }
+      ).observe(heroPlate);
+    }
+    heroPlate.addEventListener("mouseenter", () => { heroHoverOrFocus = true; syncPauseClass(); });
+    heroPlate.addEventListener("mouseleave", () => { heroHoverOrFocus = false; syncPauseClass(); });
+    heroPlate.addEventListener("focusin", () => { heroHoverOrFocus = true; syncPauseClass(); });
+    heroPlate.addEventListener("focusout", () => { heroHoverOrFocus = false; syncPauseClass(); });
   }
 
   if (traceToggle) {
@@ -1194,15 +1241,15 @@ const qs3Html = await highlightCode(
     traceToggle.addEventListener("click", () => {
       tracePaused = !tracePaused;
       traceToggle.textContent = tracePaused ? "Play" : "Pause";
+      renderTrace(traceIdx, false);
+      restartTraceTimer();
     });
   }
-  renderTrace(0);
-  setInterval(() => {
-    if (!tracePaused && heroInView && !heroHasFocus) renderTrace((traceIdx + 1) % TRACE_META.length);
-  }, 3900);
+  renderTrace(0, false);
+  restartTraceTimer();
 
   /* --------------------------------------------------------------------------
-     3. Adapter Tabs & History Row 4-View Inspector (Zero-CLS + WAI-ARIA!)
+     3. Adapter Tabs, History Inspector & Interactive Tamper Proof (42501)
      -------------------------------------------------------------------------- */
   const ADAPTER_INFO = {
     prisma: { file: "@auditstream/prisma · auditstream() SQL comments plugin", raw: prismaRaw },
@@ -1237,13 +1284,43 @@ const qs3Html = await highlightCode(
     if (copyBtn && key && ROWVIEW_COPY[key]) copyBtn.setAttribute("data-copy", ROWVIEW_COPY[key]);
   });
 
+  const tamperStrip = document.getElementById("tamper-strip");
+  const tamperMsg = document.getElementById("tamper-msg");
+  const tamperPill = document.getElementById("tamper-pill");
+  const TAMPER_DEFAULT = "xact_id = 48291044 · role: app_user (SELECT only) · owner: auditstream_owner";
+  let tamperResetTimer = 0;
+
+  document.querySelectorAll("[data-tamper]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const op = btn.getAttribute("data-tamper") || "DELETE";
+      if (!tamperStrip || !tamperMsg || !tamperPill) return;
+      clearTimeout(tamperResetTimer);
+      tamperStrip.classList.add("is-denied");
+      tamperStrip.classList.remove("is-shaking");
+      if (!prefersReducedMotion) {
+        void tamperStrip.offsetWidth;
+        tamperStrip.classList.add("is-shaking");
+      }
+      tamperMsg.textContent = `ERROR 42501: permission denied for table changes — ${op} rejected by Postgres`;
+      tamperPill.textContent = "DENIED (42501)";
+      tamperPill.className = "pill pill-before";
+      tamperResetTimer = window.setTimeout(() => {
+        tamperStrip.classList.remove("is-denied", "is-shaking");
+        tamperMsg.textContent = TAMPER_DEFAULT;
+        tamperPill.textContent = "TAMPER-PROOF";
+        tamperPill.className = "pill pill-after";
+      }, 4200);
+    });
+  });
+
   /* --------------------------------------------------------------------------
-     4. Interactive xid8 Safe Horizon Proof (Run #1 vs Run #2, Zero-CLS footer)
+     4. Animated xid8 Safe Horizon Proof (Run #1, Run #2, Naive id > last_id + Replay)
      -------------------------------------------------------------------------- */
   const hzFootPanels = Array.from(document.querySelectorAll("[data-hz-foot]"));
+  let hzReplayTimer = 0;
 
   function setHorizonRun(run) {
-    const isRun2 = run === "2";
+    clearTimeout(hzReplayTimer);
     document.querySelectorAll("[data-run]").forEach((b) => {
       const active = b.getAttribute("data-run") === run;
       b.setAttribute("data-active", String(active));
@@ -1252,6 +1329,8 @@ const qs3Html = await highlightCode(
     setStackActive(hzFootPanels, (p) => p.getAttribute("data-hz-foot") === run);
 
     const lineGroup = document.getElementById("hz-line-group");
+    const lineBar = document.getElementById("hz-line-bar");
+    const linePill = document.getElementById("hz-line-pill");
     const lineLabel = document.getElementById("hz-line-label");
     const badge = document.getElementById("hz-badge");
     const zone = document.getElementById("hz-zone");
@@ -1267,20 +1346,28 @@ const qs3Html = await highlightCode(
     const dot44 = document.getElementById("dot-tx44");
     const txt44 = document.getElementById("txt-tx44");
 
-    if (!isRun2) {
-      lineGroup?.setAttribute("transform", "translate(0, 0)");
-      if (lineLabel) lineLabel.textContent = "xmin = 48291042";
-      if (badge) badge.textContent = "HORIZON: xact_id < 48291042";
-      zone?.setAttribute("width", "360");
-      zone?.setAttribute("height", "44");
-      zoneLbl?.setAttribute("x", "510");
+    if (run === "1") {
+      if (lineGroup) lineGroup.style.transform = "translateX(0px)";
+      lineBar?.setAttribute("stroke", "#6ba6ff");
+      linePill?.setAttribute("fill", "#4f90f5");
+      if (lineLabel) { lineLabel.textContent = "xmin = 48291042"; lineLabel.setAttribute("fill", "#061221"); }
+      if (badge) { badge.textContent = "xact_id < 48291042"; badge.className = "pill pill-accent"; }
+      if (zone) {
+        zone.style.transform = "scale(0.518, 0.254)";
+        zone.setAttribute("fill", "rgba(52, 211, 153, 0.08)");
+        zone.setAttribute("stroke", "rgba(52, 211, 153, 0.30)");
+      }
+      if (zoneLbl) { zoneLbl.setAttribute("x", "510"); zoneLbl.textContent = "SAFE EXPORT RANGE"; zoneLbl.setAttribute("fill", "#34d399"); }
 
-      bar42?.setAttribute("fill", "rgba(230,179,90,0.16)");
-      bar42?.setAttribute("stroke", "#e6b35a");
-      bar42?.setAttribute("stroke-dasharray", "5 3");
-      dot42?.setAttribute("fill", "#e6b35a");
+      if (bar42) {
+        bar42.style.transform = "scaleX(0.697)";
+        bar42.setAttribute("fill", "rgba(230,179,90,0.16)");
+        bar42.setAttribute("stroke", "#e6b35a");
+        bar42.setAttribute("stroke-dasharray", "5 3");
+      }
+      if (dot42) { dot42.style.transform = "translateX(-135px)"; dot42.setAttribute("fill", "#e6b35a"); }
       txt42?.setAttribute("fill", "#e6b35a");
-      if (txt42) txt42.textContent = "IN FLIGHT AT t2 — HOLDS xmin (COMMITS LATER AT t3)";
+      if (txt42) txt42.textContent = "IN FLIGHT AT t2 — HOLDS xmin";
       lbl42?.setAttribute("fill", "var(--hold)");
 
       bar43?.setAttribute("fill", "rgba(107,166,255,0.15)");
@@ -1292,18 +1379,26 @@ const qs3Html = await highlightCode(
       bar44?.setAttribute("stroke", "#6ba6ff");
       dot44?.setAttribute("fill", "#6ba6ff");
       if (txt44) txt44.textContent = "invoice='paid' · WAITS";
-    } else {
-      lineGroup?.setAttribute("transform", "translate(335, 0)");
-      if (lineLabel) lineLabel.textContent = "xmin = 48291045";
-      if (badge) badge.textContent = "HORIZON: xact_id < 48291045";
-      zone?.setAttribute("width", "695");
-      zone?.setAttribute("height", "173");
-      zoneLbl?.setAttribute("x", "845");
+    } else if (run === "2") {
+      if (lineGroup) lineGroup.style.transform = "translateX(335px)";
+      lineBar?.setAttribute("stroke", "#34d399");
+      linePill?.setAttribute("fill", "#34d399");
+      if (lineLabel) { lineLabel.textContent = "xmin = 48291045"; lineLabel.setAttribute("fill", "#061221"); }
+      if (badge) { badge.textContent = "xact_id < 48291045"; badge.className = "pill pill-after"; }
+      if (zone) {
+        zone.style.transform = "scale(1, 1)";
+        zone.setAttribute("fill", "rgba(52, 211, 153, 0.08)");
+        zone.setAttribute("stroke", "rgba(52, 211, 153, 0.30)");
+      }
+      if (zoneLbl) { zoneLbl.setAttribute("x", "845"); zoneLbl.textContent = "SAFE EXPORT RANGE"; zoneLbl.setAttribute("fill", "#34d399"); }
 
-      bar42?.setAttribute("fill", "rgba(52,211,153,0.18)");
-      bar42?.setAttribute("stroke", "#34d399");
-      bar42?.removeAttribute("stroke-dasharray");
-      dot42?.setAttribute("fill", "#34d399");
+      if (bar42) {
+        bar42.style.transform = "scaleX(1)";
+        bar42.setAttribute("fill", "rgba(52,211,153,0.18)");
+        bar42.setAttribute("stroke", "#34d399");
+        bar42.removeAttribute("stroke-dasharray");
+      }
+      if (dot42) { dot42.style.transform = "translateX(0px)"; dot42.setAttribute("fill", "#34d399"); }
       txt42?.setAttribute("fill", "#e9f2fb");
       if (txt42) txt42.textContent = "COMMITTED AT t3 · EXPORTED IN BATCH #2 (NOT LOST!)";
       lbl42?.setAttribute("fill", "#34d399");
@@ -1317,11 +1412,50 @@ const qs3Html = await highlightCode(
       bar44?.setAttribute("stroke", "#34d399");
       dot44?.setAttribute("fill", "#34d399");
       if (txt44) txt44.textContent = "invoice='paid' · EXPORTED";
+    } else {
+      // Naive id > last_id bug mode: cursor jumped to id=44 at t2; tx 42 commits at t3 and is LOST FOREVER!
+      if (lineGroup) lineGroup.style.transform = "translateX(0px)";
+      lineBar?.setAttribute("stroke", "#f07167");
+      linePill?.setAttribute("fill", "#f07167");
+      if (lineLabel) { lineLabel.textContent = "last_id = 44 (BUG)"; lineLabel.setAttribute("fill", "#061221"); }
+      if (badge) { badge.textContent = "id > 44 · 1 ROW LOST"; badge.className = "pill pill-before"; }
+      if (zone) {
+        zone.style.transform = "scale(0.518, 1)";
+        zone.setAttribute("fill", "rgba(240, 113, 103, 0.08)");
+        zone.setAttribute("stroke", "rgba(240, 113, 103, 0.35)");
+      }
+      if (zoneLbl) { zoneLbl.setAttribute("x", "510"); zoneLbl.textContent = "JUMPED PAST id 42"; zoneLbl.setAttribute("fill", "#f07167"); }
+
+      if (bar42) {
+        bar42.style.transform = "scaleX(1)";
+        bar42.setAttribute("fill", "rgba(240,113,103,0.22)");
+        bar42.setAttribute("stroke", "#f07167");
+        bar42.removeAttribute("stroke-dasharray");
+      }
+      if (dot42) { dot42.style.transform = "translateX(0px)"; dot42.setAttribute("fill", "#f07167"); }
+      txt42?.setAttribute("fill", "#f07167");
+      if (txt42) txt42.textContent = "COMMITTED AT t3 · id 42 <= 44 · SKIPPED / LOST FOREVER!";
+      lbl42?.setAttribute("fill", "#f07167");
+
+      bar43?.setAttribute("fill", "rgba(52,211,153,0.16)");
+      bar43?.setAttribute("stroke", "#34d399");
+      dot43?.setAttribute("fill", "#34d399");
+      if (txt43) txt43.textContent = "EXPORTED AT t2 (advances cursor)";
+
+      bar44?.setAttribute("fill", "rgba(52,211,153,0.16)");
+      bar44?.setAttribute("stroke", "#34d399");
+      dot44?.setAttribute("fill", "#34d399");
+      if (txt44) txt44.textContent = "EXPORTED AT t2 (last_id = 44)";
     }
   }
 
   document.querySelectorAll("[data-run]").forEach((b) => {
     b.addEventListener("click", () => setHorizonRun(b.getAttribute("data-run")));
+  });
+
+  document.getElementById("hz-replay")?.addEventListener("click", () => {
+    setHorizonRun("1");
+    hzReplayTimer = window.setTimeout(() => setHorizonRun("2"), prefersReducedMotion ? 400 : 1200);
   });
 
   /* Curtain footer keyboard accessibility: scroll bottom into view when Tab enters sticky footer */

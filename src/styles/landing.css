@@ -86,12 +86,10 @@
 
 .fit-line {
   display: block;
-  width: max-content;
-  white-space: nowrap;
-  /* Pure CSS container-query sizing eliminates post-paint font-size jump (CLS = 0.000!) */
-  font-size: 10.12cqi;
-  font-stretch: var(--fit, 100%);
-  font-variation-settings: "wdth" var(--wdth, 100), "wght" 630;
+  /* Pure CSS container-query sizing: uniform across both lines, 0ms runtime JS, CLS = 0.000! */
+  font-size: clamp(2.55rem, 6.2cqi, 5.15rem);
+  font-stretch: 106%;
+  font-variation-settings: "wdth" 106, "wght" 630;
 }
 
 .dot-accent {
@@ -146,17 +144,39 @@
   }
 }
 
-/* Hero Telemetry Instrument */
-.telemetry-diagram {
-  padding: 0.8rem 1rem;
-  border-bottom: 1px solid var(--rule);
+/* Unified Hero Telemetry Stepper (SVG rail + packet pulse directly coupled to stage tabs) */
+.hero-stepper-rail {
+  padding: 0.45rem 0 0.25rem;
   background: color-mix(in srgb, var(--plate-2) 60%, var(--plate));
+  border-bottom: 1px solid var(--rule);
 }
 
 .telemetry-svg {
   width: 100%;
-  height: 54px;
+  height: 26px;
   display: block;
+}
+
+#rail-active {
+  transition: stroke-dashoffset 420ms var(--ease-smooth-out);
+}
+
+#rail-packet {
+  opacity: 0;
+}
+
+#rail-packet.is-pulsing {
+  opacity: 1;
+  animation: hero-packet 460ms var(--ease-smooth-out) forwards;
+}
+
+@keyframes hero-packet {
+  from { stroke-dashoffset: var(--pkt-from, 0); }
+  to { stroke-dashoffset: var(--pkt-to, -170); }
+}
+
+.t-node-btn {
+  cursor: pointer;
 }
 
 .stage-tabs {
@@ -173,7 +193,8 @@
   font-family: var(--font-mono);
   font-size: 0.69rem;
   color: var(--ink-3);
-  transition: background-color 180ms, color 180ms;
+  transition: background-color var(--dur-quick), color var(--dur-quick);
+  overflow: hidden;
 }
 
 .stage-tab:last-child { border-right: 0; }
@@ -198,6 +219,28 @@
   bottom: 0;
   height: 2px;
   background: var(--accent-fill);
+  transform-origin: left center;
+}
+
+.stage-tab[data-active="true"].is-auto::after {
+  animation: stage-fill 3900ms linear forwards;
+}
+
+.stage-tab[data-active="true"].is-paused::after {
+  animation-play-state: paused;
+}
+
+@keyframes stage-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.ledger-strip-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
 }
 
 .telemetry-body {
@@ -246,11 +289,6 @@
   border-top: 1px solid var(--rule);
   background: var(--plate-2);
   padding: 0.52rem 0.95rem;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.6rem;
   font-family: var(--font-mono);
   font-size: 0.69rem;
   color: var(--ink-3);
@@ -384,6 +422,97 @@
   color: inherit;
   padding: 0.04rem 0.22rem;
   font-weight: 600;
+}
+
+/* Interactive Tamper Proof status bar (shake applies ONLY to status text, never code!) */
+.tamper-strip {
+  border-top: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--plate-2) 75%, var(--plate));
+  padding: 0.46rem 0.95rem;
+  font-family: var(--font-mono);
+  font-size: 0.69rem;
+  color: var(--ink-3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 2.15rem;
+  transition: background-color var(--dur-quick), border-color var(--dur-quick), color var(--dur-quick);
+}
+
+.tamper-strip.is-denied {
+  background: var(--before-bg);
+  border-top-color: var(--before);
+  color: var(--before);
+}
+
+.tamper-msg {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tamper-strip.is-shaking .tamper-msg {
+  animation: tamper-shake 280ms var(--ease-smooth-out);
+}
+
+@keyframes tamper-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-5px); }
+  45% { transform: translateX(5px); }
+  70% { transform: translateX(-3px); }
+  88% { transform: translateX(2px); }
+}
+
+.tamper-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.tamper-btn {
+  height: 1.48rem;
+  padding: 0 0.48rem;
+  border: 1px solid var(--rule-strong);
+  background: var(--plate);
+  color: var(--ink-2);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  transition: border-color var(--dur-quick), color var(--dur-quick), background-color var(--dur-quick);
+}
+
+.tamper-btn:hover {
+  border-color: var(--before);
+  color: var(--before);
+  background: var(--before-bg);
+}
+
+/* Smooth CSS-composited SVG transforms for Section 03 xid8 Horizon */
+#hz-zone {
+  transform-box: fill-box;
+  transform-origin: 0 0;
+  transition: transform 420ms var(--ease-smooth-out), fill 240ms, stroke 240ms;
+}
+
+#hz-line-group {
+  transition: transform 420ms var(--ease-smooth-out);
+}
+
+#bar-tx42,
+#dot-tx42 {
+  transition: transform 420ms var(--ease-smooth-out), fill 220ms, stroke 220ms;
+}
+
+#bar-tx42 {
+  transform-box: fill-box;
+  transform-origin: left center;
+}
+
+.horizon-btn.is-danger[data-active="true"] {
+  background: var(--before);
+  color: #fff;
 }
 
 /* ----------------------------------------------------------------------------
@@ -979,7 +1108,7 @@
 }
 
 @media (max-width: 640px) {
-  .telemetry-diagram { display: none; }
+  .hero-stepper-rail { display: none; }
 }
 
 @media (max-width: 520px) {
