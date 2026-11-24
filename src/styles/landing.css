@@ -7,7 +7,18 @@
   z-index: 2;
   background: var(--ground);
   border-bottom: 1px solid var(--rule-strong);
-  box-shadow: 0 1.5rem 4rem rgba(0, 0, 0, 0.45);
+}
+
+/* Lightweight 36px bottom edge shadow for curtain-reveal footer (avoids 6,000px full-page box-shadow!) */
+.main::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -36px;
+  height: 36px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.34), transparent);
 }
 
 .section {
@@ -58,6 +69,7 @@
 .hero-fit-box {
   margin-top: 1rem;
   width: 100%;
+  container-type: inline-size;
 }
 
 .hero-h1 {
@@ -70,28 +82,20 @@
 
 .mask-line {
   display: block;
-  clip-path: inset(-0.14em -0.25em -0.24em);
 }
 
 .fit-line {
   display: block;
   width: max-content;
   white-space: nowrap;
-  font-size: var(--line-size, clamp(2.4rem, 6vw, 5.7rem));
+  /* Pure CSS container-query sizing eliminates post-paint font-size jump (CLS = 0.000!) */
+  font-size: 10.12cqi;
   font-stretch: var(--fit, 100%);
   font-variation-settings: "wdth" var(--wdth, 100), "wght" 630;
-  transition: font-stretch 650ms var(--ease-out), font-variation-settings 650ms var(--ease-out);
-  animation: mask-rise 900ms var(--ease-out) both;
-  animation-delay: calc(var(--i, 0) * 95ms);
 }
 
 .dot-accent {
   color: var(--accent);
-}
-
-@keyframes mask-rise {
-  from { transform: translateY(115%); }
-  to { transform: translateY(0); }
 }
 
 .hero-grid {
@@ -451,30 +455,12 @@
   color: var(--on-field-2);
 }
 
-/* CSS Scroll-Driven Animations (progressive enhancement — never clips text!) */
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    .reveal {
-      animation: reveal-up 1ms var(--ease-out) both;
-      animation-timeline: view();
-      animation-range: entry 0% cover 20%;
-    }
-    .field-band::before {
-      animation: flood-circle 1ms linear backwards;
-      animation-timeline: view();
-      animation-range: entry 0% entry 50%;
-    }
-  }
+/* Crisp opacity-only one-shot reveal: ZERO transform on text containers = 100% sharp subpixel fonts on scroll! */
+.reveal {
+  transition: opacity 320ms var(--ease-out);
 }
-
-@keyframes reveal-up {
-  from { opacity: 0; transform: translateY(1.4rem); }
-  to { opacity: 1; transform: none; }
-}
-
-@keyframes flood-circle {
-  from { clip-path: circle(14vmax at 68% 0vmax); }
-  to { clip-path: circle(220vmax at 68% 90vmax); }
+.reveal.is-pending {
+  opacity: 0.01;
 }
 
 /* ----------------------------------------------------------------------------

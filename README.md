@@ -1,13 +1,13 @@
 # auditstream.dev
 
-Landing page and documentation site for [Auditstream](https://github.com/auditstream/auditstream), built with Astro (static output), build-time Shiki dual themes, self-hosted variable fonts, Lenis smooth scroll, and Pagefind static search.
+Landing page and documentation site for [Auditstream](https://github.com/auditstream/auditstream), built with Astro (static output), build-time Shiki dual themes, self-hosted latin variable fonts, native compositor scrolling, and Pagefind static search.
 
 ## Stack
 
 - **Framework:** Astro 5 (`output: "static"`) + Content Collections (`src/content/docs/`)
-- **Syntax highlighting:** Shiki at build time (`auditstream-dark` / `auditstream-light` switched via CSS, 0 KB client highlighter)
-- **Typography:** Self-hosted `@fontsource-variable/mona-sans` (`wdth 75–125`) and `@fontsource/ibm-plex-mono`
-- **Motion:** CSS Scroll-Driven Animations (`animation-timeline`) + Lenis (respects `prefers-reduced-motion`)
+- **Syntax highlighting:** Shiki at build time mapped to compact dual-theme CSS classes (0 KB client highlighter)
+- **Typography:** Self-hosted latin `@fontsource-variable/mona-sans` (`wdth 75–125`) and `@fontsource/ibm-plex-mono` with zero-CLS CSS container-query sizing
+- **Scroll & Motion:** Native compositor scrolling (crisp subpixel text), opacity-only one-shot reveals, and CSS Scroll-Driven top progress rail
 - **Search:** Pagefind static index built after `astro build` (`⌘K` or `/`)
 
 ## Development

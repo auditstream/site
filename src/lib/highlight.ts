@@ -13,6 +13,20 @@ function getHighlighter() {
   return highlighterPromise;
 }
 
+// Map Shiki's repeated inline CSS variables to tiny semantic classes (cuts HTML by ~40%)
+const COLOR_TO_CLASS: Record<string, string> = {
+  "#687482": "st-cm",
+  "#1a4ea8": "st-kw",
+  "#0c1015": "st-fn",
+  "#0c6e54": "st-str",
+  "#1d56b8": "st-num",
+  "#2c3540": "st-prop",
+  "#6b7685": "st-punc",
+  "#b83227": "st-del",
+  "#0c7559": "st-add",
+  "#101418": "st-fg",
+};
+
 export async function highlightCode(
   code: string,
   lang: "sql" | "ts" | "json" | "bash" | "rust" | "toml" = "ts",
@@ -29,8 +43,14 @@ export async function highlightCode(
     defaultColor: false,
   });
 
+  // Compact inline style="--shiki-light:...;--shiki-dark:..." into short semantic classes
+  html = html.replace(/<span style="([^"]+)">/g, (full, styleStr: string) => {
+    const m = styleStr.match(/--shiki-light:(#[0-9a-fA-F]{6})/);
+    const cls = m ? COLOR_TO_CLASS[m[1].toLowerCase()] : null;
+    return cls ? `<span class="${cls}">` : full;
+  });
+
   if (options?.highlightAuditComment) {
-    // Highlight trailing sqlcommenter auditstream tags AND actor object literals
     html = html.replace(
       /(\/\*auditstream=&#39;[^&]+&#39;\*\/|\/\*auditstream='[^']+'\*\/)/g,
       '<mark class="tok-audit">$1</mark>'

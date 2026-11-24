@@ -1,9 +1,9 @@
 ---
-import "@fontsource-variable/mona-sans/wdth.css";
-import "@fontsource/ibm-plex-mono/400.css";
-import "@fontsource/ibm-plex-mono/400-italic.css";
-import "@fontsource/ibm-plex-mono/500.css";
-import "@fontsource/ibm-plex-mono/600.css";
+import "@fontsource/ibm-plex-mono/latin-400.css";
+import "@fontsource/ibm-plex-mono/latin-500.css";
+import "@fontsource/ibm-plex-mono/latin-600.css";
+import monaSansUrl from "@fontsource-variable/mona-sans/files/mona-sans-latin-wdth-normal.woff2?url";
+import ibmMono400Url from "@fontsource/ibm-plex-mono/files/ibm-plex-mono-latin-400-normal.woff2?url";
 import "../styles/tokens.css";
 
 import Navbar from "../components/Navbar.astro";
@@ -13,7 +13,6 @@ interface Props {
   title: string;
   description: string;
   currentPath?: string;
-  enableSmoothScroll?: boolean;
   showProgress?: boolean;
 }
 
@@ -21,9 +20,10 @@ const {
   title,
   description,
   currentPath = "/",
-  enableSmoothScroll = false,
   showProgress = true,
 } = Astro.props;
+
+const fontFaceCss = `@font-face{font-family:'Mona Sans Variable';font-style:normal;font-display:swap;font-weight:200 900;font-stretch:75% 125%;src:url(${monaSansUrl}) format('woff2-variations');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}@font-face{font-family:'Mona Sans Fallback';src:local('Arial');ascent-override:96%;descent-override:24%;line-gap-override:0%;size-adjust:102%;}`;
 ---
 
 <!doctype html>
@@ -35,6 +35,9 @@ const {
     <meta name="description" content={description} />
     <meta name="theme-color" content="#0c0f13" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preload" href={monaSansUrl} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={ibmMono400Url} as="font" type="font/woff2" crossorigin />
+    <style is:inline set:html={fontFaceCss} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
@@ -57,7 +60,7 @@ const {
 
     <SearchModal />
 
-    <!-- Theme toggle + fallback scroll progress -->
+    <!-- Theme toggle, copy buttons & native smooth anchor clicks (no wheel hijacking!) -->
     <script>
       const htmlEl = document.documentElement;
       const modeLabel = document.getElementById("mode-label");
@@ -85,6 +88,20 @@ const {
         }
       });
 
+      // Smooth jump ONLY on anchor link clicks — native compositor scroll stays untouched for wheel/trackpad
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((a) => {
+        a.addEventListener("click", (e) => {
+          const id = a.getAttribute("href");
+          if (!id || id === "#") return;
+          const target = document.querySelector<HTMLElement>(id);
+          if (target) {
+            e.preventDefault();
+            target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+          }
+        });
+      });
+
       if (!CSS.supports("animation-timeline: scroll()")) {
         const rail = document.querySelector<HTMLElement>(".progress-rail");
         const update = () => {
@@ -95,7 +112,6 @@ const {
         update();
       }
 
-      // Wire all copy buttons across landing and docs
       document.querySelectorAll<HTMLButtonElement>("[data-copy]").forEach((btn) => {
         btn.addEventListener("click", async () => {
           const text = btn.getAttribute("data-copy") || "";
@@ -110,31 +126,5 @@ const {
         });
       });
     </script>
-
-    {enableSmoothScroll && (
-      <script>
-        import Lenis from "lenis";
-
-        if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-          const lenis = new Lenis({
-            autoRaf: true,
-            allowNestedScroll: true,
-            prevent: () => document.body.style.overflow === "hidden",
-          });
-          // Clean anchor jumps with Lenis
-          document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((a) => {
-            a.addEventListener("click", (e) => {
-              const id = a.getAttribute("href");
-              if (!id || id === "#") return;
-              const target = document.querySelector<HTMLElement>(id);
-              if (target) {
-                e.preventDefault();
-                lenis.scrollTo(target, { offset: id === "#top" ? 0 : -62 });
-              }
-            });
-          });
-        }
-      </script>
-    )}
   </body>
 </html>

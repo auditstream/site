@@ -128,7 +128,6 @@ const qs3Html = await highlightCode(
   title="Auditstream — Open-source audit trail engine for PostgreSQL"
   description="Open-source audit trail engine written in Rust. Records who changed what in PostgreSQL 15–19 with before and after values, an append-only history table, and lossless xid8 export."
   currentPath="/"
-  enableSmoothScroll={true}
   showProgress={true}
 >
   <main class="main">
@@ -150,10 +149,10 @@ const qs3Html = await highlightCode(
         <div class="hero-fit-box" id="hero-fit-box">
           <h1 class="hero-h1">
             <span class="mask-line">
-              <span class="fit-line" style="--i:0;">Every row changed<span class="dot-accent">.</span></span>
+              <span class="fit-line" style="--fit:114.6%;--wdth:114.6;">Every row changed<span class="dot-accent">.</span></span>
             </span>
             <span class="mask-line">
-              <span class="fit-line" style="--i:1;">Proven in Postgres<span class="dot-accent">.</span></span>
+              <span class="fit-line" style="--fit:122.1%;--wdth:122.1;">Proven in Postgres<span class="dot-accent">.</span></span>
             </span>
           </h1>
         </div>
@@ -820,64 +819,78 @@ const qs3Html = await highlightCode(
 
 <script define:vars={{ prismaRaw, drizzleRaw, nodeRaw }}>
   /* --------------------------------------------------------------------------
-     1. Pixel-Flush Hero Variable Font Fit (drives BOTH font-stretch & wdth!)
+     1. Zero-CLS Linear Hero Width Refinement (only adjusts horizontal wdth —
+        NEVER changes font-size after paint! 2 reads instead of 26 reflows!)
      -------------------------------------------------------------------------- */
   function setWidth(el, w) {
-    el.style.setProperty("--fit", w.toFixed(1) + "%");
-    el.style.setProperty("--wdth", w.toFixed(1));
+    const clamped = Math.max(75, Math.min(125, w));
+    el.style.setProperty("--fit", clamped.toFixed(1) + "%");
+    el.style.setProperty("--wdth", clamped.toFixed(1));
   }
 
   function fitHeroLines() {
     const box = document.getElementById("hero-fit-box");
     if (!box) return;
-    const lines = Array.from(box.querySelectorAll(".fit-line"));
-    const targetW = box.clientWidth;
+    const targetW = box.clientWidth * 0.996;
     if (!targetW) return;
+    const lines = Array.from(box.querySelectorAll(".fit-line"));
 
-    const refBase = Math.min(120, Math.max(34, targetW / 10.6));
-    lines.forEach((el) => {
-      el.style.transition = "none";
-      el.style.whiteSpace = "nowrap";
-      el.style.setProperty("--line-size", refBase + "px");
-      setWidth(el, 122);
+    // Read widths in one batch before writing (avoids layout thrashing!)
+    const initial = lines.map((el) => ({
+      el,
+      w: el.getBoundingClientRect().width,
+      wdth: parseFloat(el.style.getPropertyValue("--wdth")) || 100,
+    }));
+
+    // Linear interpolation on Mona Sans wdth axis (slope ≈ 0.0046 per wdth unit)
+    initial.forEach(({ el, w, wdth }) => {
+      if (!w || Math.abs(w - targetW) < 2) return;
+      const ratio = targetW / w;
+      // Approximate next wdth linearly (wdth spans ~1.22x across 75..125)
+      const next = wdth + (ratio - 1) * 215;
+      setWidth(el, next);
     });
 
-    const narrowestAt122 = Math.min(...lines.map((el) => el.getBoundingClientRect().width));
-    let fittedSize = refBase * ((targetW * 0.994) / narrowestAt122);
-
-    lines.forEach((el) => {
-      el.style.setProperty("--line-size", fittedSize.toFixed(2) + "px");
-      setWidth(el, 78);
-    });
-    const widestAt78 = Math.max(...lines.map((el) => el.getBoundingClientRect().width));
-    if (widestAt78 > targetW * 0.994) {
-      fittedSize = fittedSize * ((targetW * 0.994) / widestAt78);
-    }
-
-    lines.forEach((el) => {
-      el.style.setProperty("--line-size", fittedSize.toFixed(2) + "px");
-      const measure = (s) => {
-        setWidth(el, s);
-        return el.getBoundingClientRect().width;
-      };
-      let lo = 75, hi = 125;
-      for (let i = 0; i < 11; i++) {
-        const mid = (lo + hi) / 2;
-        if (measure(mid) > targetW * 0.996) hi = mid;
-        else lo = mid;
-      }
-      setWidth(el, lo);
-      requestAnimationFrame(() => {
-        el.style.transition = "";
-      });
+    // Single refinement pass
+    const refined = lines.map((el) => ({
+      el,
+      w: el.getBoundingClientRect().width,
+      wdth: parseFloat(el.style.getPropertyValue("--wdth")) || 100,
+    }));
+    refined.forEach(({ el, w, wdth }) => {
+      if (!w || Math.abs(w - targetW) < 1.5) return;
+      const delta = ((targetW / w) - 1) * 215;
+      setWidth(el, wdth + delta);
     });
   }
 
   if (document.fonts && document.fonts.ready) {
     document.fonts.ready.then(fitHeroLines);
   }
-  window.addEventListener("resize", fitHeroLines);
-  setTimeout(fitHeroLines, 80);
+  window.addEventListener("resize", fitHeroLines, { passive: true });
+
+  /* Crisp opacity-only one-shot reveal (zero transform on text = zero blur!) */
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window) {
+    const nodes = Array.from(document.querySelectorAll(".reveal"));
+    const vh = window.innerHeight;
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.remove("is-pending");
+            io.unobserve(e.target);
+          }
+        }
+      },
+      { rootMargin: "0px 0px -6% 0px", threshold: 0.01 }
+    );
+    nodes.forEach((n) => {
+      if (n.getBoundingClientRect().top > vh * 0.95) {
+        n.classList.add("is-pending");
+        io.observe(n);
+      }
+    });
+  }
 
   /* --------------------------------------------------------------------------
      2. Hero 4-Stage Telemetry Replay (switches pre-rendered Shiki panels!)

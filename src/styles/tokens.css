@@ -5,7 +5,7 @@
    ============================================================================ */
 
 :root {
-  --font-sans: "Mona Sans Variable", "Mona Sans", system-ui, -apple-system, sans-serif;
+  --font-sans: "Mona Sans Variable", "Mona Sans Fallback", system-ui, -apple-system, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --sheet: clamp(68rem, 88vw, 86rem);
@@ -46,8 +46,18 @@
   --on-field-rule-strong: rgba(233, 242, 251, 0.28);
   --field-grid: rgba(107, 166, 255, 0.075);
 
-  --glass: rgba(239, 238, 232, 0.85);
+  --nav-bg: rgba(239, 238, 232, 0.96);
   --reg-mark: rgba(16, 20, 24, 0.34);
+
+  /* Compact Shiki Token Palette (Light) */
+  --st-fg: #101418;
+  --st-cm: #687482;
+  --st-kw: #1a4ea8;
+  --st-fn: #0c1015;
+  --st-str: #0c6e54;
+  --st-num: #1d56b8;
+  --st-prop: #2c3540;
+  --st-punc: #6b7685;
 }
 
 html[data-mode="dark"] {
@@ -83,8 +93,18 @@ html[data-mode="dark"] {
   --on-field-rule-strong: rgba(233, 242, 251, 0.26);
   --field-grid: rgba(107, 166, 255, 0.08);
 
-  --glass: rgba(12, 15, 19, 0.85);
+  --nav-bg: rgba(12, 15, 19, 0.96);
   --reg-mark: rgba(237, 241, 245, 0.30);
+
+  /* Compact Shiki Token Palette (Dark) */
+  --st-fg: #e6ecf2;
+  --st-cm: #738294;
+  --st-kw: #93b4dc;
+  --st-fn: #f0f4f8;
+  --st-str: #7fd4b8;
+  --st-num: #6ba6ff;
+  --st-prop: #c5d1de;
+  --st-punc: #7c8a9b;
 }
 
 /* Inverted Warm Mineral Paper Datasheet inside Dark Mode */
@@ -124,26 +144,37 @@ html[data-mode="dark"] .as-datasheet {
   scrollbar-color: var(--rule-strong) transparent;
 }
 
-.astro-code span,
-.shiki span {
+.astro-code span[style],
+.shiki span[style] {
   color: var(--shiki-light);
   font-style: var(--shiki-light-font-style, normal);
   font-weight: var(--shiki-light-font-weight, inherit);
 }
 
-html[data-mode="dark"] .astro-code span,
-html[data-mode="dark"] .shiki span {
+html[data-mode="dark"] .astro-code span[style],
+html[data-mode="dark"] .shiki span[style] {
   color: var(--shiki-dark);
   font-style: var(--shiki-dark-font-style, normal);
   font-weight: var(--shiki-dark-font-weight, inherit);
 }
 
-html[data-mode="dark"] .as-datasheet .astro-code span,
-html[data-mode="dark"] .as-datasheet .shiki span {
+html[data-mode="dark"] .as-datasheet .astro-code span[style],
+html[data-mode="dark"] .as-datasheet .shiki span[style] {
   color: var(--shiki-light);
   font-style: var(--shiki-light-font-style, normal);
   font-weight: var(--shiki-light-font-weight, inherit);
 }
+
+.shiki .st-fg   { color: var(--st-fg); }
+.shiki .st-cm   { color: var(--st-cm); font-style: italic; }
+.shiki .st-kw   { color: var(--st-kw); font-weight: 500; }
+.shiki .st-fn   { color: var(--st-fn); font-weight: 600; }
+.shiki .st-str  { color: var(--st-str); }
+.shiki .st-num  { color: var(--st-num); }
+.shiki .st-prop { color: var(--st-prop); }
+.shiki .st-punc { color: var(--st-punc); }
+.shiki .st-del  { color: var(--before); }
+.shiki .st-add  { color: var(--after); }
 
 .shiki .ln {
   display: inline-block;
@@ -442,15 +473,13 @@ code, pre, .mono {
   border-color: var(--ink);
 }
 
-/* Navbar + Scroll Progress */
+/* Navbar + Scroll Progress (opaque-tinted surface avoids continuous backdrop-blur GPU compositing!) */
 .nav {
   position: sticky;
   top: 0;
   z-index: 60;
   height: 3.85rem;
-  background: var(--glass);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: var(--nav-bg);
   border-bottom: 1px solid var(--rule);
 }
 
