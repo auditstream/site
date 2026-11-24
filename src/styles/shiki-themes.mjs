@@ -58,7 +58,7 @@ export const auditstreamLight = {
   tokenColors: [
     {
       scope: ["comment", "punctuation.definition.comment"],
-      settings: { foreground: "#687482", fontStyle: "italic" },
+      settings: { foreground: "#5a6674", fontStyle: "italic" },
     },
     {
       scope: ["keyword", "storage.type", "storage.modifier", "keyword.operator.expression"],

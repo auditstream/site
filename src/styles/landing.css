@@ -18,7 +18,7 @@
   bottom: -36px;
   height: 36px;
   pointer-events: none;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.34), transparent);
+  background: linear-gradient(to bottom, var(--curtain-shadow), transparent);
 }
 
 .section {
@@ -140,6 +140,12 @@
   white-space: nowrap;
 }
 
+@media (min-width: 1024px) and (max-width: 1180px) {
+  .hero-specs > div:last-child .spec-v {
+    white-space: normal;
+  }
+}
+
 /* Hero Telemetry Instrument */
 .telemetry-diagram {
   padding: 0.8rem 1rem;
@@ -196,19 +202,44 @@
 
 .telemetry-body {
   padding: 0.9rem 1.05rem;
-  min-height: 11.4rem;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   gap: 0.65rem;
 }
 
-.telemetry-panel[hidden] {
-  display: none;
+.telemetry-head {
+  flex-wrap: nowrap;
+}
+
+.telemetry-head #trace-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .telemetry-panel .shiki {
   padding: 0.1rem 0;
+}
+
+.trace-caption-item {
+  font-size: 0.79rem;
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+
+.adapter-foot-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.plate-tab-bar {
+  padding: 0 0.75rem 0 0;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
 }
 
 .ledger-strip {
@@ -252,14 +283,31 @@
   line-height: 1.65;
 }
 
-.tab-panel[hidden] {
-  display: none;
+/* Diff Split (Forensic structured diff with gutter & inline value highlight) */
+.diff-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
-/* Diff Split */
+.diff-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem 0.75rem;
+  padding: 0.45rem 1rem;
+  border-bottom: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--plate-2) 65%, var(--plate));
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--ink-3);
+}
+
 .diff-split {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  flex: 1 1 auto;
 }
 
 @media (min-width: 640px) {
@@ -269,7 +317,7 @@
 }
 
 .diff-pane {
-  padding: 0.95rem 1.05rem;
+  padding: 0.85rem 1rem;
   font-family: var(--font-mono);
   font-size: clamp(0.7rem, 0.6rem + 0.12vw, 0.78rem);
   line-height: 1.76;
@@ -291,24 +339,51 @@
   font-size: 0.67rem;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.55rem;
   display: flex;
   justify-content: space-between;
 }
 
 .diff-line {
-  padding: 0.1rem 0.4rem;
+  white-space: pre;
+  padding: 0.08rem 0.4rem 0.08rem 0.5rem;
   margin-inline: -0.4rem;
+  border-left: 2px solid transparent;
+  color: var(--ink-3);
+}
+
+.diff-line .dln {
+  display: inline-block;
+  width: 1.35rem;
+  color: var(--ink-3);
+  opacity: 0.58;
+  user-select: none;
 }
 
 .diff-line.del {
   background: var(--before-bg);
+  border-left-color: var(--before);
   color: var(--before);
 }
 
 .diff-line.add {
   background: var(--after-bg);
+  border-left-color: var(--after);
   color: var(--after);
+}
+
+.diff-line.del mark {
+  background: color-mix(in srgb, var(--before) 24%, transparent);
+  color: inherit;
+  padding: 0.04rem 0.22rem;
+  font-weight: 600;
+}
+
+.diff-line.add mark {
+  background: color-mix(in srgb, var(--after) 24%, transparent);
+  color: inherit;
+  padding: 0.04rem 0.22rem;
+  font-weight: 600;
 }
 
 /* ----------------------------------------------------------------------------
@@ -380,7 +455,7 @@
   font-size: 0.71rem;
   color: var(--on-field-2);
   border-right: 1px solid var(--on-field-rule);
-  transition: all 150ms;
+  transition: background-color var(--dur-quick), color var(--dur-quick);
 }
 
 .horizon-btn:last-child { border-right: 0; }
@@ -406,13 +481,16 @@
 .horizon-foot {
   border-top: 1px solid var(--on-field-rule);
   padding: 0.9rem 1.15rem;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 1rem;
   background: color-mix(in srgb, var(--field-2) 55%, var(--field-plate));
   font-size: 0.8rem;
   color: var(--on-field-2);
   line-height: 1.56;
+}
+
+.horizon-foot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1rem;
 }
 
 .horizon-foot strong {
@@ -523,23 +601,36 @@
   font-weight: 500;
 }
 
+.status-cell {
+  display: inline-flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  line-height: 1.45;
+}
+
+.status-glyph {
+  flex-shrink: 0;
+  margin-top: 0.18rem;
+}
+
 .bench-grid {
-  margin-top: 1.75rem;
+  margin-top: 1.5rem;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 1.4rem;
+  gap: 1.25rem;
 }
 
 @media (min-width: 960px) {
   .bench-grid {
-    grid-template-columns: 1.25fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 .bar-track {
-  height: 0.62rem;
+  height: 0.56rem;
   background: var(--rule);
   position: relative;
+  overflow: hidden;
 }
 
 .bar-fill {
@@ -556,82 +647,173 @@
   background: var(--after);
 }
 
-.opt-grid {
+/* Before/after delta bars for PG 19 & Node 26 benchmarks */
+.delta-list {
   display: grid;
-  border: 1px solid var(--rule);
-  background: var(--plate-2);
+  gap: 0.9rem;
 }
 
-.opt-row {
+.delta-head {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
   justify-content: space-between;
-  gap: 0.35rem 0.75rem;
-  padding: 0.55rem 0.75rem;
-  border-bottom: 1px solid var(--rule);
-  font-size: 0.75rem;
+  gap: 0.25rem 0.6rem;
+  font-size: 0.76rem;
+  margin-bottom: 0.34rem;
 }
 
-.opt-row:last-child {
-  border-bottom: 0;
+.delta-meta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
 }
 
-.proven-strip {
-  margin-top: 1.4rem;
-  border: 1px solid var(--rule-strong);
-  background: var(--plate);
+.delta-track {
+  position: relative;
+  height: 0.56rem;
+  background: var(--rule);
+}
+
+.delta-prev {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: color-mix(in srgb, var(--ink-3) 34%, transparent);
+}
+
+.delta-gain {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--after);
+}
+
+.delta-gain.cobalt {
+  background: var(--accent-fill);
+}
+
+.delta-after-dot {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--after);
+  min-width: 4px;
+}
+
+.ledger-proof-num {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 0.55rem 0 0.45rem;
+}
+
+.ledger-proof-num .big {
+  font-family: var(--font-mono);
+  font-size: clamp(1.75rem, 2.4vw, 2.25rem);
+  font-weight: 620;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  line-height: 1;
+}
+
+.proof-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.9rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--rule);
+}
+
+/* Day-2 verify gate banner */
+.verify-strip {
+  margin-top: 2rem;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
 }
 
-.proven-cell {
-  padding: 1rem 1.15rem;
-  border-right: 1px solid var(--rule);
-  border-bottom: 1px solid var(--rule);
-}
-
-.proven-cell:last-child {
-  border-right: 0;
+@media (min-width: 960px) {
+  .verify-strip {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 2.5rem;
+  }
 }
 
 /* ----------------------------------------------------------------------------
-   SECTION 05 — 5-WAVE ROADMAP & QUICKSTART & CURTAIN FOOTER
+   SECTION 05 — CONNECTED 5-WAVE ROADMAP TIMELINE & QUICKSTART & CURTAIN FOOTER
    ---------------------------------------------------------------------------- */
-.roadmap-grid {
+.roadmap-track {
+  position: relative;
   margin-top: 2.25rem;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12.2rem, 1fr));
-  gap: 1rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.9rem;
+}
+
+@media (min-width: 960px) {
+  .roadmap-track {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(0, 1.32fr);
+    gap: 0.95rem;
+  }
+  .roadmap-track::before {
+    content: "";
+    position: absolute;
+    top: 1.05rem;
+    left: 1.1rem;
+    right: 22%;
+    height: 2px;
+    background: var(--after);
+    opacity: 0.55;
+    pointer-events: none;
+  }
+  .roadmap-track::after {
+    content: "";
+    position: absolute;
+    top: 1.05rem;
+    left: 74%;
+    right: 1.5rem;
+    height: 2px;
+    border-top: 2px dashed var(--accent);
+    opacity: 0.7;
+    pointer-events: none;
+  }
 }
 
 .phase {
+  position: relative;
+  z-index: 1;
   border: 1px solid var(--rule);
-  background: var(--plate);
-  padding: 1.1rem;
+  background: var(--ground);
+  padding: 1.05rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.45rem;
 }
 
 .phase.done {
-  border-color: color-mix(in srgb, var(--after) 38%, var(--rule));
+  border-color: color-mix(in srgb, var(--after) 34%, var(--rule));
 }
 
 .phase.done .phase-num {
   border-color: color-mix(in srgb, var(--after) 55%, var(--rule));
-  background: var(--after-bg);
+  background: var(--ground);
   color: var(--after);
 }
 
 .phase.current {
   border-color: var(--accent);
+  background: var(--plate);
 }
 
 .phase-num {
   width: 2.1rem;
   height: 2.1rem;
   border: 1px solid var(--rule-strong);
+  background: var(--plate);
   display: grid;
   place-items: center;
   font-family: var(--font-mono);
@@ -655,6 +837,20 @@
   margin: 0;
   font-size: 0.79rem;
   line-height: 1.56;
+  color: var(--ink-2);
+}
+
+.roadmap-horizon {
+  margin-top: 1rem;
+  padding: 0.85rem 1.05rem;
+  border: 1px dashed var(--rule-strong);
+  background: color-mix(in srgb, var(--plate) 60%, transparent);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1.25rem;
+  font-size: 0.8rem;
   color: var(--ink-2);
 }
 
@@ -779,4 +975,25 @@
   .callout-pair { grid-template-columns: 1fr; }
   .callout-cell { border-right: 0; border-bottom: 1px solid var(--rule); }
   .callout-cell:last-child { border-bottom: 0; }
+  .telemetry-head { flex-wrap: wrap; }
+}
+
+@media (max-width: 640px) {
+  .telemetry-diagram { display: none; }
+}
+
+@media (max-width: 520px) {
+  .horizon-toggle {
+    display: grid;
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+  .horizon-btn {
+    border-right: 0;
+    border-bottom: 1px solid var(--on-field-rule);
+    text-align: left;
+  }
+  .horizon-btn:last-child {
+    border-bottom: 0;
+  }
 }

@@ -13,6 +13,10 @@
         type="search"
         id="search-input"
         class="search-input"
+        role="combobox"
+        aria-expanded="false"
+        aria-controls="search-results"
+        aria-autocomplete="list"
         placeholder="Search docs, triggers, xid8, Prisma, Drizzle, benchmarks…"
         autocomplete="off"
         spellcheck="false"
@@ -33,6 +37,7 @@
 
 <script>
   const modal = document.getElementById("search-modal");
+  const dialog = modal?.querySelector<HTMLElement>(".search-dialog");
   const input = document.getElementById("search-input") as HTMLInputElement | null;
   const resultsEl = document.getElementById("search-results");
   const openBtn = document.getElementById("open-search");
@@ -41,6 +46,11 @@
   let pagefind: any = null;
   let activeIndex = -1;
   let hits: Array<{ url: string; title: string; excerpt: string }> = [];
+  let lastFocused: HTMLElement | null = null;
+
+  function escapeHtml(raw: string): string {
+    return raw.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
 
   async function ensurePagefind() {
     if (pagefind) return pagefind;
@@ -56,7 +66,9 @@
 
   function openModal() {
     if (!modal || !input) return;
+    lastFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     modal.hidden = false;
+    input.setAttribute("aria-expanded", "true");
     document.body.style.overflow = "hidden";
     input.focus();
     input.select();
@@ -66,24 +78,41 @@
   function closeModal() {
     if (!modal) return;
     modal.hidden = true;
+    input?.setAttribute("aria-expanded", "false");
+    input?.removeAttribute("aria-activedescendant");
     document.body.style.overflow = "";
+    lastFocused?.focus();
+    lastFocused = null;
+  }
+
+  function syncActiveDescendant() {
+    if (!input || !resultsEl) return;
+    if (activeIndex >= 0 && activeIndex < hits.length) {
+      const id = `search-hit-${activeIndex}`;
+      input.setAttribute("aria-activedescendant", id);
+      document.getElementById(id)?.scrollIntoView({ block: "nearest" });
+    } else {
+      input.removeAttribute("aria-activedescendant");
+    }
   }
 
   function renderHits() {
     if (!resultsEl) return;
     if (!hits.length) {
       resultsEl.innerHTML = `<div class="search-empty">${input?.value.trim() ? "No matching pages found." : "Type to search Auditstream documentation…"}</div>`;
+      syncActiveDescendant();
       return;
     }
     resultsEl.innerHTML = hits
       .map(
         (h, i) => `
-        <a class="search-hit" href="${h.url}" data-selected="${i === activeIndex}" role="option">
-          <div class="search-hit-title">${h.title}</div>
+        <a id="search-hit-${i}" class="search-hit" href="${escapeHtml(h.url)}" data-selected="${i === activeIndex}" aria-selected="${i === activeIndex}" role="option">
+          <div class="search-hit-title">${escapeHtml(h.title)}</div>
           <div class="search-hit-excerpt">${h.excerpt}</div>
         </a>`
       )
       .join("");
+    syncActiveDescendant();
   }
 
   let debounce: ReturnType<typeof setTimeout> | null = null;
@@ -139,6 +168,21 @@
       if (e.key === "Escape") {
         e.preventDefault();
         closeModal();
+      } else if (e.key === "Tab" && dialog) {
+        const focusables = Array.from(
+          dialog.querySelectorAll<HTMLElement>('input, button, a[href], [tabindex]:not([tabindex="-1"])')
+        ).filter((el) => !el.hasAttribute("disabled"));
+        if (focusables.length) {
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+          if (e.shiftKey && document.activeElement === first) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey && document.activeElement === last) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
       } else if (e.key === "ArrowDown" && hits.length) {
         e.preventDefault();
         activeIndex = (activeIndex + 1) % hits.length;

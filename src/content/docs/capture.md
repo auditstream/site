@@ -10,7 +10,7 @@ In v0.1, Auditstream captures every mutation inside PostgreSQL using generated t
 
 ## Trigger strategy
 
-- **`INSERT` and `DELETE` are statement-level** using transition tables (`REFERENCING NEW TABLE` / `OLD TABLE`). The actor is resolved once per statement instead of once per row — cutting a 10,000-row insert from 541–550 ms down to **155–180 ms**.
+- **`INSERT` and `DELETE` are statement-level** using transition tables (`REFERENCING NEW TABLE` / `OLD TABLE`). The actor is resolved once per statement instead of once per row — cutting a 10,000-row insert on disk-backed PostgreSQL 16.15 from 541–550 ms down to **155–180 ms** (**3× faster**; see [Evidence](/docs/evidence) for post-optimization PostgreSQL 19.0 `tmpfs` latency of **49.1 ms** / `+3.6 µs/row`).
 - **`UPDATE` stays row-level** with `WHEN (OLD.* IS DISTINCT FROM NEW.*)` so no-op updates write nothing. Measuring a statement-level update showed primary-key changes split into two half-events and 4% slower single-row writes.
 - **`TRUNCATE`** uses a dedicated `AFTER TRUNCATE FOR EACH STATEMENT` trigger recording the table and actor.
 - **Excluded columns** (such as `password_hash`) are stripped before storing `before` and `after`; an update touching only excluded columns writes no audit row.

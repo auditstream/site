@@ -15,7 +15,7 @@ function getHighlighter() {
 
 // Map Shiki's repeated inline CSS variables to tiny semantic classes (cuts HTML by ~40%)
 const COLOR_TO_CLASS: Record<string, string> = {
-  "#687482": "st-cm",
+  "#5a6674": "st-cm",
   "#1a4ea8": "st-kw",
   "#0c1015": "st-fn",
   "#0c6e54": "st-str",

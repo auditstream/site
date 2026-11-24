@@ -16,18 +16,42 @@ eyebrow: START · QUICKSTART
 | **Drizzle** | 0.45 and 1.x | `auditComment()` on Drizzle 1.x; `/pg`, `/postgres-js`, and `/neon-http` driver wrappers on 0.45 |
 | **Runtimes** | Node.js, Bun, Deno, Cloudflare Workers | Uses `AsyncLocalStorage.run()` only (`nodejs_als` flag or compatibility date `2026-08-04` or later on Workers) |
 
-## 1. Install the CLI and generate migrations
+## 1. Install the CLI and try it in 60 seconds
 
-Prebuilt binaries, npm (`auditstream`), Homebrew (`auditstream/tap/auditstream`), shell/PowerShell installers, and `ghcr.io/auditstream/auditstream` publish with the `v0.1.0` release. Until then, install from source with Cargo:
+Prebuilt binaries, npm (`auditstream`), Homebrew (`auditstream/tap/auditstream`), shell/PowerShell installers, and `ghcr.io/auditstream/auditstream` publish with the `v0.1.0` release. Until then, build and install from source with Cargo:
 
 ```bash
+git clone https://github.com/auditstream/auditstream
+cd auditstream
 cargo install --path crates/auditstream --locked
 ```
 
-Generate the audit schema and trigger migrations for your tables:
+Verify everything end-to-end against a disposable PostgreSQL container (including `--exclude` PII redaction):
 
 ```bash
-auditstream init --migrations prisma --table public.invoice --table public.users
+docker run -d --rm --name as-demo -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:18
+psql postgres://postgres:postgres@127.0.0.1:5432/postgres -c \
+  "CREATE TABLE public.invoice (id int PRIMARY KEY, status text NOT NULL, password_hash text);"
+auditstream --database-url postgres://postgres:postgres@127.0.0.1:5432/postgres \
+  init --migrations sql --table public.invoice --exclude public.invoice.password_hash
+psql postgres://postgres:postgres@127.0.0.1:5432/postgres -v ON_ERROR_STOP=1 -f migrations/*_auditstream.sql
+psql postgres://postgres:postgres@127.0.0.1:5432/postgres -c \
+  "INSERT INTO public.invoice VALUES (1, 'draft', 'secret') /*auditstream='eyJ0eXBlIjoidXNlciIsImlkIjoidXNyXzQyIn0'*/;"
+auditstream --database-url postgres://postgres:postgres@127.0.0.1:5432/postgres \
+  history --table public.invoice --record-id 1
+```
+
+Expected output (`password_hash` is never recorded in `before` or `after`):
+
+```text
+OCCURRED_AT                  OP      TABLE           RECORD_ID  ACTOR        ACTOR_SOURCE  CHANGED
+2026-11-24T15:22:00.000000Z  INSERT  public.invoice  {"id":1}   user:usr_42  comment       -
+```
+
+For Prisma or Drizzle projects, generate migrations directly into your project's migration directory:
+
+```bash
+auditstream init --migrations prisma --table public.invoice --table public.users --exclude public.users.password_hash
 ```
 
 `auditstream init` inspects your schema and generates migrations for Prisma, Drizzle, or plain SQL containing:
