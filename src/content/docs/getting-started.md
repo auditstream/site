@@ -18,13 +18,29 @@ eyebrow: START · QUICKSTART
 
 ## 1. Install the CLI and try it in 60 seconds
 
-Prebuilt binaries, npm (`auditstream`), Homebrew (`auditstream/tap/auditstream`), shell/PowerShell installers, and `ghcr.io/auditstream/auditstream` publish with the `v0.1.0` release. Until then, build and install from source with Cargo:
+Install the prebuilt `auditstream` binary through any supported channel:
 
 ```bash
-git clone https://github.com/auditstream/auditstream
-cd auditstream
-cargo install --path crates/auditstream --locked
+# Shell (macOS and Linux)
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/auditstream/auditstream/releases/latest/download/auditstream-installer.sh | sh
+
+# Homebrew (macOS and Linux)
+brew install auditstream/tap/auditstream
+
+# npm
+npm install -g auditstream
+
+# Docker (multi-arch linux/amd64 + linux/arm64, distroless non-root)
+docker run --rm ghcr.io/auditstream/auditstream:latest --version
 ```
+
+On Windows PowerShell:
+
+```powershell
+powershell -ExecutionPolicy Bypass -c "irm https://github.com/auditstream/auditstream/releases/latest/download/auditstream-installer.ps1 | iex"
+```
+
+Or build from source with Cargo (`git clone https://github.com/auditstream/auditstream && cd auditstream && cargo install --path crates/auditstream --locked`).
 
 Verify everything end-to-end against a disposable PostgreSQL container (including `--exclude` PII redaction):
 
