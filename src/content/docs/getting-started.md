@@ -6,7 +6,7 @@ order: 2
 eyebrow: GET STARTED · QUICKSTART
 ---
 
-Current releases: CLI v0.1.0 · TypeScript SDKs v0.2.0 · Spec v0.1.1 · PostgreSQL 15–19
+Current releases: CLI v0.1.0 · TypeScript SDKs v0.2.0 · PostgreSQL 15–19
 
 ## 1. Install the CLI
 
@@ -129,7 +129,7 @@ await audit.as(
 );
 ```
 
-Never configure `statementNameGenerator` on `PrismaPg` alongside SQL comments. Using Drizzle, Hono, Express, or Next.js 16? See [TypeScript Adapters](/docs/adapters/). Using Go, Python, Ruby, Java, or plain SQL? See [Cloud, Poolers & Security](/docs/cloud-and-security/#plain-sql-other-languages).
+Never configure `statementNameGenerator` on `PrismaPg` alongside SQL comments. Using Drizzle, Hono, Express, or Next.js 16? See [TypeScript](/docs/adapters/). Using Python (Django / Flask / `psycopg`)? See [Python](/docs/python/). Using Go, Ruby, Java, or `psql`? See [Plain SQL](/docs/plain-sql/).
 
 ## 3. Verify and export
 
@@ -159,7 +159,7 @@ auditstream export \
 
 ## Next steps
 
-- Wire request-level middleware and query feeds in [TypeScript Adapters](/docs/adapters/).
+- Wire request-level middleware and query feeds in [TypeScript](/docs/adapters/) or attribute writes from [Python](/docs/python/) and [Plain SQL](/docs/plain-sql/).
 - Automate CI drift checks, redaction rules, and scheduled exports with [CLI & Day-2 Operations](/docs/cli/).
 - Review pooler behavior, least-privilege roles, and Neon/Supabase guidance in [Cloud, Poolers & Security](/docs/cloud-and-security/).
-- Inspect verified PostgreSQL 19 overhead and limits in [Evidence & Benchmarks](/docs/evidence/).
+- Inspect verified PostgreSQL 19 overhead and limits in [Benchmarks & Limits](/docs/evidence/).

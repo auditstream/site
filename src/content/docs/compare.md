@@ -1,8 +1,8 @@
 ---
 title: Comparisons
 description: Honest architectural comparison of Auditstream against pgaudit, Debezium / logical replication, and hand-rolled application logging.
-section: Reference & Proof
-order: 9
+section: Reference
+order: 11
 ---
 
 Auditstream is designed for teams that want structured `before`/`after` row diffs and user or AI-agent attribution inside PostgreSQL 15–19 without running new infrastructure, logical replication slots, or fragile per-ORM logging glue. Here is how it compares honestly against the three standard alternatives.
@@ -27,6 +27,6 @@ Auditstream is designed for teams that want structured `before`/`after` row diff
 
 ## Next steps
 
-- Inspect the live PostgreSQL 19 and PgBouncer 1.26 numbers behind these trade-offs in [Evidence & Benchmarks](/docs/evidence/).
-- Read how hybrid triggers and the commit-safe `xid8` cursor work in [Capture & Engine Architecture](/docs/capture/).
+- Inspect the live PostgreSQL 19 and PgBouncer 1.26 numbers behind these trade-offs in [Benchmarks & Limits](/docs/evidence/).
+- Read how hybrid triggers and the commit-safe `xid8` cursor work in [How Capture Works](/docs/capture/).
 - Run the 60-second local PostgreSQL demo in [Getting Started](/docs/getting-started/).

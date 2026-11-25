@@ -1,12 +1,12 @@
 ---
-title: Evidence & Benchmarks
+title: Benchmarks & Limits
 description: Live PostgreSQL 19.0 and PgBouncer 1.26 stress benchmarks, durable disk overhead, 500k-row CLI timings, Node 26 adapter micro-benchmarks, and honest limits.
-section: Reference & Proof
-order: 8
-eyebrow: PROOF · VERIFIED 2026-11-24
+section: Reference
+order: 10
+eyebrow: REFERENCE · BENCHMARKS
 ---
 
-Every load-bearing architectural claim in Auditstream was measured directly on live PostgreSQL instances (`pgbench`, `xtask bench`, and `--release` CLI binaries) with **0 failed transactions**, **100% row-count verification**, and **0 actor leaks**.
+Every load-bearing performance claim in Auditstream was measured directly on live PostgreSQL instances (`pgbench`, `xtask bench`, and `--release` CLI binaries) with **0 failed transactions**, **100% row-count verification**, and **0 actor leaks**.
 
 <div class="docs-kpis">
   <div class="docs-kpi">
@@ -52,10 +52,10 @@ Every load-bearing architectural claim in Auditstream was measured directly on l
     </dd>
   </div>
   <div class="docs-spec-item">
-    <dt>Builds &amp; Contract</dt>
+    <dt>Builds Tested</dt>
     <dd>
-      <strong>Spec v0.1.1 Option A (#130, #79)</strong>
-      <span>auditstream main@bb7215f (--release) · auditstream-js main@699521c (Node v26.13.1)</span>
+      <strong>CLI v0.1.0 · TS SDK v0.2.0 · Spec v0.1.1</strong>
+      <span>auditstream (--release) · auditstream-js (Node v26.13.1)</span>
     </dd>
   </div>
 </dl>
@@ -99,7 +99,7 @@ Bulk DML on `tmpfs` (1 client, 368 B AI agent):
 | **10k bulk DELETE** (statement-level) | 7.0 ms | **46.9 ms** | **213,220/s** | **+4.0 µs** |
 | **10k bulk UPDATE** (row-level) | 19.7 ms | **665.1 ms** | **15,035/s** | **+64.5 µs** |
 
-> **Zero regression from Option A SQL validation (#130):** Direct tmpfs (`-c 8 -j 4`) comparison against pre-#130 ADR-0008 baselines confirmed **0 µs/row measurable regression** from full enum, `onBehalfOf`, `tenant`, and `context` validation plus 3 table CHECK constraints (63.0k vs 60.0k tps UPDATE comment; 76.5k vs 72.5k tps INSERT comment; 53.2 ms vs 53.1 ms for 10k bulk INSERT).
+> **Zero measurable overhead from strict SQL validation:** Direct tmpfs (`-c 8 -j 4`) comparison with and without full actor enum, `onBehalfOf`, `tenant`, and `context` validation plus table CHECK constraints confirmed **0 µs/row measurable regression** (63.0k vs 60.0k tps UPDATE comment; 76.5k vs 72.5k tps INSERT comment; 53.2 ms vs 53.1 ms for 10k bulk INSERT).
 
 ### PgBouncer 1.26
 
@@ -129,35 +129,19 @@ Measured with the `auditstream` `--release` CLI against 500,000 rich rows totali
 | `history --record-id` (40 CLI runs) | **36.4 ms** p50 | 48.8 ms p95, 50.1 ms p99; full process spawn + PG connect + `--format json` |
 | `verify` / `status` (`--format json`) | **12.6 / 9.8 ms** | Full trigger, function, and partition catalog audit |
 
-<details class="docs-details">
-<summary>Pre-v0.1 optimization history (partial HASH index &amp; pure-SQL actor parser)</summary>
-
-Two targeted engine optimizations landed before v0.1.0: adopting the partial HASH lookup index (auditstream#97) and eliminating POSIX regexes, correlated PK subqueries, and empty `TG_ARGV` work from `capture()` and `resolve_actor()` (auditstream#102; PostgreSQL 19.0 tmpfs, `pgbench -M prepared -c 8 -j 4 -T 5`, 3-run medians):
-
-| Workload | Pre-opt | After #97 | After #102 | Gain |
-| :--- | ---: | ---: | ---: | ---: |
-| UPDATE (comment) | 54,288 tps | 59,008 tps | **67,018 tps** | **+23.4%** |
-| UPDATE (`set_config`) | 26,565 tps | 35,433 tps | **38,095 tps** | **+43.4%** |
-| INSERT (comment) | 69,879 tps | 69,857 tps | **86,060 tps** | **+23.2%** |
-| 10k bulk INSERT | 66.1 ms | 54.3 ms | **49.1 ms** | **−25.7%** |
-
-Per-row capture overhead dropped from **+13.2 → +9.8 µs** (UPDATE comment, −25.8%), **+32.4 → +21.2 µs** (UPDATE `set_config`, −34.6%), **+9.8 → +7.0 µs** (INSERT comment, −28.6%), and **+5.3 → +3.6 µs** (10k bulk INSERT, −32.1%).
-
-</details>
-
 ## Adapter micro-benchmarks
 
-Measured on Node v26.13.1 after scope caching (auditstream-js#64) and Spec v0.1.1 Option A validation (auditstream-js#79). `@auditstream/node` caches canonical JSON, UTF-8 bytes, base64url tags, and comment suffixes per immutable `audit.as()` scope via a process-wide `WeakMap`, and uses a bounded O(1) tail scan in `isTagged()`:
+Measured on Node v26.13.1. `@auditstream/node` caches canonical JSON, UTF-8 bytes, base64url tags, and comment suffixes per immutable `audit.as()` scope via a process-wide `WeakMap`, and uses a bounded O(1) tail scan in `isTagged()`:
 
 | Operation | Latency | Ops/sec | Notes |
 | :--- | ---: | ---: | :--- |
-| `encodeScope()` (Prisma plugin, cached) | **10.4 ns** | 96.3M | **134.4×** faster than pre-#64 (1,395 ns) |
-| `setConfigValue()` (cached) | **9.3 ns** | 107.5M | **66.6×** faster than pre-#64 (620 ns) |
+| `encodeScope()` (Prisma plugin, cached) | **10.4 ns** | 96.3M | **134.4×** faster than uncached encoding (1,395 ns) |
+| `setConfigValue()` (cached) | **9.3 ns** | 107.5M | **66.6×** faster than uncached serialization (620 ns) |
 | `tagSql()` cached (368 B AI agent) | **24 ns** | **40.9M** | Single-query cached path (240 ns / 6.4× over 10-query batch) |
-| `isTagged()` untagged SQL (> 4,096 chars) | **4.8 ns** | 209.7M | **56.9×** faster than pre-#64 regex scan (271 ns) |
-| `decodeScope()` user actor (Option A) | **966 ns** | **1.03M** | Full enum, `onBehalfOf`, `tenant`, and `context` checks |
-| `decodeScope()` AI agent + context (Option A) | **2,197 ns** | **455k** | Invalid `actor.type` rejected in **710 ns** (1.41M/s) |
-| `parseExportRecord()` (30-digit `numeric`) | **9.3 µs** | **108k** | ES2025 `JSON.parse` raw-source decimal preservation + Option A |
+| `isTagged()` untagged SQL (> 4,096 chars) | **4.8 ns** | 209.7M | **56.9×** faster than regex scanning (271 ns) |
+| `decodeScope()` user actor | **966 ns** | **1.03M** | Full enum, `onBehalfOf`, `tenant`, and `context` validation |
+| `decodeScope()` AI agent + context | **2,197 ns** | **455k** | Invalid `actor.type` rejected in **710 ns** (1.41M/s) |
+| `parseExportRecord()` (30-digit `numeric`) | **9.3 µs** | **108k** | ES2025 `JSON.parse` raw-source decimal preservation + validation |
 
 ## Cloud pooler matrix
 
@@ -183,4 +167,4 @@ Every capture harness, `pgbench` script, and pooler stress configuration lives i
 
 - Capture & durable-disk benchmarks: [`bench/capture`](https://github.com/auditstream/auditstream/tree/main/bench/capture)
 - PgBouncer, Neon, and Supavisor pooler harnesses: [`bench/poolers`](https://github.com/auditstream/auditstream/tree/main/bench/poolers)
-- Related guides: [Comparisons](/docs/compare/) · [Capture & Engine Architecture](/docs/capture/) · [Cloud, Poolers & Security](/docs/cloud-and-security/) (includes SonarCloud, CodeQL, OpenSSF Scorecard, and SLSA provenance)
+- Related guides: [Comparisons](/docs/compare/) · [How Capture Works](/docs/capture/) · [Cloud, Poolers & Security](/docs/cloud-and-security/)

@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" fill="none">
-  <rect width="28" height="28" fill="#0c0f13"/>
-  <rect x="3" y="4" width="22" height="4.5" stroke="#edf1f5" stroke-width="1.6"/>
-  <rect x="3" y="11.75" width="14.5" height="4.5" stroke="#6ba6ff" stroke-width="1.6"/>
-  <path d="M20.5 14H24M22.41863 11.75L24.66863 14L22.41863 16.25" stroke="#6ba6ff" stroke-width="1.6" stroke-linecap="square"/>
-  <rect x="3" y="19.5" width="22" height="4.5" stroke="#edf1f5" stroke-width="1.6" opacity="0.5"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <rect width="256" height="256" rx="48" fill="#0c0f13"/>
+  <g transform="translate(23,23) scale(0.82)">
+    <path fill="#6ba6ff" d="M 62.57 70.54 A 52.00 52.00 0 0 1 120.19 32.53 A 78.00 78.00 0 0 0 103.46 63.81 L 64.24 210.16 A 10 10 0 0 1 57.17 217.23 L 40.72 221.64 A 12 12 0 0 1 26.02 206.95 Z"/>
+    <path fill="#edf1f5" fill-rule="evenodd" d="M 128.57 70.54 A 52.00 52.00 0 0 1 229.03 97.46 L 206.23 182.56 A 24 24 0 0 1 189.26 199.53 L 106.72 221.64 A 12 12 0 0 1 92.02 206.95 Z M 161.56 74.36 L 179.43 79.14 L 168.04 121.64 L 150.17 116.86 Z M 193.56 74.36 L 211.43 79.14 L 200.04 121.64 L 182.17 116.86 Z"/>
+  </g>
 </svg>

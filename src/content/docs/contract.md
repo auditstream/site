@@ -1,21 +1,12 @@
 ---
-title: Contract (Spec v0.1.1)
-description: Normative Spec v0.1.1 actor schema, Option A validation rules, unpadded base64url sqlcommenter transport, and language-neutral conformance fixtures.
-section: Reference & Proof
-order: 7
-eyebrow: REFERENCE · SPEC V0.1.1
+title: Wire Format & Spec
+description: Actor JSON schema, unpadded base64url SQL comment transport, strict validation rules, and language-neutral conformance fixtures.
+section: Reference
+order: 9
+eyebrow: REFERENCE · WIRE FORMAT
 ---
 
-The engine repository owns the normative [`spec/`](https://github.com/auditstream/auditstream/tree/spec-v0.1.1/spec) directory, versioned independently with SemVer. Every implementation declares which spec version it targets in [`spec/compliance.md`](https://github.com/auditstream/auditstream/blob/main/spec/compliance.md) and verifies compliance against shared JSON conformance fixtures.
-
-## Spec v0.1.1 changes
-
-[`spec-v0.1.1`](https://github.com/auditstream/auditstream/tree/spec-v0.1.1/spec) aligned database trigger readers, JSON schemas, and adapters under strict **Option A** contract validation without breaking valid 0.1.0 payloads:
-
-- **Option A validation in `resolve_actor()` and `event.schema.json`:** `actor.type` and `onBehalfOf.type` MUST be one of the 5 enum values (`user`, `api_key`, `ai_agent`, `service`, `system`); `tenant` MUST be a non-empty string; `onBehalfOf` MUST be an object at max depth 1; and `context` MUST be an object whose known fields (`requestId`, `source`, `ip`, `userAgent`) are non-empty strings.
-- **Hardened `auditstream.log_event()` object checks:** `target` and `data` MUST be JSON objects or `NULL` (rejected with `SQLSTATE 22023` otherwise), and reserved DML action checks apply to `upper(btrim(action))`.
-- **Clarified `request.jwt.claims` `sub` handling:** Non-object JSON or a non-null invalid `sub` yields `actor_source = 'invalid'`, while a valid JSON object without `sub` (or with `sub: null`) yields `NULL`.
-- **Updated Reference DDL & conformance fixtures:** Added `IS DISTINCT FROM` comparisons, pure-string comment extraction, table CHECK constraints (`source`, `actor_source`, `schema_version`), and expanded cases in `spec/conformance/transport/decode.json` and `precedence.json`.
+Auditstream separates database capture from application SDKs through a small, language-neutral wire format. Any language, ORM, or SQL client that emits this actor payload works seamlessly with the PostgreSQL triggers and CLI.
 
 ## Actor & context schema
 
@@ -50,13 +41,23 @@ SELECT set_config('auditstream.actor', '{"type":"user","id":"usr_42"}', true);
 
 - **Injection-proof encoding:** The comment value MUST be unpadded base64url. Because base64url uses only `A-Za-z0-9_-`, it can never contain `*/` or break out of the SQL comment.
 - **Trailing position:** The comment MUST be the last comment in the statement and MAY share a comment with other `sqlcommenter` keys such as `traceparent`.
-- **No named prepared statements with per-actor comments:** Each distinct comment string produces a new prepared statement that `node-postgres` never evicts, so driver wrappers strip statement names when appending a tag.
+- **No named prepared statements with per-actor comments:** Each distinct comment string produces a new prepared statement that drivers like `node-postgres` or `psycopg` cache indefinitely, so disable prepared statement naming when tagging queries (or use `set_config`).
 - **Spoofing resistance:** Comment-like text inside SQL string literals is ignored because extraction scans only the trailing SQL comment after trimming whitespace and semicolons.
 
-## Normative references
+## Validation rules
 
-- [Auditstream Specification (spec-v0.1.1)](https://github.com/auditstream/auditstream/tree/spec-v0.1.1/spec) — normative `actor.md`, `transport.md`, `history-table.md`, `export.md`, JSON schemas, and conformance fixtures.
-- [Implementation Compliance Matrix (`spec/compliance.md`)](https://github.com/auditstream/auditstream/blob/main/spec/compliance.md) — per-component support and verified conformance coverage.
-- [TypeScript Adapters](/docs/adapters/) — `@auditstream/node`, `@auditstream/prisma`, and `@auditstream/drizzle` implementations.
-- [CLI & Day-2 Operations](/docs/cli/) — `auditstream history`, `auditstream export`, and `event.schema.json` output.
-- [Cloud, Poolers & Security](/docs/cloud-and-security/) — attaching spec-compliant actors from Go, Python, Ruby, Java, or `psql`.
+Both database trigger readers (`resolve_actor()`), JSON export schemas (`event.schema.json`), and language SDKs enforce identical strict schema validation:
+
+- **Actor & context checks:** `actor.type` and `onBehalfOf.type` must be one of the 5 enum values; `tenant` and `id` must be non-empty strings; `onBehalfOf` is limited to depth 1; and `context` must be an object whose known fields (`requestId`, `source`, `ip`, `userAgent`) are non-empty strings.
+- **Application events (`auditstream.log_event()`):** `target` and `data` must be JSON objects or `NULL` (otherwise rejected with `SQLSTATE 22023`), and reserved DML action checks apply after trimming and uppercasing `action`.
+- **JWT fallback (`request.jwt.claims`):** Non-object JSON or a non-null invalid `sub` yields `actor_source = 'invalid'`, while a valid JSON object without `sub` (or with `sub: null`) yields `NULL`.
+- **Table constraints:** `auditstream.changes` enforces CHECK constraints on `source`, `actor_source`, and `schema_version`. Malformed actor payloads never abort application writes — changes still commit with `actor = NULL` and `actor_source = 'invalid'`.
+
+## Specification & conformance
+
+The normative wire specification lives in [`spec/`](https://github.com/auditstream/auditstream/tree/spec-v0.1.1/spec) (current version: **`v0.1.1`**, independently SemVer-versioned so engine and language SDKs evolve safely) alongside shared JSON conformance fixtures.
+
+- [Normative Specification (`spec-v0.1.1`)](https://github.com/auditstream/auditstream/tree/spec-v0.1.1/spec) — `actor.md`, `transport.md`, `history-table.md`, `export.md`, JSON schemas, and test fixtures.
+- [Implementation Compliance Matrix (`spec/compliance.md`)](https://github.com/auditstream/auditstream/blob/main/spec/compliance.md) — per-SDK support and verified conformance coverage.
+- [TypeScript](/docs/adapters/), [Python](/docs/python/), and [Plain SQL](/docs/plain-sql/) — language guides implementing this wire format.
+- [CLI & Day-2 Operations](/docs/cli/) — `auditstream history` and `auditstream export` JSONL/CSV output.

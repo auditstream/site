@@ -2,7 +2,7 @@
 title: CLI & Day-2 Operations
 description: All five auditstream subcommands (init, status, verify, history, export), auditstream.toml configuration, CI drift gating, and exit codes.
 section: Operate
-order: 4
+order: 6
 eyebrow: OPERATE · CLI REFERENCE
 ---
 
@@ -110,7 +110,7 @@ OCCURRED_AT                  OP      TABLE           RECORD_ID
 
 ### export
 
-`auditstream export` streams committed events inside the lossless `xid8` window (`xact_id >= cursor AND xact_id < pg_snapshot_xmin()`), advancing the checkpoint file only after the destination flushes (see [Capture & Engine Architecture](/docs/capture/) for cursor semantics):
+`auditstream export` streams committed events inside the lossless `xid8` window (`xact_id >= cursor AND xact_id < pg_snapshot_xmin()`), advancing the checkpoint file only after the destination flushes (see [How Capture Works](/docs/capture/) for cursor semantics):
 
 ```bash
 auditstream export \
@@ -168,7 +168,7 @@ mode = "remove"
 
 ## Exit codes
 
-CLI exit codes are part of the public engine contract (`crates/auditstream/src/exit.rs`). Every non-clap failure writes a single `error:` line to stderr and leaves stdout untouched.
+CLI exit codes are part of the public contract. Every non-clap failure writes a single `error:` line to stderr and leaves stdout untouched.
 
 | Code | Name | Meaning |
 | ---: | :--- | :--- |
@@ -182,6 +182,6 @@ CLI exit codes are part of the public engine contract (`crates/auditstream/src/e
 
 ## Next steps
 
-- Configure connection poolers, least-privilege roles, and non-TypeScript drivers in [Cloud, Poolers & Security](/docs/cloud-and-security/).
-- Understand how triggers and the `xid8` cursor work under the hood in [Capture & Engine Architecture](/docs/capture/).
-- See 500k-row `export`, `history`, `status`, and `verify` timings in [Evidence & Benchmarks](/docs/evidence/).
+- Configure connection poolers and least-privilege roles in [Cloud, Poolers & Security](/docs/cloud-and-security/).
+- Understand how triggers and the `xid8` cursor work under the hood in [How Capture Works](/docs/capture/).
+- See 500k-row `export`, `history`, `status`, and `verify` timings in [Benchmarks & Limits](/docs/evidence/).

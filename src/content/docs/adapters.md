@@ -1,9 +1,9 @@
 ---
-title: TypeScript Adapters
-description: ESM-only packages (v0.2.0) for Node.js, Prisma 7, and Drizzle — built around AsyncLocalStorage.run() with zero capture logic in JS.
-section: Get Started
+title: TypeScript
+description: ESM-only packages (v0.2.0) for Node.js, Hono, Express, Next.js 16, Prisma 7, and Drizzle — built around AsyncLocalStorage.run() with zero capture logic in JS.
+section: SDKs & Languages
 order: 3
-eyebrow: GET STARTED · ADAPTERS
+eyebrow: SDKS & LANGUAGES · TYPESCRIPT
 ---
 
 [`auditstream-js`](https://github.com/auditstream/auditstream-js) publishes three **ESM-only** packages (v0.2.0), versioned together as a fixed group. `@auditstream/node` manages actor context; ORM adapters only forward that actor to PostgreSQL.
@@ -196,7 +196,7 @@ const page: AuditQueryPage = await audit.query(exec, query);
 // Pass page.nextCursor back as `cursor` when page.hasMore is true
 ```
 
-> **Backend-only API:** `audit.query()` returns raw `HistoryEntry` rows including internal database metadata (`db_user`, `xact_id`, `table_oid`, `actor_source`) and raw `before`/`after` payloads. Always enforce authentication and tenant authorization on the server and project each row into an allowlisted DTO before sending data to browsers. See the runnable **Next.js 16 + Prisma 7 Activity Feed** (`examples/next-prisma` in [`auditstream-js`](https://github.com/auditstream/auditstream-js/tree/main/examples/next-prisma)) for a copy-paste BFF pattern (Auditstream intentionally omits a styled React UI package — see [ADR-0009](https://github.com/auditstream/auditstream/blob/main/docs/decisions/0009-no-ui-package-or-in-db-partition-sealing.md)).
+> **Backend-only API:** `audit.query()` returns raw `HistoryEntry` rows including internal database metadata (`db_user`, `xact_id`, `table_oid`, `actor_source`) and raw `before`/`after` payloads. Always enforce authentication and tenant authorization on the server and project each row into an allowlisted DTO before sending data to browsers. See the runnable **Next.js 16 + Prisma 7 Activity Feed** (`examples/next-prisma` in [`auditstream-js`](https://github.com/auditstream/auditstream-js/tree/main/examples/next-prisma)) for a copy-paste BFF pattern.
 
 ## Concurrency rules
 
@@ -209,12 +209,12 @@ Proven directly against live PostgreSQL concurrency tests:
 
 ## Hot-path caching
 
-Because `audit.as()` validates and deeply freezes each active `AuditScope`, `@auditstream/node` caches its canonical JSON, UTF-8 bytes, unpadded base64url tag, and trailing comment suffix in a process-wide `WeakMap` (auditstream-js#64), while `isTagged()` uses a bounded O(1) trailing-character scan instead of per-query regex matching. Caller-constructed mutable scopes passed directly to `encodeScope()` or `tagSql()` are never cached.
+Because `audit.as()` validates and deeply freezes each active `AuditScope`, `@auditstream/node` caches its canonical JSON, UTF-8 bytes, unpadded base64url tag, and trailing comment suffix in a process-wide `WeakMap`, while `isTagged()` uses a bounded O(1) trailing-character scan instead of per-query regex matching. Caller-constructed mutable scopes passed directly to `encodeScope()` or `tagSql()` are never cached.
 
-On Node v26.13.1, repeated `encodeScope(audit.current())` calls drop from 1,395 ns to **10.4 ns** (**134× faster**), and `tagSql()` inside `audit.as()` runs **5.0×–6.4× faster** (157–240 ns/op; see [Evidence & Benchmarks](/docs/evidence/)).
+On Node v26.13.1, repeated `encodeScope(audit.current())` calls drop from 1,395 ns to **10.4 ns** (**134× faster**), and `tagSql()` inside `audit.as()` runs **5.0×–6.4× faster** (157–240 ns/op; see [Benchmarks & Limits](/docs/evidence/)).
 
 ## Next steps
 
-- Check wire encoding and actor validation rules in [Contract (Spec v0.1.1)](/docs/contract/).
+- Check wire encoding and actor validation rules in [Wire Format & Spec](/docs/contract/).
 - Review PgBouncer, Neon, Supabase, and Prisma Accelerate guidance in [Cloud, Poolers & Security](/docs/cloud-and-security/).
 - Explore full runnable apps in [`auditstream/auditstream-js`](https://github.com/auditstream/auditstream-js).
