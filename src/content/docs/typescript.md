@@ -1,24 +1,50 @@
 ---
 title: TypeScript
-description: ESM-only packages (v0.2.0) for Node.js, Hono, Express, Next.js 16, Prisma 7, and Drizzle — built around AsyncLocalStorage.run() with zero capture logic in JS.
+description: ESM-only packages (v0.2.0) for Node.js, Prisma 7, Drizzle, Next.js 16, Hono, and Express — built around AsyncLocalStorage.run() with zero capture logic in JavaScript.
 section: SDKs & Languages
 order: 3
 eyebrow: SDKS & LANGUAGES · TYPESCRIPT
 ---
 
-[`auditstream-js`](https://github.com/auditstream/auditstream-js) ships three ESM-only packages (v0.2.0): `@auditstream/node` manages actor scope while ORM adapters forward it to PostgreSQL.
-
-## Install
-
-```bash
-# Prisma 7.1+
-pnpm add @auditstream/node @auditstream/prisma
-
-# Drizzle 0.45 or 1.x
-pnpm add @auditstream/node @auditstream/drizzle
-```
+[`auditstream-js`](https://github.com/auditstream/auditstream-js) ships three ESM-only packages (v0.2.0): `@auditstream/node` manages actor scope while ORM and HTTP adapters forward it to PostgreSQL.
 
 > **Triggers live in PostgreSQL:** Adapters never create audit tables or triggers. Apply migrations first with the CLI ([Getting Started](/docs/getting-started/)).
+
+## Pick an adapter
+
+<div class="docs-cards">
+  <a class="docs-card" href="/docs/typescript/prisma/">
+    <div class="docs-card-tag">ORM Adapter</div>
+    <div class="docs-card-title">Prisma</div>
+    <div class="docs-card-desc">Prisma 7 SQL comments plugin plus transaction-local set_config fallback for Accelerate.</div>
+  </a>
+  <a class="docs-card" href="/docs/typescript/drizzle/">
+    <div class="docs-card-tag">ORM Adapter</div>
+    <div class="docs-card-title">Drizzle</div>
+    <div class="docs-card-desc">Driver wrappers for node-postgres, postgres.js, and Neon HTTP plus Drizzle 1.x auditComment().</div>
+  </a>
+  <a class="docs-card" href="/docs/typescript/nextjs/">
+    <div class="docs-card-tag">Framework</div>
+    <div class="docs-card-title">Next.js</div>
+    <div class="docs-card-desc">Bind verified sessions in Next.js 16 Route Handlers and Server Actions with withAudit and auditAction.</div>
+  </a>
+  <a class="docs-card" href="/docs/typescript/http/">
+    <div class="docs-card-tag">Framework</div>
+    <div class="docs-card-title">Hono &amp; Express</div>
+    <div class="docs-card-desc">Attach authenticated actors and request trace metadata once at your HTTP middleware boundary.</div>
+  </a>
+</div>
+
+## Packages (v0.2.0)
+
+```bash
+# Core runtime + HTTP/Next.js middlewares
+pnpm add @auditstream/node
+
+# Add your ORM adapter
+pnpm add @auditstream/prisma   # Prisma 7.1+
+pnpm add @auditstream/drizzle  # Drizzle 0.45 or 1.x
+```
 
 | Package (v0.2.0) | Responsibility | Peer dependencies |
 | :--- | :--- | :--- |
@@ -28,124 +54,29 @@ pnpm add @auditstream/node @auditstream/drizzle
 
 > **Why ESM-only?** Dual ESM/CJS builds can load `@auditstream/node` twice and split `AsyncLocalStorage`, silently dropping actors. Shipping ESM-only with `@auditstream/node` as a peer dependency — and sharing state via `Symbol.for(...)` — eliminates that hazard across server bundles.
 
-## Framework middleware
+## Core API (`@auditstream/node`)
 
-Bind the actor once at your HTTP or action boundary instead of wrapping every database call manually.
+### Scope binding (`audit.as`)
 
-### Hono
-
-Use `@auditstream/node/hono`:
+Wrap awaited database work in `audit.as(actor, fn)` (or bind once per request via [Next.js](/docs/typescript/nextjs/) or [Hono & Express](/docs/typescript/http/) middleware):
 
 ```ts
-import { Hono } from "hono";
-import { auditstream } from "@auditstream/node/hono";
+import { audit } from "@auditstream/node";
 
-const app = new Hono();
-app.use(
-  "*",
-  auditstream({
-    actor: (c) => {
-      const userId = c.get("authUserId");
-      return userId ? { type: "user", id: userId } : undefined;
-    },
-    context: (c) => ({
-      requestId: c.req.header("x-request-id") ?? undefined,
-      source: "api",
-    }),
-  }),
-);
-```
-
-### Express
-
-Use `@auditstream/node/express`:
-
-```ts
-import express from "express";
-import { auditstream } from "@auditstream/node/express";
-
-const app = express();
-app.use(
-  auditstream({
-    actor: (req) =>
-      req.user ? { type: "user", id: req.user.id } : undefined,
-  }),
-);
-```
-
-### Next.js 16
-
-`AsyncLocalStorage` does not cross Next.js `proxy`; bind the verified session inside `withAudit` and `auditAction`:
-
-```ts
-import { withAudit, auditAction } from "@auditstream/node/next";
-
-export const POST = withAudit(
-  async (request: Request) => {
-    // Awaited Prisma / Drizzle writes here carry the actor
-    return new Response("ok");
+await audit.as(
+  {
+    type: "ai_agent",
+    id: "billing-agent",
+    onBehalfOf: { type: "user", id: "usr_42" },
+    tenant: "org_acme",
   },
-  { actor: async () => await getVerifiedSessionActor() },
-);
-
-export const approveInvoice = auditAction(
-  async (invoiceId: string) => {
+  async () => {
     await db.invoice.update({
-      where: { id: invoiceId },
+      where: { id: "inv_901" },
       data: { status: "paid" },
     });
   },
-  { actor: async () => await getVerifiedSessionActor() },
 );
-```
-
-## ORM & query helpers
-
-### Prisma 7
-
-Use `@auditstream/prisma`:
-
-```ts
-import pg from "pg";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "@prisma/client";
-import { auditstream, auditTransaction } from "@auditstream/prisma";
-
-// Default: trailing sqlcommenter tag (no explicit transaction)
-// Never set statementNameGenerator on PrismaPg with SQL comments
-const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-});
-const db = new PrismaClient({
-  adapter: new PrismaPg(pool),
-  comments: [auditstream()],
-});
-
-// Fallback for Prisma Accelerate (transaction-local set_config):
-await auditTransaction(db, async (tx) => {
-  await tx.invoice.update({
-    where: { id: "inv_901" },
-    data: { status: "paid" },
-  });
-});
-```
-
-### Drizzle
-
-Use `@auditstream/drizzle` for Drizzle 0.45 and 1.x:
-
-```ts
-import pg from "pg";
-import { drizzle } from "drizzle-orm/node-postgres";
-import { wrapPgPool } from "@auditstream/drizzle/pg";
-// Also: wrapPostgresJs (@auditstream/drizzle/postgres-js)
-//       wrapNeonHttp   (@auditstream/drizzle/neon-http)
-//       auditComment   (@auditstream/drizzle, Drizzle 1.x)
-
-const pool = wrapPgPool(
-  new pg.Pool({ connectionString: process.env.DATABASE_URL }),
-);
-const db = drizzle({ client: pool });
 ```
 
 ### History & app events

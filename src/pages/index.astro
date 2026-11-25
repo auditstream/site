@@ -134,8 +134,8 @@ const heroInstallCmd = "brew install auditstream/tap/auditstream";
             Enforced at the database.
           </h1>
           <p class="lead hero-sub">
-            Open-source database audit trail engine in Rust — starting with PostgreSQL&nbsp;15–19.<br class="hero-br" />
-            Zero daemons, pooler-safe actors, and tamper-proof diffs.
+            Open-source database audit trail engine in Rust. Supported and tested on PostgreSQL&nbsp;15–19;<br class="hero-br" />
+            MySQL support is planned. Zero daemons, pooler-safe actors, and tamper-proof diffs.
           </p>
 
           <div class="hero-actions">
@@ -200,8 +200,8 @@ const heroInstallCmd = "brew install auditstream/tap/auditstream";
             same transaction.
           </p>
           <div class="text-links">
-            <a href="/docs/adapters/" class="text-link">TypeScript SDK (Prisma, Drizzle, Next.js) →</a>
-            <a href="/docs/python/" class="text-link">Python (psycopg · Django &amp; Flask planned) →</a>
+            <a href="/docs/typescript/" class="text-link">TypeScript SDK (Prisma, Drizzle, Next.js) →</a>
+            <a href="/docs/python/" class="text-link">Python (no SDK yet — works via psycopg today) →</a>
             <a href="/docs/plain-sql/" class="text-link">Any language via plain SQL →</a>
           </div>
         </div>
@@ -242,32 +242,33 @@ const heroInstallCmd = "brew install auditstream/tap/auditstream";
         <div class="proof-grid">
           <div class="proof-item">
             <div class="proof-metric">+3.2%</div>
+            <div class="proof-label">Single-row UPDATE overhead</div>
             <p class="proof-desc">
-              +5.1&nbsp;µs/row single-row UPDATE overhead on durable disk (<code class="ic">fsync=on</code>).
+              +5.1&nbsp;µs/row on durable disk (<code class="ic">fsync=on</code>).
             </p>
           </div>
 
           <div class="proof-item">
             <div class="proof-metric">2.4M</div>
+            <div class="proof-label">Pooled transactions</div>
             <p class="proof-desc">
-              PgBouncer 1.26 pooled transactions · 0&nbsp;failed · 0&nbsp;leaked actors.
+              PgBouncer 1.26 · 0&nbsp;failed · 0&nbsp;leaked actors.
             </p>
           </div>
 
           <div class="proof-item">
             <div class="proof-metric">0.101 ms</div>
+            <div class="proof-label">Single-record lookup</div>
             <p class="proof-desc">
-              Single-record lookup across 500,000&nbsp;rows (157k&nbsp;concurrent&nbsp;QPS).
+              Across 500,000&nbsp;rows (157k&nbsp;concurrent&nbsp;QPS).
             </p>
           </div>
 
-          <div class="proof-item proof-item-limit">
-            <div class="proof-metric-row">
-              <div class="proof-metric">~15k/s</div>
-              <span class="proof-limit-tag">Honest limit</span>
-            </div>
+          <div class="proof-item">
+            <div class="proof-metric">~15k/s</div>
+            <div class="proof-label">Bulk UPDATE ceiling</div>
             <p class="proof-desc">
-              Bulk UPDATE cap (row-level by design; bulk INSERT/DELETE reach 211k–213k/s).
+              Row-level by design; bulk INSERT/DELETE reach 211k–213k/s.
             </p>
           </div>
         </div>

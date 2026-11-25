@@ -8,6 +8,7 @@ const docs = defineCollection({
     description: z.string(),
     section: z.enum(["Get Started", "SDKs & Languages", "Operate", "Reference"]),
     order: z.number(),
+    parent: z.string().optional(),
     badge: z.string().optional(),
     eyebrow: z.string().optional(),
   }),

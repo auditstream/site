@@ -1,18 +1,18 @@
 ---
 title: Python
-description: Attribute PostgreSQL writes from Python today using psycopg with zero extra dependencies — plus planned adapters for Django, Flask, and FastAPI.
+description: No native Python SDK yet — attribute PostgreSQL writes from psycopg today using Python's standard library while Django, Flask, and FastAPI adapters are planned.
 section: SDKs & Languages
 order: 4
 eyebrow: SDKS & LANGUAGES · PYTHON
 ---
 
 <div class="docs-callout-info">
-  <strong>Native Python SDK planned:</strong> Dedicated packages for Django, Flask, and FastAPI are on the roadmap. Because capture runs inside PostgreSQL triggers, you can attribute writes from <code>psycopg</code> today using only Python's standard library.
+  <strong>No native Python SDK yet:</strong> Dedicated packages for Django, Flask, and FastAPI are planned and not released yet. Because capture runs inside PostgreSQL triggers, you can attribute writes from <code>psycopg</code> today using only Python's standard library.
 </div>
 
 ## Planned Python SDK
 
-The upcoming SDK mirrors the [TypeScript SDK](/docs/adapters/) thin-adapter design: zero capture logic in Python, `contextvars.ContextVar` isolation, and automatic SQL comment tagging.
+The planned SDK mirrors the [TypeScript SDK](/docs/typescript/) thin-adapter design: zero capture logic in Python, `contextvars.ContextVar` isolation, and automatic SQL comment tagging.
 
 - **Core (`auditstream`):** `with audit.as_(actor):` / `async with` scope manager plus `audit.log()`, `audit.history()`, and `audit.query()`.
 - **Django:** Request middleware binding `request.user` (or AI agent actors) plus a `connection.execute_wrapper` hook for transparent ORM tagging.

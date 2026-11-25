@@ -22,10 +22,19 @@ const { title, description, currentSlug, headings } = Astro.props;
 const allDocs = (await getCollection("docs")).sort((a, b) => a.data.order - b.data.order);
 const sectionOrder = ["Get Started", "SDKs & Languages", "Operate", "Reference"] as const;
 const grouped = sectionOrder
-  .map((sec) => ({
-    section: sec,
-    items: allDocs.filter((d) => d.data.section === sec),
-  }))
+  .map((sec) => {
+    const secItems = allDocs.filter((d) => d.data.section === sec);
+    const roots = secItems
+      .filter((d) => !d.data.parent)
+      .map((root) => ({
+        entry: root,
+        children: secItems.filter((d) => d.data.parent === root.id),
+      }));
+    return {
+      section: sec,
+      items: roots,
+    };
+  })
   .filter((g) => g.items.length > 0);
 
 const currentIdx = allDocs.findIndex((d) => d.id === currentSlug);
@@ -62,17 +71,36 @@ function docHref(id: string) {
             <div class="docs-group">
               <div class="docs-group-title">{g.section}</div>
               <ul>
-                {g.items.map((item) => (
-                  <li>
-                    <a
-                      href={docHref(item.id)}
-                      aria-current={item.id === currentSlug ? "page" : undefined}
-                    >
-                      <span>{item.data.title}</span>
-                      {item.data.badge && <span class="docs-nav-badge">{item.data.badge}</span>}
-                    </a>
-                  </li>
-                ))}
+                {g.items.map(({ entry: item, children }) => {
+                  const hasActiveChild = children.some((c) => c.id === currentSlug);
+                  return (
+                    <li>
+                      <a
+                        href={docHref(item.id)}
+                        aria-current={item.id === currentSlug ? "page" : undefined}
+                        class={hasActiveChild ? "is-ancestor" : undefined}
+                      >
+                        <span>{item.data.title}</span>
+                        {item.data.badge && <span class="docs-nav-badge">{item.data.badge}</span>}
+                      </a>
+                      {children.length > 0 && (
+                        <ul class="docs-subnav">
+                          {children.map((child) => (
+                            <li>
+                              <a
+                                href={docHref(child.id)}
+                                aria-current={child.id === currentSlug ? "page" : undefined}
+                              >
+                                <span>{child.data.title}</span>
+                                {child.data.badge && <span class="docs-nav-badge">{child.data.badge}</span>}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             </div>
           ))}
@@ -85,17 +113,36 @@ function docHref(id: string) {
           <div class="docs-group">
             <div class="docs-group-title">{g.section}</div>
             <ul>
-              {g.items.map((item) => (
-                <li>
-                  <a
-                    href={docHref(item.id)}
-                    aria-current={item.id === currentSlug ? "page" : undefined}
-                  >
-                    <span>{item.data.title}</span>
-                    {item.data.badge && <span class="docs-nav-badge">{item.data.badge}</span>}
-                  </a>
-                </li>
-              ))}
+              {g.items.map(({ entry: item, children }) => {
+                const hasActiveChild = children.some((c) => c.id === currentSlug);
+                return (
+                  <li>
+                    <a
+                      href={docHref(item.id)}
+                      aria-current={item.id === currentSlug ? "page" : undefined}
+                      class={hasActiveChild ? "is-ancestor" : undefined}
+                    >
+                      <span>{item.data.title}</span>
+                      {item.data.badge && <span class="docs-nav-badge">{item.data.badge}</span>}
+                    </a>
+                    {children.length > 0 && (
+                      <ul class="docs-subnav">
+                        {children.map((child) => (
+                          <li>
+                            <a
+                              href={docHref(child.id)}
+                              aria-current={child.id === currentSlug ? "page" : undefined}
+                            >
+                              <span>{child.data.title}</span>
+                              {child.data.badge && <span class="docs-nav-badge">{child.data.badge}</span>}
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           </div>
         ))}
@@ -381,6 +428,33 @@ function docHref(id: string) {
 
   .docs-sidebar a[aria-current="page"],
   .docs-toc a[aria-current="location"] {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    font-weight: 600;
+  }
+
+  .docs-sidebar a.is-ancestor {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .docs-sidebar ul.docs-subnav {
+    margin: 0.1rem 0 0.35rem 0.9rem;
+    padding: 0;
+    border-left: 1px solid var(--rule);
+  }
+
+  .docs-sidebar ul.docs-subnav a {
+    padding: 0.3rem 0 0.3rem 0.85rem;
+    font-size: 0.8125rem;
+    color: var(--ink-3);
+  }
+
+  .docs-sidebar ul.docs-subnav a:hover {
+    color: var(--ink);
+  }
+
+  .docs-sidebar ul.docs-subnav a[aria-current="page"] {
     color: var(--accent);
     border-left-color: var(--accent);
     font-weight: 600;

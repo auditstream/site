@@ -30,6 +30,16 @@ eyebrow: GET STARTED · OVERVIEW
   </div>
 </div>
 
+## Support status
+
+| Target | Status | Details |
+| :--- | :--- | :--- |
+| **PostgreSQL** | **Supported&nbsp;&amp;&nbsp;tested** | PostgreSQL 15–19 (verified 15.20–19.0), PgBouncer 1.26, Neon, and Supabase |
+| **MySQL** | Planned | Not supported yet — PostgreSQL is the only engine in v0.1 |
+| **TypeScript&nbsp;SDK** | **Supported** | `@auditstream/*` v0.2.0 for Prisma 7, Drizzle, Next.js 16, Hono, and Express |
+| **Python&nbsp;SDK** | Planned | No native SDK yet — works today via `psycopg` and SQL comments |
+| **Plain&nbsp;SQL** | **Supported** | Any language or driver (Go, Ruby, Java, `psql`) via SQL comments or `set_config` |
+
 ## Choose your path
 
 <div class="docs-cards">
@@ -38,15 +48,15 @@ eyebrow: GET STARTED · OVERVIEW
     <div class="docs-card-title">Getting Started</div>
     <div class="docs-card-desc">Install the CLI, run a 60-second PostgreSQL demo, and wire your first app.</div>
   </a>
-  <a class="docs-card" href="/docs/adapters/">
+  <a class="docs-card" href="/docs/typescript/">
     <div class="docs-card-tag">SDKs &amp; Languages</div>
     <div class="docs-card-title">TypeScript</div>
-    <div class="docs-card-desc">Use @auditstream/* v0.2.0 with Hono, Express, Next.js 16, Prisma 7, and Drizzle.</div>
+    <div class="docs-card-desc">Use @auditstream/* v0.2.0 with Prisma 7, Drizzle, Next.js 16, Hono, and Express.</div>
   </a>
   <a class="docs-card" href="/docs/python/">
     <div class="docs-card-tag">SDKs &amp; Languages</div>
     <div class="docs-card-title">Python</div>
-    <div class="docs-card-desc">Attribute PostgreSQL writes from psycopg today; Django, Flask, and FastAPI adapters planned.</div>
+    <div class="docs-card-desc">No native SDK yet — attribute PostgreSQL writes from psycopg today; Django, Flask, and FastAPI planned.</div>
   </a>
   <a class="docs-card" href="/docs/plain-sql/">
     <div class="docs-card-tag">SDKs &amp; Languages</div>
