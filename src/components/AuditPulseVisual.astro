@@ -300,12 +300,6 @@
     background: var(--code-bg);
   }
 
-  @media (prefers-color-scheme: dark) {
-    :global(:root:not([data-theme="light"])) .ap-card[data-phase="2"] [data-phase-btn="2"] {
-      background: var(--code-bg);
-    }
-  }
-
   .ap-card[data-phase="3"] [data-phase-btn="3"] {
     color: var(--after);
     background: var(--after-bg);
@@ -1054,13 +1048,13 @@
     let phase: Phase = "3";
     let started = false;
     let inView = false;
-    let hovered = false;
-    let focused = false;
+    let keyboardFocused = false;
     let timerId: number | null = null;
     let phaseStart = 0;
     let remaining = INITIAL_HOLD;
+    let wasPausedInPhase2 = false;
 
-    const isPaused = () => !inView || hovered || focused || document.hidden;
+    const isPaused = () => !inView || keyboardFocused || document.hidden;
 
     function applyPhase(nextPhase: Phase, forceReplay: boolean) {
       phase = nextPhase;
@@ -1084,8 +1078,9 @@
     function pause() {
       if (timerId !== null) {
         clearTimer();
-        remaining = Math.max(80, remaining - (performance.now() - phaseStart));
+        remaining = Math.max(250, remaining - (performance.now() - phaseStart));
       }
+      if (phase === "2") wasPausedInPhase2 = true;
       card.classList.add("is-paused");
     }
 
@@ -1094,6 +1089,11 @@
       if (reducedQuery.matches || !started || isPaused()) {
         card.classList.add("is-paused");
         return;
+      }
+      if (wasPausedInPhase2 && phase === "2") {
+        wasPausedInPhase2 = false;
+        applyPhase("2", true);
+        remaining = DURATIONS["2"];
       }
       card.classList.remove("is-paused");
       phaseStart = performance.now();
@@ -1124,44 +1124,42 @@
       else schedule();
     }
 
-    // Interactive step controls work both during normal playback and under prefers-reduced-motion
+    // Clicking a step jumps immediately, replays phase 2 cleanly, and keeps the loop running
+    // (mouse clicks never trap keyboardFocused so the flow never freezes after inspection).
     buttons.forEach((btn) => {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", (ev) => {
         const target = btn.getAttribute("data-phase-btn");
         if (target !== "1" && target !== "2" && target !== "3") return;
+        const isPointerClick = ev.detail > 0;
+        if (isPointerClick) {
+          keyboardFocused = false;
+          btn.blur();
+        }
         clearTimer();
         started = true;
+        wasPausedInPhase2 = false;
         applyPhase(target, true);
         remaining = DURATIONS[target];
         if (!reducedQuery.matches && !isPaused()) {
           schedule();
         } else if (!reducedQuery.matches) {
-          // Ensure phase 2 SVG motion replays cleanly even when hovered/focused by clicking step 2
           card.classList.remove("is-paused");
         }
       });
     });
 
-    card.addEventListener("pointerenter", (e) => {
-      if (e.pointerType !== "mouse") return;
-      hovered = true;
-      sync();
-    });
-
-    card.addEventListener("pointerleave", (e) => {
-      if (e.pointerType !== "mouse") return;
-      hovered = false;
-      sync();
-    });
-
-    card.addEventListener("focusin", () => {
-      focused = true;
-      sync();
+    // Pause ONLY for genuine keyboard focus (:focus-visible), never passive hover or mouse clicks
+    card.addEventListener("focusin", (e) => {
+      const t = e.target as HTMLElement | null;
+      if (t && t.matches(":focus-visible")) {
+        keyboardFocused = true;
+        sync();
+      }
     });
 
     card.addEventListener("focusout", (e) => {
       if (!card.contains(e.relatedTarget as Node | null)) {
-        focused = false;
+        keyboardFocused = false;
         sync();
       }
     });
@@ -1169,13 +1167,20 @@
     document.addEventListener("visibilitychange", sync);
     reducedQuery.addEventListener("change", sync);
 
+    // Immediate initial viewport check so playback never stalls if IO fires late
+    const rect = card.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
+      inView = true;
+      sync();
+    }
+
     if ("IntersectionObserver" in window) {
       new IntersectionObserver(
         (entries) => {
           inView = Boolean(entries[0]?.isIntersecting);
           sync();
         },
-        { threshold: 0.15 }
+        { threshold: 0.05 }
       ).observe(card);
     } else {
       inView = true;

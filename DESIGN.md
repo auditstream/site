@@ -184,7 +184,7 @@ Auditstream's visual language prioritizes calm editorial restraint, generous whi
 Decorative clutter — uppercase kickers above headings, stacked card grids, corner brackets, neon dark-mode glows, and heavy client runtimes — is intentionally avoided so database evidence, SQL attribution, and immutable diffs speak clearly on their own.
 
 **Key Characteristics:**
-- Cohesive dual-theme system (Light & Dark) across homepage, docs, search dialog, and 404 page with an inline `<head>` blocking script (`0ms` FOUC), `prefers-color-scheme` default + `localStorage` persistence, and zero-JS CSS fallback.
+- Cohesive dual-theme system (Light default & opt-in Dark) across homepage, docs, search dialog, and 404 page with an inline `<head>` blocking script (`0ms` FOUC) and `localStorage` persistence. Light (*Warm Architectural Paper*) is always the default for first-time visitors regardless of OS color scheme; Dark (*Forensic Ledger Obsidian*) activates when toggled.
 - Dual-theme build-time Shiki syntax highlighting (`auditstream-light` + `auditstream-dark`) with every syntax token verified `>= 5.3:1` WCAG AA in both themes.
 - Signature `E4+ · Eco Duplo` `BrandMark` (`src/components/BrandMark.astro`): dual-master geometric vector automatically swapping between standard light geometry (`#0f172a` + `#1d4ed8`) and `-2.5%` optically-thinned dark geometry (`#edf1f5` + `#6ba6ff`) to prevent halation on `#0c0f13`.
 - Subtle architectural corner radii (`6px` controls, `10px` code and reference frames, `12px` focal cards, `999px` small status pills).

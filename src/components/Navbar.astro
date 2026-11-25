@@ -161,16 +161,6 @@ const isMobileDocs = isDocs && !isGettingStarted;
     display: block;
   }
 
-  @media (prefers-color-scheme: dark) {
-    :global(:root:not([data-theme="light"])) .theme-toggle-btn .icon-theme-dark {
-      display: none;
-    }
-
-    :global(:root:not([data-theme="light"])) .theme-toggle-btn .icon-theme-light {
-      display: block;
-    }
-  }
-
   .mobile-menu-btn {
     display: none;
     min-width: 2.75rem;
@@ -252,12 +242,9 @@ const isMobileDocs = isDocs && !isGettingStarted;
 <script>
   const themeBtn = document.getElementById("theme-toggle");
   const THEME_KEY = "auditstream-theme";
-  const themeMedia = window.matchMedia("(prefers-color-scheme: dark)");
 
   function getActiveTheme(): "light" | "dark" {
-    const attr = document.documentElement.dataset.theme;
-    if (attr === "dark" || attr === "light") return attr;
-    return themeMedia.matches ? "dark" : "light";
+    return document.documentElement.dataset.theme === "dark" ? "dark" : "light";
   }
 
   function applyTheme(theme: "light" | "dark", persist: boolean, animateFree = false) {
@@ -292,14 +279,6 @@ const isMobileDocs = isDocs && !isGettingStarted;
   themeBtn?.addEventListener("click", () => {
     const next = getActiveTheme() === "dark" ? "light" : "dark";
     applyTheme(next, true, true);
-  });
-
-  themeMedia.addEventListener("change", (ev) => {
-    try {
-      const stored = localStorage.getItem(THEME_KEY);
-      if (stored === "dark" || stored === "light") return;
-    } catch {}
-    applyTheme(ev.matches ? "dark" : "light", false, true);
   });
 
   window.addEventListener("storage", (ev) => {
