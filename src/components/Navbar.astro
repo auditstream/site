@@ -6,8 +6,9 @@ interface Props {
 }
 const { currentPath = "/" } = Astro.props;
 const isBenchmarks = currentPath.startsWith("/docs/evidence");
+const isRoadmap = currentPath.startsWith("/docs/roadmap");
 const isGettingStarted = currentPath.startsWith("/docs/getting-started");
-const isDocs = currentPath.startsWith("/docs") && !isBenchmarks;
+const isDocs = currentPath.startsWith("/docs") && !isBenchmarks && !isRoadmap;
 const isMobileDocs = isDocs && !isGettingStarted;
 ---
 
@@ -22,6 +23,7 @@ const isMobileDocs = isDocs && !isGettingStarted;
       <nav class="nav-links" aria-label="Primary">
         <a href="/docs/" aria-current={isDocs ? "page" : undefined}>Docs</a>
         <a href="/docs/evidence/" aria-current={isBenchmarks ? "page" : undefined}>Benchmarks</a>
+        <a href="/docs/roadmap/" aria-current={isRoadmap ? "page" : undefined}>Roadmap</a>
         <a
           href="https://github.com/auditstream/auditstream"
           target="_blank"
@@ -131,6 +133,7 @@ const isMobileDocs = isDocs && !isGettingStarted;
       <a href="/docs/" aria-current={isMobileDocs ? "page" : undefined}>Docs</a>
       <a href="/docs/getting-started/" aria-current={isGettingStarted ? "page" : undefined}>Getting Started</a>
       <a href="/docs/evidence/" aria-current={isBenchmarks ? "page" : undefined}>Benchmarks</a>
+      <a href="/docs/roadmap/" aria-current={isRoadmap ? "page" : undefined}>Roadmap</a>
       <a href="https://github.com/auditstream/auditstream" target="_blank" rel="noopener noreferrer">
         <span>GitHub</span>
         <span aria-hidden="true" class="drawer-ext">↗</span>

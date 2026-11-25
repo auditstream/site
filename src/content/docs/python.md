@@ -1,24 +1,24 @@
 ---
 title: Python
-description: No native Python SDK yet — attribute PostgreSQL writes from psycopg today using Python's standard library while Django, Flask, and FastAPI adapters are planned.
+description: No native Python SDK yet — attribute PostgreSQL writes from psycopg today using Python's standard library while the native Python SDK is planned.
 section: SDKs & Languages
 order: 4
 eyebrow: SDKS & LANGUAGES · PYTHON
 ---
 
 <div class="docs-callout-info">
-  <strong>No native Python SDK yet:</strong> Dedicated packages for Django, Flask, and FastAPI are planned and not released yet. Because capture runs inside PostgreSQL triggers, you can attribute writes from <code>psycopg</code> today using only Python's standard library.
+  <strong>No native Python SDK yet:</strong> Dedicated integrations for SQLAlchemy, FastAPI, LangGraph/PydanticAI, and Django are planned and not released yet. Because capture runs inside PostgreSQL triggers, you can attribute writes from <code>psycopg</code> today using only Python's standard library.
 </div>
 
 ## Planned Python SDK
 
 The planned SDK mirrors the [TypeScript SDK](/docs/typescript/) thin-adapter design: zero capture logic in Python, `contextvars.ContextVar` isolation, and automatic SQL comment tagging.
 
-- **Core (`auditstream`):** `with audit.as_(actor):` / `async with` scope manager plus `audit.log()`, `audit.history()`, and `audit.query()`.
-- **Django:** Request middleware binding `request.user` (or AI agent actors) plus a `connection.execute_wrapper` hook for transparent ORM tagging.
-- **Flask & FastAPI:** Request lifecycle hooks attaching the authenticated actor across queries and background tasks.
+- **Core (`auditstream`):** `with audit.as_(actor):` / `async with` scope manager, `audit.delegate()`, plus `audit.log()`, `audit.history()`, and `audit.query()`.
+- **SQLAlchemy, `psycopg` 3 &amp; `asyncpg`:** Trailing SQL comment tagging by default (pooler-safe across PgBouncer, Supavisor, and RDS Proxy), plus Alembic and Django migration support in the CLI.
+- **FastAPI, LangGraph/PydanticAI &amp; Django:** Request and agent lifecycle integrations attaching authenticated user and AI agent actors across queries and background tasks.
 
-Track progress or request a framework on [GitHub Discussions](https://github.com/auditstream/auditstream/discussions).
+See the [Roadmap](/docs/roadmap/#v04-python-sdk-and-siem-export) for sequencing, or request a framework on [GitHub Discussions](https://github.com/auditstream/auditstream/discussions).
 
 ## Use today (`psycopg`)
 
