@@ -134,6 +134,38 @@ function rehypeCodeFrames() {
   };
 }
 
+// Mark long inline <code> spans (> 36 chars, outside <pre> and table cells) as wrappable
+// so narrow 390px viewports never blow out horizontally while normal short tokens stay unbroken.
+function rehypeInlineCode() {
+  return (tree) => {
+    const visit = (node) => {
+      if (!node || !Array.isArray(node.children)) return;
+      for (const child of node.children) {
+        if (child.type !== "element") continue;
+        if (child.tagName === "pre" || child.tagName === "td" || child.tagName === "th") {
+          continue;
+        }
+        if (child.tagName === "code") {
+          if (extractText(child).length > 36) {
+            child.properties = child.properties || {};
+            const existing = child.properties.className;
+            const classes = Array.isArray(existing)
+              ? [...existing]
+              : typeof existing === "string"
+                ? existing.split(/\s+/).filter(Boolean)
+                : [];
+            if (!classes.includes("ic-wrap")) classes.push("ic-wrap");
+            child.properties.className = classes;
+          }
+          continue;
+        }
+        visit(child);
+      }
+    };
+    visit(tree);
+  };
+}
+
 export default defineConfig({
   site: "https://auditstream.dev",
   output: "static",
@@ -143,7 +175,7 @@ export default defineConfig({
   },
   integrations: [sitemap()],
   markdown: {
-    rehypePlugins: [rehypeWrapTables, rehypeCodeFrames],
+    rehypePlugins: [rehypeWrapTables, rehypeCodeFrames, rehypeInlineCode],
     shikiConfig: {
       theme: auditstreamLight,
       wrap: false,

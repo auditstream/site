@@ -39,7 +39,8 @@ The engine repository owns the normative [`spec/`](https://github.com/auditstrea
 
 ```sql
 -- Per statement: trailing sqlcommenter tag (default)
-UPDATE invoice SET status = $1 WHERE id = $2 /*auditstream='eyJ0eXBlIjoidXNlciIsImlkIjoidXNyXzQyIn0'*/
+UPDATE invoice SET status = $1 WHERE id = $2
+  /*auditstream='eyJ0eXBlIjoidXNlciIsImlkIjoidXNyXzQyIn0'*/
 
 -- Per transaction: set_config fallback
 SELECT set_config('auditstream.actor', '{"type":"user","id":"usr_42"}', true);

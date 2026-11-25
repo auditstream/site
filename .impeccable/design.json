@@ -258,6 +258,14 @@
         "displayName": "Proof Metric",
         "purpose": "Large tabular monospace figures in the measured proof band."
       },
+      "kpi": {
+        "displayName": "Documentation KPI Figure",
+        "purpose": "Tabular monospace figures inside documentation KPI strips."
+      },
+      "kpi-sm": {
+        "displayName": "Compact Mobile KPI Figure",
+        "purpose": "Compact 2-column mobile KPI figure below 560px."
+      },
       "subhead": {
         "displayName": "Documentation Subhead",
         "purpose": "Documentation h2 headings separating reference topics."
@@ -272,7 +280,7 @@
       },
       "body": {
         "displayName": "Reading Prose",
-        "purpose": "Long-form documentation paragraphs and lists (68ch max measure)."
+        "purpose": "Long-form documentation paragraphs and lists on the unified 52rem reading rail."
       },
       "body-sm": {
         "displayName": "Compact Copy & Controls",
@@ -325,8 +333,8 @@
       },
       {
         "name": "pulse-cycle",
-        "value": "4.8s",
-        "purpose": "Single master CSS clock synchronizing AuditPulseVisual with a calm ~1.5s dwell."
+        "value": "7.8s",
+        "purpose": "Interruptible JS data-phase state machine (2.4s / 1.9s / 3.5s) driving AuditPulseVisual transitions and one-shot two-leg SVG packets."
       }
     ],
     "breakpoints": [
@@ -334,7 +342,7 @@
       { "name": "md", "value": "768px" },
       { "name": "visual", "value": "820px" },
       { "name": "lg", "value": "960px" },
-      { "name": "docs-toc", "value": "1240px" }
+      { "name": "docs-toc", "value": "1280px" }
     ]
   },
   "components": [
@@ -395,7 +403,7 @@
       "Subtle architectural corner radii (6px controls, 10px code and reference frames, 12px focal cards, 999px small status pills).",
       "Strict semantic color isolation: Editorial Cobalt (#1d4ed8), Committed Emerald (#047857), and Diff Vermilion (#b91c1c).",
       "Self-hosted IBM Plex Sans paired with IBM Plex Mono (tabular-nums, ligatures disabled) at comfortable Retina reading sizes (>= 12px everywhere).",
-      "One single spacious focal micro-motion (AuditPulseVisual) synchronized on a calm 4.8s master CSS clock."
+      "One single spacious focal micro-motion (AuditPulseVisual) driven by a calm 7.8s JS data-phase state machine with smooth transitions and two-leg SVG packets."
     ],
     "rules": [
       {

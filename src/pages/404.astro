@@ -21,7 +21,7 @@ import BrandMark from "../components/BrandMark.astro";
           <h1 class="h2">This page does not exist.</h1>
           <p class="lead nf-lead">
             The URL may have moved or been typed incorrectly. Jump back to the homepage, browse the
-            documentation, or open quick search (<kbd class="kbd-hint">/</kbd> or <kbd class="kbd-hint">⌘K</kbd>).
+            documentation, or open <button type="button" class="nf-search-link" id="nf-open-search">quick search</button><span class="hide-sm"> (<span class="nf-kbd-pair"><kbd class="kbd-hint">/</kbd> or <kbd class="kbd-hint">⌘K</kbd></span>)</span>.
           </p>
 
           <div class="nf-actions">
@@ -46,14 +46,18 @@ import BrandMark from "../components/BrandMark.astro";
         <BrandMark size={18} />
         <span>Auditstream</span>
       </a>
-      <a
-        href="https://github.com/auditstream/auditstream"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="nf-footer-link"
-      >
-        GitHub ↗
-      </a>
+      <nav class="nf-footer-links" aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/docs/evidence/">Benchmarks</a>
+        <a
+          href="https://github.com/auditstream/auditstream"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          GitHub <span aria-hidden="true">↗</span>
+        </a>
+      </nav>
     </div>
   </footer>
 </BaseLayout>
@@ -87,6 +91,28 @@ import BrandMark from "../components/BrandMark.astro";
   .nf-lead {
     margin-top: 0.9rem;
     max-width: 52ch;
+    text-wrap: pretty;
+  }
+
+  .nf-kbd-pair {
+    white-space: nowrap;
+  }
+
+  .nf-search-link {
+    color: var(--accent);
+    font-weight: 500;
+    text-decoration: underline;
+    text-underline-offset: 0.22em;
+    padding: 0;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    font: inherit;
+    transition: color var(--dur-quick) var(--ease-out);
+  }
+
+  .nf-search-link:hover {
+    color: var(--accent-hover);
   }
 
   .nf-actions {
@@ -102,10 +128,14 @@ import BrandMark from "../components/BrandMark.astro";
     border-top: 1px solid var(--rule);
     display: flex;
     flex-wrap: wrap;
-    gap: 0.75rem 1.35rem;
+    gap: 0.25rem 1.35rem;
     font-size: 0.875rem;
     font-weight: 500;
     color: var(--accent);
+  }
+
+  .nf-links a {
+    padding-block: 0.4rem;
   }
 
   .nf-links a:hover {
@@ -121,17 +151,33 @@ import BrandMark from "../components/BrandMark.astro";
 
   .nf-footer-inner {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
   }
 
-  .nf-footer-link {
+  .nf-footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.25rem;
     font-size: 0.8125rem;
     color: var(--ink-3);
   }
 
-  .nf-footer-link:hover {
+  .nf-footer-links a {
+    padding-block: 0.25rem;
+    transition: color var(--dur-quick) var(--ease-out);
+  }
+
+  .nf-footer-links a:hover {
     color: var(--ink);
   }
 </style>
+
+<script>
+  document.getElementById("nf-open-search")?.addEventListener("click", () => {
+    document.getElementById("open-search")?.click();
+  });
+</script>

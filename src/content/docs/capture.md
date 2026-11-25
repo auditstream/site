@@ -28,7 +28,7 @@ Inside every trigger, PostgreSQL resolves the acting identity in strict preceden
 
 ## Indexing & hot paths
 
-- **Monthly BRIN + partial HASH lookup index:** every partition carries a BRIN index on `occurred_at` and a partial HASH index `USING hash (record_id) WHERE record_id IS NOT NULL` (auditstream#97), accelerating `history --table ... --record-id ...` lookups to **0.101 ms** with far lower write amplification than a wide composite B-tree.
+- **Monthly BRIN + partial HASH lookup index:** every partition carries a BRIN index on `occurred_at` and a partial HASH index `USING hash (record_id)` with `WHERE record_id IS NOT NULL` (auditstream#97), accelerating `history --table ... --record-id ...` lookups to **0.101 ms** with far lower write amplification than a wide composite B-tree.
 - **Zero-subquery single-PK path:** `capture()` builds single-column primary keys directly with `jsonb_build_object(...)`, skips empty `TG_ARGV` and excluded-column array work, and evaluates `resolve_actor()` only after excluded-column-only UPDATE no-ops return early (auditstream#102).
 
 ## History table
@@ -74,7 +74,7 @@ Trigger functions run as `SECURITY DEFINER` owned by a `NOLOGIN` role (`auditstr
 
 The `auditstream` engine is structured as a hexagonal Cargo workspace where `auditstream-core` holds domain types and port traits with zero I/O dependencies:
 
-| Crate | Owns | May depend on | Must not depend on |
+| Crate | Owns | Depends on | Forbids |
 | :--- | :--- | :--- | :--- |
 | `auditstream-core` | Domain types, port traits (`EventSource`, `Sink`), transport codec, diff and redaction | `serde`, `thiserror` | `tokio`, `sqlx`, any I/O crate |
 | `auditstream-pg` | Schema introspection, DDL and trigger generation, migration writers, `xid8` reader | `core`, `sqlx`, `tokio` | `export`, binary |
@@ -94,8 +94,10 @@ pub trait EventSource: Send {
 }
 
 pub trait Sink: Send {
-    fn write(&mut self, batch: &Batch) -> impl Future<Output = Result<(), SinkError>> + Send;
-    fn flush(&mut self) -> impl Future<Output = Result<(), SinkError>> + Send;
+    fn write(&mut self, batch: &Batch)
+        -> impl Future<Output = Result<(), SinkError>> + Send;
+    fn flush(&mut self)
+        -> impl Future<Output = Result<(), SinkError>> + Send;
 }
 ```
 

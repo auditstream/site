@@ -189,7 +189,7 @@ function docHref(id: string) {
 <style>
   .docs-layout {
     width: 100%;
-    max-width: 84rem;
+    max-width: 88rem;
     margin: 0 auto;
     padding: 2.5rem clamp(1.25rem, 2.5vw, 1.75rem) 5rem;
     display: grid;
@@ -202,17 +202,30 @@ function docHref(id: string) {
     min-width: 0;
   }
 
-  @media (min-width: 960px) {
+  .docs-article {
+    max-width: 52rem;
+  }
+
+  @media (max-width: 959px) {
     .docs-layout {
-      grid-template-columns: 14rem minmax(0, 1fr);
-      gap: 2.75rem;
+      padding-top: 1.25rem;
+      gap: 1.25rem;
+    }
+  }
+
+  @media (min-width: 960px) and (max-width: 1279px) {
+    .docs-layout {
+      grid-template-columns: 12.75rem minmax(0, 48.5rem);
+      gap: 2rem;
+      padding-inline: clamp(1rem, 2vw, 1.5rem);
+      justify-content: center;
     }
   }
 
   @media (min-width: 1280px) {
     .docs-layout {
-      grid-template-columns: 14rem minmax(0, 52rem) 13.5rem;
-      gap: 2.25rem;
+      grid-template-columns: 13.5rem minmax(0, 52rem) 13rem;
+      gap: 2rem;
       justify-content: center;
     }
   }
@@ -241,6 +254,11 @@ function docHref(id: string) {
     display: inline-flex;
     align-items: center;
     color: var(--ink-3);
+    transition: transform var(--dur-quick) var(--ease-out);
+  }
+
+  details[open] > summary .docs-nav-caret {
+    transform: rotate(180deg);
   }
 
   .docs-sidebar-mobile-list {
@@ -350,7 +368,7 @@ function docHref(id: string) {
 
   .docs-toc-mobile-list a {
     display: block;
-    padding: 0.32rem 0;
+    padding: 0.5rem 0;
     font-size: 0.8125rem;
     color: var(--ink-2);
   }
@@ -405,7 +423,8 @@ function docHref(id: string) {
 
   .docs-desc {
     margin-top: 0.85rem;
-    max-width: 64ch;
+    max-width: none;
+    text-wrap: pretty;
   }
 
   /* Calm high-comfort editorial technical prose */
@@ -413,7 +432,7 @@ function docHref(id: string) {
     margin: 2.75rem 0 0.85rem;
     padding-top: 1.4rem;
     border-top: 1px solid var(--rule);
-    max-width: 68ch;
+    max-width: none;
     font-size: 1.375rem;
     font-weight: 600;
     letter-spacing: -0.02em;
@@ -424,7 +443,7 @@ function docHref(id: string) {
 
   .prose :global(h3) {
     margin: 2rem 0 0.65rem;
-    max-width: 68ch;
+    max-width: none;
     font-size: 1.0625rem;
     font-weight: 600;
     letter-spacing: -0.015em;
@@ -435,7 +454,7 @@ function docHref(id: string) {
 
   .prose :global(h4) {
     margin: 1.5rem 0 0.45rem;
-    max-width: 68ch;
+    max-width: none;
     font-size: 0.9375rem;
     font-weight: 600;
     color: var(--ink);
@@ -471,13 +490,14 @@ function docHref(id: string) {
     color: var(--ink-prose);
     line-height: 1.72;
     font-size: 1rem;
+    text-wrap: pretty;
   }
 
   .prose :global(p),
   .prose :global(ul),
   .prose :global(ol),
   .prose :global(blockquote) {
-    max-width: 68ch;
+    max-width: none;
   }
 
   .prose :global(strong) {
@@ -506,13 +526,31 @@ function docHref(id: string) {
 
   .prose :global(:not(pre) > code) {
     font-family: var(--font-mono);
-    font-size: 0.875em;
-    font-weight: 450;
-    padding: 0.08em 0.34em;
+    font-size: 0.85em;
+    font-weight: 400;
+    padding: 0.06em 0.28em;
     border-radius: 4px;
     background: var(--code-bg);
     border: none;
     color: var(--ink);
+    white-space: nowrap;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
+  }
+
+  .prose :global(strong > code) {
+    font-weight: 600;
+  }
+
+  .prose :global(:not(pre) > code.ic-wrap) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  @media (min-width: 640px) {
+    .prose :global(:not(pre) > code.ic-wrap) {
+      white-space: nowrap;
+    }
   }
 
   .prose :global(a:not(.heading-anchor):not(.docs-card) > code) {
@@ -571,11 +609,11 @@ function docHref(id: string) {
     background-image:
       linear-gradient(90deg, var(--surface) 30%, rgba(255, 255, 255, 0)),
       linear-gradient(270deg, var(--surface) 30%, rgba(255, 255, 255, 0)),
-      linear-gradient(90deg, rgba(15, 23, 42, 0.06), rgba(15, 23, 42, 0)),
-      linear-gradient(270deg, rgba(15, 23, 42, 0.06), rgba(15, 23, 42, 0));
+      linear-gradient(90deg, rgba(15, 23, 42, 0.14), rgba(15, 23, 42, 0)),
+      linear-gradient(270deg, rgba(15, 23, 42, 0.14), rgba(15, 23, 42, 0));
     background-position: 0 0, 100% 0, 0 0, 100% 0;
     background-repeat: no-repeat;
-    background-size: 28px 100%, 28px 100%, 12px 100%, 12px 100%;
+    background-size: 32px 100%, 32px 100%, 20px 100%, 20px 100%;
     background-attachment: local, local, scroll, scroll;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -596,13 +634,45 @@ function docHref(id: string) {
 
   .prose :global(th),
   .prose :global(td) {
-    padding: 0.7rem 0.9rem;
+    padding: 0.625rem 0.75rem;
     border-bottom: 1px solid var(--rule);
     text-align: left;
     vertical-align: top;
     color: var(--ink-prose);
     font-variant-numeric: tabular-nums;
     overflow-wrap: break-word;
+  }
+
+  .prose :global(th:first-child),
+  .prose :global(td:first-child) {
+    padding-left: 1rem;
+  }
+
+  .prose :global(th:last-child),
+  .prose :global(td:last-child) {
+    padding-right: 1rem;
+  }
+
+  .prose :global(th[align="right"]),
+  .prose :global(td[align="right"]) {
+    text-align: right;
+  }
+
+  .prose :global(th[align="center"]),
+  .prose :global(td[align="center"]) {
+    text-align: center;
+  }
+
+  .prose :global(td[align="right"]) {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    font-variant-numeric: tabular-nums;
+    font-variant-ligatures: none;
+    white-space: nowrap;
+  }
+
+  .prose :global(td[align="center"]) {
+    white-space: nowrap;
   }
 
   .prose :global(td code),
@@ -619,11 +689,60 @@ function docHref(id: string) {
     font-size: 0.75rem;
     font-weight: 500;
     letter-spacing: 0.04em;
-    line-height: 1.4;
+    line-height: 1.35;
     color: var(--ink-3);
     background: var(--ground-2);
     border-bottom: 1px solid var(--rule-strong);
-    vertical-align: bottom;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  .prose :global(thead th code) {
+    background: transparent;
+    padding: 0;
+    font-size: 1em;
+    color: var(--ink-2);
+  }
+
+  @media (max-width: 640px) {
+    .prose :global(th),
+    .prose :global(td) {
+      padding: 0.55rem 0.65rem;
+      font-size: 0.8125rem;
+    }
+
+    .prose :global(th:first-child),
+    .prose :global(td:first-child) {
+      padding-left: 0.75rem;
+    }
+
+    .prose :global(th:last-child),
+    .prose :global(td:last-child) {
+      padding-right: 0.75rem;
+    }
+
+    .prose :global(td:first-child) {
+      min-width: 8.5rem;
+    }
+  }
+
+  .prose :global(.table-caption-cmd) {
+    margin: -0.9rem 0 1.65rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: var(--ink-3);
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule-strong) transparent;
+  }
+
+  @media (max-width: 640px) {
+    .prose :global(.table-caption-cmd) {
+      white-space: normal;
+      overflow-wrap: break-word;
+    }
   }
 
   .prose :global(blockquote) {
@@ -652,7 +771,7 @@ function docHref(id: string) {
     margin: 1.5rem 0 1.85rem;
   }
 
-  @media (min-width: 560px) {
+  @media (min-width: 360px) {
     .prose :global(.docs-kpis) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -682,6 +801,95 @@ function docHref(id: string) {
     line-height: 1.18;
     font-variant-numeric: tabular-nums;
     color: var(--ink);
+  }
+
+  @media (max-width: 559px) {
+    .prose :global(.docs-kpis > *) {
+      padding: 0.85rem 0.9rem;
+    }
+
+    .prose :global(.docs-kpi-val) {
+      font-size: 1.2rem;
+    }
+  }
+
+  /* Structured Benchmark Environment Spec Grid */
+  .prose :global(.docs-spec-grid) {
+    width: 100%;
+    margin: 1.5rem 0 1.75rem;
+    padding: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    overflow: hidden;
+  }
+
+  .prose :global(.docs-spec-grid > div) {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.9rem 1.05rem;
+    border-bottom: 1px solid var(--rule);
+    min-width: 0;
+  }
+
+  .prose :global(.docs-spec-grid > div:last-child) {
+    border-bottom: 0;
+  }
+
+  @media (min-width: 640px) {
+    .prose :global(.docs-spec-grid) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .prose :global(.docs-spec-grid > div) {
+      border-right: 1px solid var(--rule);
+    }
+
+    .prose :global(.docs-spec-grid > div:nth-child(2n)) {
+      border-right: 0;
+    }
+
+    .prose :global(.docs-spec-grid > div:nth-last-child(-n + 2):nth-child(odd)),
+    .prose :global(.docs-spec-grid > div:nth-last-child(-n + 2):nth-child(odd) ~ div) {
+      border-bottom: 0;
+    }
+  }
+
+  .prose :global(.docs-spec-grid dt) {
+    margin: 0;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    line-height: 1.4;
+  }
+
+  .prose :global(.docs-spec-grid dd) {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    min-width: 0;
+  }
+
+  .prose :global(.docs-spec-grid dd strong) {
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--ink);
+  }
+
+  .prose :global(.docs-spec-grid dd span) {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    color: var(--ink-2);
+    overflow-wrap: anywhere;
   }
 
   .prose :global(.docs-kpi-label) {
@@ -822,15 +1030,15 @@ function docHref(id: string) {
     margin-bottom: 0;
   }
 
-  .prose :global(.docs-details > :not(summary):not(.docs-details-body)) {
+  .prose :global(.docs-details > :where(:not(summary):not(.docs-details-body):not(.table-wrap):not(.doc-code-frame))) {
     padding-inline: 1.1rem;
   }
 
-  .prose :global(.docs-details > :nth-child(2):not(.docs-details-body)) {
+  .prose :global(.docs-details > :where(:nth-child(2):not(.docs-details-body))) {
     margin-top: 1rem;
   }
 
-  .prose :global(.docs-details > :last-child:not(summary):not(.docs-details-body)) {
+  .prose :global(.docs-details > :where(:last-child:not(summary):not(.docs-details-body))) {
     margin-bottom: 1.1rem;
   }
 
@@ -853,6 +1061,10 @@ function docHref(id: string) {
   @media (max-width: 540px) {
     .docs-pager {
       grid-template-columns: minmax(0, 1fr);
+    }
+
+    .docs-pager > div:empty {
+      display: none;
     }
   }
 
@@ -889,7 +1101,7 @@ function docHref(id: string) {
 
   .docs-footer-inner {
     width: 100%;
-    max-width: 84rem;
+    max-width: 88rem;
     margin: 0 auto;
     padding-inline: clamp(1.25rem, 2.5vw, 1.75rem);
     display: flex;
@@ -903,9 +1115,14 @@ function docHref(id: string) {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.75rem 1.25rem;
+    gap: 0.25rem 1.25rem;
     font-size: 0.8125rem;
     color: var(--ink-3);
+  }
+
+  .docs-footer-links a {
+    padding-block: 0.35rem;
+    transition: color var(--dur-quick) var(--ease-out);
   }
 
   .docs-footer-links a:hover {
@@ -914,6 +1131,13 @@ function docHref(id: string) {
 </style>
 
 <script>
+  const mobileToc = document.querySelector<HTMLDetailsElement>(".docs-toc-mobile");
+  mobileToc?.querySelectorAll(".docs-toc-mobile-list a").forEach((a) => {
+    a.addEventListener("click", () => {
+      mobileToc.open = false;
+    });
+  });
+
   // TOC scrollspy with bottom-of-page fallback so the final heading activates cleanly
   const tocLinks = Array.from(document.querySelectorAll<HTMLAnchorElement>(".docs-toc a[href^='#']"));
   if (tocLinks.length && "IntersectionObserver" in window) {

@@ -13,7 +13,7 @@ The single static `auditstream` Rust binary (v0.1.0) handles migration generatio
 | Flag & environment | Default | Purpose |
 | :--- | :--- | :--- |
 | `--config <PATH>`<br>`AUDITSTREAM_CONFIG` | `./auditstream.toml` | Path to TOML configuration file |
-| `--database-url <URL>`<br>`AUDITSTREAM_DATABASE_URL` / `DATABASE_URL` | none | PostgreSQL connection URL (hidden in `--help`, redacted in logs and errors) |
+| `--database-url <URL>`<br>`AUDITSTREAM_DATABASE_URL`<br>`DATABASE_URL` | *none* | PostgreSQL connection URL (hidden in `--help`, redacted in logs and errors) |
 | `--schema <SCHEMA>`<br>`AUDITSTREAM_SCHEMA` | `auditstream` | Schema holding `changes`, functions, and triggers |
 | `-v`, `-vv`, `-q`<br>`AUDITSTREAM_LOG` | `warn` | Stderr verbosity (`-v` info, `-vv` debug, `-q` error only; env var overrides flags) |
 
@@ -95,12 +95,17 @@ auditstream history \
 - `--tenant <ID>` matches `actor.tenant` or `actor.onBehalfOf.tenant` (pair with `--since`/`--until` for partition pruning; note that `actor.tenant` is self-asserted actor metadata and does not replace PostgreSQL row-level security).
 - `--limit` accepts 1 to 1000 (default 100).
 
-Example `--format table` output (default; pass `--format json` for newline-delimited `event.schema.json` records including `before` and `after`):
+Example `--format table` output (default, wrapped across two lines here for readability; pass `--format json` for newline-delimited `event.schema.json` records including `before` and `after`):
 
 ```text
-OCCURRED_AT                  OP      TABLE           RECORD_ID   ACTOR                                  ACTOR_SOURCE  CHANGED
-2026-11-24T04:11:09.184000Z  UPDATE  public.invoice  {"id":1}    ai_agent:billing-agent for user:usr_42  comment       status,paid_at
-2026-11-24T04:08:12.004120Z  INSERT  public.invoice  {"id":1}    user:usr_42                            comment       -
+OCCURRED_AT                  OP      TABLE           RECORD_ID
+  ACTOR                                   ACTOR_SOURCE  CHANGED
+
+2026-11-24T04:11:09.184000Z  UPDATE  public.invoice  {"id":1}
+  ai_agent:billing-agent for user:usr_42  comment       status,paid_at
+
+2026-11-24T04:08:12.004120Z  INSERT  public.invoice  {"id":1}
+  user:usr_42                             comment       -
 ```
 
 ### export
@@ -130,10 +135,11 @@ schema = "auditstream"
 
 [capture]
 tables = ["public.invoice", "public.line_item"]
-exclude = ["public.invoice.password_hash"]   # stripped at trigger capture time
+# Stripped at trigger capture time
+exclude = ["public.invoice.password_hash"]
 
 [migrations]
-format = "prisma"                            # "prisma", "drizzle", or "sql"
+format = "prisma"             # "prisma", "drizzle", or "sql"
 dir = "prisma/migrations"
 
 [export]
@@ -141,17 +147,18 @@ cursor_file = ".auditstream.cursor"
 batch_size = 1000
 
 [export.sink]
-type = "jsonl"                               # "jsonl" (default) or "csv"
-path = "events.jsonl"                        # omit to stream to stdout
+type = "jsonl"                # "jsonl" (default) or "csv"
+path = "events.jsonl"         # omit to stream to stdout
 
-# Export-time redaction: mask ("[redacted]") or remove top-level keys in before/after
+# Export-time redaction: mask ("[redacted]") or remove top-level keys
+# in before/after payloads
 [[export.redaction.rules]]
-table = "public.invoice"                     # "table", "schema.table", or "*"
+table = "public.invoice"      # "table", "schema.table", or "*"
 columns = ["ssn", "tax_id"]
-mode = "mask"                                # "mask" (default) or "remove"
+mode = "mask"                 # "mask" (default) or "remove"
 
 [[export.redaction.rules]]
-action = "invoice.exported"                  # app-event op (source = "app"), or "*"
+action = "invoice.exported"   # app-event op (source = "app"), or "*"
 columns = ["recipient_email"]
 mode = "remove"
 ```
@@ -164,13 +171,13 @@ mode = "remove"
 CLI exit codes are part of the public engine contract (`crates/auditstream/src/exit.rs`). Every non-clap failure writes a single `error:` line to stderr and leaves stdout untouched.
 
 | Code | Name | Meaning |
-| :--- | :--- | :--- |
+| ---: | :--- | :--- |
 | **0** | Success | Command succeeded (including `--help`, `--version`, empty `history` results, and `BrokenPipe` on stateless stdout reads/exports) |
-| **1** | Check failed | Verification found problems (`auditstream verify` drift, missing/disabled triggers, rows in `changes_default`, or fewer than 2 future partitions) |
-| **2** | Usage or config error | Invalid CLI flags, missing `--config` file, unknown `auditstream.toml` key, invalid filter/redaction rule, or incompatible export checkpoint |
-| **3** | Database error | PostgreSQL connection, permission, query, or migration / `verify --fix` failure |
-| **4** | Output or cursor error | Filesystem I/O failure, held cursor lock, corrupt cursor, shortened export output file, or `BrokenPipe` on a stateful (`--cursor-file`) export |
-| **5** | Internal error | Fail-closed redaction error on a non-object/malformed payload or unexpected internal failure |
+| **1** | Check&nbsp;failed | Verification found problems (`auditstream verify` drift, missing/disabled triggers, rows in `changes_default`, or fewer than 2 future partitions) |
+| **2** | Usage&nbsp;/&nbsp;config | Invalid CLI flags, missing `--config` file, unknown `auditstream.toml` key, invalid filter/redaction rule, or incompatible export checkpoint |
+| **3** | Database&nbsp;error | PostgreSQL connection, permission, query, or migration / `verify --fix` failure |
+| **4** | Output&nbsp;/&nbsp;cursor | Filesystem I/O failure, held cursor lock, corrupt cursor, shortened export output file, or `BrokenPipe` on a stateful (`--cursor-file`) export |
+| **5** | Internal&nbsp;error | Fail-closed redaction error on a non-object/malformed payload or unexpected internal failure |
 | **101** | Panic | Uncaught Rust runtime panic |
 
 ## Next steps

@@ -9,14 +9,14 @@ Auditstream is designed for teams that want structured `before`/`after` row diff
 
 ## Feature comparison
 
-| Requirement | Auditstream | pgaudit | Debezium / CDC | App logging |
+| Requirement | Auditstream | pgaudit | Debezium CDC | App&nbsp;logging |
 | :--- | :--- | :--- | :--- | :--- |
-| **Row diffs** | `before`/`after` `jsonb` + `changed` | SQL text logs only (no diffs) | Needs `REPLICA IDENTITY FULL` | Misses direct SQL & migrations |
-| **Actor & AI attribution** | Trailing comment + `onBehalfOf` | DB role (`session_user`) only | Explicit tx + `emit_message` | Per-ORM glue; leaks in pools |
-| **Extra infra & WAL** | Zero daemon · any PG 15–19 | Extension + log pipeline | `wal_level = logical` + 24/7 consumer | None (you own schema & ops) |
-| **Connection poolers** | Pool-safe (0 leaks / 2.4M tx) | Safe (no per-user context) | Dedicated replication slot | Session vars pin RDS Proxy |
-| **Drift & retention** | `auditstream verify --fix` in CI | Manual log retention rules | Slot lag alerts (disk-full risk) | Silent drift on schema changes |
-| **Write overhead** | +3.2% (+5.1 µs) durable UPDATE · 211k/s bulk INSERT | Text log I/O overhead | Lower write CPU · higher WAL | Varies; often slow row-by-row |
+| **Row diffs** | `before`/`after` `jsonb` + `changed` | SQL text logs only (no diffs) | Needs `REPLICA IDENTITY` `FULL` | Misses direct SQL & migrations |
+| **Actor & AI** | Trailing comment + `onBehalfOf` | DB role (`session_user`) only | Explicit tx + `emit_message` | Per-ORM glue; leaks in pools |
+| **Infra & WAL** | Zero daemon · any PG 15–19 | Extension + log pipeline | `wal_level` `logical` + 24/7 consumer | None (you own schema & ops) |
+| **Poolers** | Pool-safe (0 leaks / 2.4M tx) | Safe (no per-user context) | Dedicated replication slot | Session vars pin RDS Proxy |
+| **Drift & ops** | `auditstream` `verify` `--fix` in CI | Manual log retention rules | Slot lag alerts (disk-full risk) | Silent drift on schema changes |
+| **Overhead** | +3.2% (+5.1 µs) durable UPDATE · 211k/s bulk INSERT | Text log I/O overhead | Lower write CPU · higher WAL | Varies; often slow row-by-row |
 
 ## Choosing another tool
 

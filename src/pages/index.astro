@@ -49,11 +49,12 @@ await audit.as(
       .where(eq(invoice.id, "inv_901"))
 );`;
 
-const sqlRaw = `-- App role has SELECT only; triggers record every write
+const sqlRaw = `-- App role has SELECT only; triggers log writes
 UPDATE invoice SET status = 'paid' WHERE id = 'inv_901'
-/*auditstream='eyJ0eXBlIjoiYWlfYWdlbnQiLCJpZCI6ImJpbGxp…'*/;
+/*auditstream='eyJ0eXBlIjoiYWlf…'*/;
 
-SELECT xact_id, occurred_at, actor, changed, before, after
+SELECT xact_id, occurred_at, actor,
+       changed, before, after
 FROM   auditstream.changes
 WHERE  table_name = 'invoice'
   AND  record_id = '{"id":"inv_901"}'::jsonb
@@ -76,7 +77,7 @@ const initCmd =
 const exportCmd =
   "auditstream export --format jsonl --output audit.jsonl \\\n  --cursor-file cursor.json";
 const shellInstallDisplay =
-  "curl --proto '=https' --tlsv1.2 -LsSf \\\n  https://github.com/auditstream/auditstream/releases/latest/download/auditstream-installer.sh | sh";
+  "BASE=https://github.com/auditstream/auditstream/releases/latest/download\ncurl --proto '=https' --tlsv1.2 -LsSf \"$BASE/auditstream-installer.sh\" | sh";
 const shellInstallCopy =
   "curl --proto '=https' --tlsv1.2 -LsSf https://github.com/auditstream/auditstream/releases/latest/download/auditstream-installer.sh | sh";
 

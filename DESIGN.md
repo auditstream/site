@@ -44,6 +44,12 @@ typography:
     fontWeight: 600
     lineHeight: 1.18
     letterSpacing: "-0.02em"
+  kpi-sm:
+    fontFamily: "\"IBM Plex Mono\", ui-monospace, SFMono-Regular, monospace"
+    fontSize: "1.2rem"
+    fontWeight: 600
+    lineHeight: 1.18
+    letterSpacing: "-0.02em"
   subhead:
     fontFamily: "\"IBM Plex Sans\", system-ui, -apple-system, sans-serif"
     fontSize: "1.375rem"
@@ -92,24 +98,12 @@ typography:
     fontWeight: 400
     lineHeight: 1.5
     letterSpacing: "0em"
-  code-2xs:
-    fontFamily: "\"IBM Plex Mono\", ui-monospace, SFMono-Regular, monospace"
-    fontSize: "0.65rem"
-    fontWeight: 400
-    lineHeight: 1.4
-    letterSpacing: "-0.02em"
   label:
     fontFamily: "\"IBM Plex Mono\", ui-monospace, SFMono-Regular, monospace"
     fontSize: "0.75rem"
     fontWeight: 500
     lineHeight: 1.4
     letterSpacing: "0.04em"
-  code-xs:
-    fontFamily: "\"IBM Plex Mono\", ui-monospace, SFMono-Regular, monospace"
-    fontSize: "0.72rem"
-    fontWeight: 400
-    lineHeight: 1.4
-    letterSpacing: "-0.03em"
 rounded:
   xs: "4px"
   sm: "6px"
@@ -182,7 +176,7 @@ Decorative clutter — dark-mode toggles, jarring light-to-dark section flips, u
 - Subtle architectural corner radii (`6px` controls, `10px` code and reference frames, `12px` focal cards, `999px` small status pills).
 - Strict semantic color isolation: Editorial Cobalt (`#1d4ed8`) for navigation, focus, links, and active SQL comment tags; Committed Emerald (`#047857`) for verified persistence and added diffs; Diff Vermilion (`#b91c1c`) for removed values and 404/denial states.
 - Self-hosted IBM Plex Sans paired with IBM Plex Mono (`tabular-nums`, ligatures disabled) at comfortable Retina reading sizes (`>= 12px` everywhere, `13.5px` monospace code).
-- One single spacious focal micro-motion (`AuditPulseVisual`) synchronized on a calm `6.0s` master CSS clock rather than scattered animations or video payloads.
+- One single spacious focal micro-motion (`AuditPulseVisual`) driven by a calm `7.8s` JS `data-phase` state machine (`2.4s` / `1.9s` / `3.5s`) with genuine `420–460ms` CSS transitions and separated two-layer one-shot SVG packet travel rather than scattered animations or video payloads.
 
 ## Colors
 
@@ -216,7 +210,7 @@ Every foreground/background pair — including muted labels (`#5b6676`), syntax 
 - **Headline** (`600`, `clamp(1.75rem, 3vw, 2.5rem)`, line-height `1.12`, tracking `-0.025em`, `text-wrap: balance`): Landing section headings and documentation `h1` page titles.
 - **Metric** (`600` mono, `clamp(2rem, 3.2vw, 2.85rem)`, line-height `1.04`, tracking `-0.03em`, `tabular-nums`): Measured proof strip figures (`+3.2%`, `2.4M`, `0.101 ms`).
 - **Subhead & Title** (`600`, `1.375rem` / `1.0625rem`): Documentation `h2`/`h3` headings and borderless pillar headings.
-- **Body & Prose** (`400`, `1rem` at `1.72` line-height in docs; `0.9375rem`–`1.125rem` on landing): Constrained to `64ch`–`68ch` for sustained reading comfort.
+- **Body & Prose** (`400`, `1rem` at `1.72` line-height in docs; `0.9375rem`–`1.125rem` on landing): Flows across the unified `52rem` reading rail in docs with `text-wrap: pretty` for even visual rhythm with tables and code frames.
 - **Code** (`400` mono, `0.84375rem` / `13.5px`, line-height `1.68`): Single-theme Light Shiki blocks and the Hero capture visual.
 - **Label** (`500` mono, `0.75rem` / `12px`, tracking `0.04em`): Minimum size across the entire site — used for code headers, status pills, table column headers, and keyboard hints.
 
@@ -231,7 +225,7 @@ All pages share a calm container (`max-width: 76rem`) with responsive horizontal
 
 The homepage consists of five airy editorial blocks separated by generous vertical rhythm (`clamp(3.5rem, 6vw, 5.5rem)`) and single hairline borders: Hero + focal diagram, 3 borderless core pillars, `5fr / 7fr` code showcase, subtle `#f3f3ee` measured proof band, and a 3-line tabbed quickstart followed by a static minimal footer.
 
-Documentation pages render a widened 3-column reading layout above `1280px` (`max-width: 84rem`, `14rem` permanent sidebar, `minmax(0, 52rem)` center column keeping prose at `68ch` while tables, code frames, KPI tiles, and path cards span full width, and `13.5rem` sticky TOC), collapsing gracefully to 2 columns (`>= 960px`) and single column (`< 960px`) with accessible `<details>` disclosures.
+Documentation pages render a widened 3-column reading layout above `1280px` (`max-width: 88rem`, `13.5rem` permanent sidebar, unified full-width `minmax(0, 52rem)` center reading rail across prose, tables, code frames, KPI tiles, spec grids, and path cards, and `13rem` sticky TOC), collapsing gracefully to 2 columns (`960px–1279px`, `12.75rem` sidebar + `48.5rem` rail) and single column (`< 960px`) with accessible `<details>` disclosures.
 
 ## Elevation & Depth
 
@@ -258,8 +252,8 @@ Surfaces remain completely flat at rest, separated by `1px` hairlines (`#e6e6df`
 - **Mobile (`<= 768px`):** `44×44px` Search and Menu drawer controls with `Escape` and outside-click dismissal.
 
 ### AuditPulseVisual (Single Focal Micro-Motion)
-- **Structure:** Generous `960px` white focal card topped by a 3-step synced progress strip (`1. Tag query → 2. Trigger captures → 3. Diff recorded`), containing two spacious DOM panes (`APPLICATION WRITE` and `auditstream.changes`) joined by a crisp `112px` inline SVG vector bridge with moving cobalt/emerald packets and a decisive emerald `PG Trigger` pill (stacking vertically with a `48px` vertical SVG connector below `820px`).
-- **Motion & Accessibility:** Single `6.0s` master CSS clock transitioning clearly from a quiet dashed "Waiting for commit…" ledger slot to a micro-staggered stamped audit diff row + stroke-drawn `✓ Recorded` badge with a calm `~2s` reading hold (`65%–92%`), automatic offscreen/hidden pause via `IntersectionObserver` + `visibilitychange`, and complete settled static rendering under `prefers-reduced-motion: reduce`.
+- **Structure:** Generous `960px` white focal card topped by an interactive 3-step button strip (`1. Tag query → 2. Trigger fires → 3. Diff recorded`) cycling Editorial Cobalt → Crisp Slate + emerald dot → Committed Emerald, containing two clean `#ffffff` DOM panes (`APPLICATION WRITE` and `auditstream.changes`, zero pane washes) joined by a crisp `112px` inline SVG vector bridge with separated two-layer cobalt/emerald packets and a soft Committed Emerald `PG Trigger` pill (mirroring the exact two-leg structure vertically in a `56px` SVG connector below `820px`).
+- **Motion & Accessibility:** Interruptible `7.8s` JS `data-phase="1"|"2"|"3"` state machine (`2.4s` / `1.9s` / `3.5s`, initial `1.2s` hold on SSR-settled `data-phase="3"`), smooth `420–460ms` transitions, persistent fixed-width morphing status chip (`Pending` → `Capturing` → soft Committed Emerald `✓ Recorded` matching `status-chip`), quiet dashed waiting slot revealing reversible staggered diff rows, accurate pause/resume on hover, focus, offscreen (`IntersectionObserver`), and tab hidden (`visibilitychange`), and interactive step inspection even under `prefers-reduced-motion: reduce`.
 
 ## Do's and Don'ts
 

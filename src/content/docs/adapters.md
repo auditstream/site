@@ -23,8 +23,8 @@ pnpm add @auditstream/node @auditstream/drizzle
 | Package (v0.2.0) | Responsibility | Peer dependencies |
 | :--- | :--- | :--- |
 | `@auditstream/node` | `AsyncLocalStorage` (`run()` only), `audit.as()`, `audit.log(exec, event)`, `audit.history(exec, query)`, `audit.query(exec, query)`, transport codec, `/express`, `/hono`, `/next` | `express`, `hono`, `next` (optional) |
-| `@auditstream/prisma` | `auditstream()` SQL comments plugin (Prisma 7.1+) + `auditTransaction()` `set_config` fallback | `@prisma/client >=7.1.0 <8`, `@auditstream/node` |
-| `@auditstream/drizzle` | Drizzle 1.x `auditComment()` helper + driver subpaths `/pg` (`wrapPgPool`), `/postgres-js` (`wrapPostgresJs`), and `/neon-http` (`wrapNeonHttp`) | `drizzle-orm ^0.45.2 \|\| >=1.0.0-rc.1 <2.0.0`, `@auditstream/node` |
+| `@auditstream/prisma` | `auditstream()` SQL comments plugin (Prisma 7.1+) + `auditTransaction()` `set_config` fallback | `@prisma/client` `>=7.1.0 <8`, `@auditstream/node` |
+| `@auditstream/drizzle` | Drizzle 1.x `auditComment()` helper + driver subpaths `/pg` (`wrapPgPool`), `/postgres-js` (`wrapPostgresJs`), and `/neon-http` (`wrapNeonHttp`) | `drizzle-orm` `^0.45.2` or `1.x`, `@auditstream/node` |
 
 ## Why ESM-only?
 
@@ -50,7 +50,10 @@ app.use(
       const userId = c.get("authUserId");
       return userId ? { type: "user", id: userId } : undefined;
     },
-    context: (c) => ({ requestId: c.req.header("x-request-id") ?? undefined, source: "api" }),
+    context: (c) => ({
+      requestId: c.req.header("x-request-id") ?? undefined,
+      source: "api",
+    }),
   }),
 );
 ```
@@ -66,7 +69,8 @@ import { auditstream } from "@auditstream/node/express";
 const app = express();
 app.use(
   auditstream({
-    actor: (req) => (req.user ? { type: "user", id: req.user.id } : undefined),
+    actor: (req) =>
+      req.user ? { type: "user", id: req.user.id } : undefined,
   }),
 );
 ```
@@ -80,7 +84,7 @@ import { withAudit, auditAction } from "@auditstream/node/next";
 
 export const POST = withAudit(
   async (request: Request) => {
-    // All awaited Prisma / Drizzle writes inside this handler carry the actor
+    // Awaited Prisma / Drizzle writes inside this handler carry the actor
     return new Response("ok");
   },
   { actor: async () => await getVerifiedSessionActor() },
@@ -88,7 +92,10 @@ export const POST = withAudit(
 
 export const approveInvoice = auditAction(
   async (invoiceId: string) => {
-    await db.invoice.update({ where: { id: invoiceId }, data: { status: "paid" } });
+    await db.invoice.update({
+      where: { id: invoiceId },
+      data: { status: "paid" },
+    });
   },
   { actor: async () => await getVerifiedSessionActor() },
 );
@@ -107,15 +114,19 @@ import { PrismaClient } from "@prisma/client";
 import { auditstream, auditTransaction } from "@auditstream/prisma";
 
 // Default: trailing sqlcommenter tag (no explicit transaction required)
-// Never configure statementNameGenerator on PrismaPg alongside SQL comments
+// Never set statementNameGenerator on PrismaPg alongside SQL comments
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const db = new PrismaClient({
-  adapter: new PrismaPg(new pg.Pool({ connectionString: process.env.DATABASE_URL })),
+  adapter: new PrismaPg(pool),
   comments: [auditstream()],
 });
 
 // Fallback for Prisma Accelerate (uses transaction-local set_config):
 await auditTransaction(db, async (tx) => {
-  await tx.invoice.update({ where: { id: "inv_901" }, data: { status: "paid" } });
+  await tx.invoice.update({
+    where: { id: "inv_901" },
+    data: { status: "paid" },
+  });
 });
 ```
 
@@ -131,7 +142,9 @@ import { wrapPgPool } from "@auditstream/drizzle/pg";
 //                 wrapNeonHttp   from "@auditstream/drizzle/neon-http"
 //                 auditComment   from "@auditstream/drizzle" (Drizzle 1.x)
 
-const pool = wrapPgPool(new pg.Pool({ connectionString: process.env.DATABASE_URL }));
+const pool = wrapPgPool(
+  new pg.Pool({ connectionString: process.env.DATABASE_URL }),
+);
 const db = drizzle({ client: pool });
 ```
 
@@ -142,9 +155,10 @@ Read timelines and log non-database domain events directly from `@auditstream/no
 ```ts
 import { audit } from "@auditstream/node";
 
-const exec = (sql: string, values: readonly unknown[]) => pool.query(sql, values);
+const exec = (sql: string, values: readonly unknown[]) =>
+  pool.query(sql, values);
 
-// Read a record's audit timeline from auditstream.changes (SELECT-only role)
+// Read a timeline from auditstream.changes (SELECT-only role)
 const entries = await audit.history(exec, {
   table: "invoice",
   recordId: { id: "inv_901" },
@@ -164,7 +178,11 @@ await audit.log(exec, {
 Use `audit.query()` for filtered, keyset-paginated feeds (zero `COUNT(*)`) across both database trigger rows (`source: "db"`) and application events (`source: "app"`):
 
 ```ts
-import { type AuditQuery, type AuditQueryPage, audit } from "@auditstream/node";
+import {
+  type AuditQuery,
+  type AuditQueryPage,
+  audit,
+} from "@auditstream/node";
 
 const query: AuditQuery = {
   tenant: "org_acme",
@@ -187,11 +205,13 @@ Proven directly against live PostgreSQL concurrency tests:
 - **Always await inside `audit.as()`.** Prisma and Drizzle queries are lazy and only execute when awaited. Returning an unawaited query from `als.run()` lost the actor in 7 of 7 tested operations; `audit.as()` awaits its callback inside the scope.
 - **Read the actor at `pool.query` entry.** `pg-pool` can invoke a queued `client.query` callback on whichever request released a connection. Reading the actor inside `client.query` attributed 4 of 20 concurrent writes to the wrong actor; reading at `pool.query` entry yielded **0 wrong actors across 60+ concurrent writes**.
 - **Runtime boundaries.** Uses `AsyncLocalStorage.run()` exclusively (`enterWith()` does not exist on Cloudflare Workers; enable `nodejs_als` or compatibility date 2026-08-04 or later). In Next.js 16, wrap Route Handlers (`withAudit`) and Server Actions (`auditAction`) from `@auditstream/node/next` rather than relying on `proxy` shared state.
-- **App-only events.** Adapters never construct database audit rows. Non-DB events (such as exports or logins) call `audit.log(exec, { action, target, data })`, which invokes `auditstream.log_event($1::text, $2::jsonb, $3::jsonb)`.
+- **App-only events.** Adapters never construct database audit rows. Non-DB events (such as exports or logins) call `audit.log(exec, event)`, which invokes `auditstream.log_event()`.
 
 ## Hot-path caching
 
-Because `audit.as()` validates and deeply freezes each active `AuditScope`, `@auditstream/node` caches its canonical JSON, UTF-8 bytes, unpadded base64url tag, and trailing comment suffix in a process-wide `WeakMap` (auditstream-js#64), while `isTagged()` uses a bounded O(1) trailing-character scan instead of per-query regex matching. Caller-constructed mutable scopes passed directly to `encodeScope()` or `tagSql()` are never cached. On Node v26.13.1, repeated `encodeScope(audit.current())` calls drop from 1,395 ns to **10.4 ns** (**134× faster**), and `tagSql()` inside `audit.as()` runs **5.0×–6.4× faster** (157–240 ns/op; see [Evidence & Benchmarks](/docs/evidence/)).
+Because `audit.as()` validates and deeply freezes each active `AuditScope`, `@auditstream/node` caches its canonical JSON, UTF-8 bytes, unpadded base64url tag, and trailing comment suffix in a process-wide `WeakMap` (auditstream-js#64), while `isTagged()` uses a bounded O(1) trailing-character scan instead of per-query regex matching. Caller-constructed mutable scopes passed directly to `encodeScope()` or `tagSql()` are never cached.
+
+On Node v26.13.1, repeated `encodeScope(audit.current())` calls drop from 1,395 ns to **10.4 ns** (**134× faster**), and `tagSql()` inside `audit.as()` runs **5.0×–6.4× faster** (157–240 ns/op; see [Evidence & Benchmarks](/docs/evidence/)).
 
 ## Next steps
 
