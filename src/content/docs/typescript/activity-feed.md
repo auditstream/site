@@ -31,6 +31,7 @@ import {
   audit,
 } from "@auditstream/node";
 import { getPool } from "./prisma";
+import { resolveActorNames } from "./users"; // batch-load display names from your user store
 
 const DEFAULT_WINDOW_DAYS = 30;
 const ALLOWED_FIELDS: Readonly<Record<string, ReadonlySet<string>>> = {
@@ -59,12 +60,12 @@ export interface ActivityFeedItem {
 
 export async function queryActivityFeed(options: {
   tenant: string;
-  source?: EventSourceKind;
-  opPrefix?: string;
-  since?: string;
-  until?: string;
-  cursor?: string;
-  limit?: number;
+  source?: EventSourceKind | undefined;
+  opPrefix?: string | undefined;
+  since?: string | undefined;
+  until?: string | undefined;
+  cursor?: string | undefined;
+  limit?: number | undefined;
 }) {
   const since =
     options.since ??
@@ -150,7 +151,7 @@ function toActivityFeedItem(
 Validate client filters, enforce authentication, derive `tenant` from the verified session, and return `Cache-Control: no-store`:
 
 ```ts
-import { AuditstreamError, type EventSourceKind } from "@auditstream/node";
+import { AuditstreamError } from "@auditstream/node";
 import { NextResponse } from "next/server";
 import { queryActivityFeed } from "@/lib/activity";
 import { requireVerifiedSession } from "@/lib/auth";
@@ -189,7 +190,7 @@ export async function GET(request: Request) {
 }
 ```
 
-> **Multi-tenant index tip:** If your Activity Feed serves high-QPS tenant queries, add the opt-in paired partial expression indexes on `(actor->>'tenant')` and `(actor->'onBehalfOf'->>'tenant')` documented in [Cloud, Poolers & Security](/docs/cloud-and-security/). Note that `actor.tenant` filters self-asserted actor metadata and does not replace PostgreSQL Row-Level Security (RLS).
+> **Multi-tenant index tip:** If your Activity Feed serves high-QPS tenant queries, add the opt-in paired partial expression indexes on `(actor->>'tenant')` and `(actor->'onBehalfOf'->>'tenant')` documented in the [CLI `history` reference](https://github.com/auditstream/auditstream/blob/main/docs/reference/cli/history.md#opt-in-tenant-indexes). Note that `actor.tenant` filters self-asserted actor metadata and does not replace PostgreSQL Row-Level Security (RLS).
 
 ## Full copy-paste reference app
 

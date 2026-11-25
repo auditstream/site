@@ -70,7 +70,7 @@ await audit.as(
 );
 ```
 
-### Other drivers & 1.x
+### `postgres.js` & Neon HTTP
 
 Swap only the driver entrypoint — actor scopes (`audit.as()` and [HTTP middleware](/docs/typescript/http/)) stay identical:
 
@@ -90,10 +90,20 @@ import { wrapNeonHttp } from "@auditstream/drizzle/neon-http";
 const neonDb = drizzleNeon({
   client: wrapNeonHttp(neon(process.env.DATABASE_URL!)),
 });
+```
 
-// Drizzle 1.x native sqlcommenter helper (no driver wrapper required for query builders)
+### Drizzle 1.x native `.comment()` helper
+
+On Drizzle `1.x`, use `auditComment()` directly on query builders when you do not need a driver wrapper:
+
+```ts
+import { eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/node-postgres";
 import { audit } from "@auditstream/node";
 import { auditComment } from "@auditstream/drizzle";
+import { invoice } from "./schema";
+
+const db = drizzle(process.env.DATABASE_URL!);
 
 await audit.as({ type: "user", id: "usr_42" }, async () => {
   await db

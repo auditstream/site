@@ -65,14 +65,14 @@ auditstream --database-url "$DB" init --migrations sql \
 psql "$DB" -v ON_ERROR_STOP=1 -f migrations/*_auditstream.sql
 
 # 1) INSERT by user:usr_42
-#    {"id":"usr_42","type":"user"} -> unpadded base64url
+#    {"type":"user","id":"usr_42"} -> canonical unpadded base64url
 psql "$DB" -c "INSERT INTO public.invoice VALUES (1, 'draft', 'secret')
-  /*auditstream='eyJpZCI6InVzcl80MiIsInR5cGUiOiJ1c2VyIn0'*/;"
+  /*auditstream='eyJ0eXBlIjoidXNlciIsImlkIjoidXNyXzQyIn0'*/;"
 
 # 2) UPDATE by ai_agent:billing-agent acting onBehalfOf user:usr_42
-#    {"id":"billing-agent","onBehalfOf":{"id":"usr_42","type":"user"},"type":"ai_agent"}
+#    {"type":"ai_agent","id":"billing-agent","onBehalfOf":{"type":"user","id":"usr_42"}}
 psql "$DB" -c "UPDATE public.invoice SET status = 'paid' WHERE id = 1
-  /*auditstream='eyJpZCI6ImJpbGxpbmctYWdlbnQiLCJvbkJlaGFsZk9mIjp7ImlkIjoidXNyXzQyIiwidHlwZSI6InVzZXIifSwidHlwZSI6ImFpX2FnZW50In0'*/;"
+  /*auditstream='eyJ0eXBlIjoiYWlfYWdlbnQiLCJpZCI6ImJpbGxpbmctYWdlbnQiLCJvbkJlaGFsZk9mIjp7InR5cGUiOiJ1c2VyIiwiaWQiOiJ1c3JfNDIifX0'*/;"
 
 auditstream --database-url "$DB" \
   history --table public.invoice --record-id 1
