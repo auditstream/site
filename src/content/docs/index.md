@@ -1,46 +1,95 @@
 ---
 title: Overview
-description: How Auditstream separates Rust capture and export from thin TypeScript actor adapters over PostgreSQL 15–19.
-section: Start
+description: Database-level audit trails — triggers capture every row change; your application only passes who acted.
+section: Get Started
 order: 1
-eyebrow: START · ARCHITECTURE
+eyebrow: GET STARTED · OVERVIEW
 ---
 
-**The Rust engine captures and exports; adapters only tell PostgreSQL who acted.**
+<div class="docs-meta-pills" aria-label="Current releases">
+  <span class="docs-meta-pill"><strong>CLI</strong> v0.1.0</span>
+  <span class="docs-meta-pill"><strong>TypeScript SDK</strong> v0.2.0</span>
+</div>
 
-Application code never writes audit rows itself. An adapter attaches the acting identity to each SQL statement, generated PostgreSQL triggers write `before`, `after`, `changed`, and actor metadata into `auditstream.changes` inside your database, and the Rust CLI inspects or exports immutable batches on demand.
+<div class="docs-steps">
+  <div class="docs-step">
+    <div class="docs-step-num">01 · Capture</div>
+    <div class="docs-step-title">Generate DB triggers</div>
+    <div class="docs-step-desc">One CLI command generates <code>auditstream.changes</code> and its capture triggers.</div>
+  </div>
+  <div class="docs-step">
+    <div class="docs-step-num">02 · Attribute</div>
+    <div class="docs-step-title">Attach the actor</div>
+    <div class="docs-step-desc">Thin SDKs or plain SQL tag outgoing writes with user, service, or AI agent metadata.</div>
+  </div>
+  <div class="docs-step">
+    <div class="docs-step-num">03 · Operate</div>
+    <div class="docs-step-title">Verify &amp; export</div>
+    <div class="docs-step-desc">Gate CI against trigger drift, inspect diffs in the terminal, and stream lossless batches.</div>
+  </div>
+</div>
 
-## Design principles
+## Support status
 
-- **Zero new infrastructure in v0.1.** No 24/7 consumer daemon, no `wal_level = logical`, no `REPLICA IDENTITY FULL`, and no replication slot holding WAL on disk.
-- **The history table is the product.** `auditstream.changes` is append-only, partitioned by month on `occurred_at`, owned by a dedicated `NOLOGIN` role, and queryable directly by your application (`SELECT` only).
-- **Contract-first across repositories.** The engine repository owns the versioned `spec/` folder and language-neutral conformance fixtures. Adapters declare which spec version they implement and never redefine capture semantics.
+| Target | Status | Details |
+| :--- | :--- | :--- |
+| **PostgreSQL** | **Supported&nbsp;&amp;&nbsp;tested** | PostgreSQL 15–19 (verified 15.20–19.0), PgBouncer 1.26, Neon, and Supabase |
+| **MySQL** | Planned | Not supported yet — PostgreSQL is the only engine in v0.1 |
+| **TypeScript&nbsp;SDK** | **Supported** | `@auditstream/*` v0.2.0 for Prisma 7, Drizzle, Next.js 16, Hono, and Express |
+| **Python&nbsp;SDK** | Planned | No native SDK yet — works today via `psycopg` and SQL comments |
+| **Plain&nbsp;SQL** | **Supported** | Any language or driver (Go, Ruby, Java, `psql`) via SQL comments or `set_config` |
 
-## Workspace layout (Rust engine)
+## Choose your path
 
-The Rust engine (`auditstream`) is a hexagonal Cargo workspace where `auditstream-core` holds domain types and port traits with zero I/O dependencies:
-
-| Crate | Owns | May depend on | Must not depend on |
-| :--- | :--- | :--- | :--- |
-| `auditstream-core` | Domain types, port traits (`EventSource`, `Sink`), transport codec, diff and redaction | `serde`, `thiserror` | `tokio`, `sqlx`, any I/O crate |
-| `auditstream-pg` | Schema introspection, DDL and trigger generation, migration writers, `xid8` reader | `core`, `sqlx`, `tokio` | `export`, binary |
-| `auditstream-export` | Sinks (JSON Lines and CSV in v0.1; heavy sinks behind Cargo features later) | `core`, `tokio` | `sqlx`, `pg` |
-| `auditstream` | CLI commands (`init`, `verify`, `status`, `history`, `export`), config, logging | All crates above, `clap`, `anyhow` | Business logic of its own |
-
-## Ports and delivery semantics
-
-```rust
-pub trait EventSource: Send {
-    fn next_batch(&mut self, max: usize)
-        -> impl Future<Output = Result<Option<Batch>, SourceError>> + Send;
-    fn ack(&mut self, upto: &Cursor)
-        -> impl Future<Output = Result<(), SourceError>> + Send;
-}
-
-pub trait Sink: Send {
-    fn write(&mut self, batch: &Batch) -> impl Future<Output = Result<(), SinkError>> + Send;
-    fn flush(&mut self) -> impl Future<Output = Result<(), SinkError>> + Send;
-}
-```
-
-Delivery is **pull-based, in batches, at least once**. The cursor is acknowledged only after the sink flushes, and every event carries a stable UUID `event_id` so destinations can deduplicate safely.
+<div class="docs-cards">
+  <a class="docs-card" href="/docs/getting-started/">
+    <div class="docs-card-tag">Get Started</div>
+    <div class="docs-card-title">Getting Started</div>
+    <div class="docs-card-desc">Install the CLI, run a 60-second local demo, and wire your first app.</div>
+  </a>
+  <a class="docs-card" href="/docs/typescript/">
+    <div class="docs-card-tag">SDKs &amp; Languages</div>
+    <div class="docs-card-title">TypeScript</div>
+    <div class="docs-card-desc">Use @auditstream/* v0.2.0 with Prisma 7, Drizzle, Next.js 16, Hono, and Express.</div>
+  </a>
+  <a class="docs-card" href="/docs/python/">
+    <div class="docs-card-tag">SDKs &amp; Languages</div>
+    <div class="docs-card-title">Python</div>
+    <div class="docs-card-desc">No native SDK yet — attribute database writes from psycopg today; Django, Flask, and FastAPI planned.</div>
+  </a>
+  <a class="docs-card" href="/docs/plain-sql/">
+    <div class="docs-card-tag">SDKs &amp; Languages</div>
+    <div class="docs-card-title">Plain SQL</div>
+    <div class="docs-card-desc">Attribute writes from Go, Ruby, Java, or psql using SQL comments or set_config.</div>
+  </a>
+  <a class="docs-card" href="/docs/cli/">
+    <div class="docs-card-tag">Operate</div>
+    <div class="docs-card-title">CLI &amp; Day-2 Operations</div>
+    <div class="docs-card-desc">Run init, status, verify, history, and export, configure TOML, and gate CI.</div>
+  </a>
+  <a class="docs-card" href="/docs/cloud-and-security/">
+    <div class="docs-card-tag">Operate</div>
+    <div class="docs-card-title">Cloud, Poolers &amp; Security</div>
+    <div class="docs-card-desc">Deploy behind PgBouncer, Neon, Supabase, or RDS Proxy with least-privilege roles.</div>
+  </a>
+  <a class="docs-card" href="/docs/capture/">
+    <div class="docs-card-tag">Reference</div>
+    <div class="docs-card-title">How Capture Works</div>
+    <div class="docs-card-desc">Hybrid triggers, actor resolution precedence, history schema, and xid8 export cursors.</div>
+  </a>
+  <a class="docs-card" href="/docs/contract/">
+    <div class="docs-card-tag">Reference</div>
+    <div class="docs-card-title">Wire Format &amp; Spec</div>
+    <div class="docs-card-desc">Actor JSON schema, unpadded base64url comment format, and strict validation rules.</div>
+  </a>
+  <a class="docs-card" href="/docs/evidence/">
+    <div class="docs-card-tag">Reference</div>
+    <div class="docs-card-title">Benchmarks &amp; Limits</div>
+    <div class="docs-card-desc">Live PostgreSQL 19 and PgBouncer 1.26 stress numbers, Node 26 timings, and limits.</div>
+  </a>
+  <a class="docs-card" href="/docs/compare/">
+    <div class="docs-card-tag">Reference</div>
+    <div class="docs-card-title">Comparisons</div>
+    <div class="docs-card-desc">Compare Auditstream against pgaudit, Debezium CDC, and hand-rolled app logging.</div>
+  </a>
+</div>

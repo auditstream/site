@@ -1,12 +1,12 @@
 ---
-title: Contract (spec v0.1)
-description: Normative actor schema, unpadded base64url sqlcommenter transport, size limits, and language-neutral conformance fixtures.
-section: Contract
-order: 4
-eyebrow: CONTRACT · SPEC V0.1
+title: Wire Format & Spec
+description: Actor JSON schema, unpadded base64url SQL comment transport, strict validation rules, and language-neutral conformance fixtures.
+section: Reference
+order: 9
+eyebrow: REFERENCE · WIRE FORMAT
 ---
 
-The engine repository owns the normative `spec/` directory, versioned independently with SemVer starting at `0.1.0`. Every adapter declares which spec version it implements and verifies compliance against shared JSON conformance fixtures.
+Any language, ORM, or SQL client that emits this wire format works natively with Auditstream's PostgreSQL triggers and CLI.
 
 ## Actor & context schema
 
@@ -19,26 +19,47 @@ The engine repository owns the normative `spec/` directory, versioned independen
 }
 ```
 
-- **`type`** MUST be one of `user`, `api_key`, `ai_agent`, `service`, or `system`.
-- **`id`** MUST be present.
-- **`onBehalfOf`** MAY hold one nested actor, one level deep (for delegated actions such as an AI agent acting for a user).
-- **`tenant`** MAY be present.
-- **IDs only by default.** Names, emails, and IP addresses SHOULD NOT be sent because SQL comments appear in `pg_stat_activity`, server logs, and `pg_stat_statements`. `context` MAY carry `requestId` and `source`; IP and user agent are opt-in.
-- **512-byte cap.** Serialized actor plus context JSON MUST NOT exceed 512 bytes.
+- **`type`** MUST be `user`, `api_key`, `ai_agent`, `service`, or `system`.
+- **`id`** MUST be a non-empty string.
+- **`onBehalfOf`** MAY hold one nested actor object, strictly one level deep (for delegated actions).
+- **`tenant`** MAY be a non-empty string.
+- **IDs only by default.** Avoid names, emails, or IPs since comments appear in PG logs; `context` supports `requestId`, `source`, and opt-in `ip`/`userAgent`.
+- **512-byte cap.** Serialized actor plus context JSON MUST NOT exceed **512 UTF-8 bytes** (≤ 683 base64url chars).
 
 ## SQL transport format
 
 ```sql
 -- Per statement: trailing sqlcommenter tag (default)
-UPDATE invoice SET status = $1 WHERE id = $2 /*auditstream='eyJ0eXBlIjoidXNlciIsImlkIjoidXNyXzQyIn0'*/
+UPDATE invoice SET status = $1 WHERE id = $2
+  /*auditstream='eyJ0eXBlIjoidXNlciIsImlkIjoidXNyXzQyIn0'*/
 
 -- Per transaction: set_config fallback
-SELECT set_config('auditstream.actor', '{"type":"user","id":"usr_42"}', true);
+SELECT set_config(
+  'auditstream.actor',
+  '{"type":"user","id":"usr_42"}',
+  true
+);
 ```
 
 ### Transport guarantees
 
-- **Injection-proof encoding:** The comment value MUST be unpadded base64url. Because base64url contains only `A-Z`, `a-z`, `0-9`, `-`, and `_`, it can never contain `*/` or break out of the SQL comment.
-- **Trailing position:** The comment MUST be the last comment in the statement and MAY share a comment with other `sqlcommenter` keys such as `traceparent`.
-- **No named prepared statements with per-actor comments:** Each distinct comment string produces a new prepared statement that `node-postgres` never evicts, so driver wrappers strip statement names when appending a tag.
-- **Spoofing resistance:** Comment-like text inside SQL string literals was tested twice and ignored in both cases.
+- **Injection-proof encoding:** Unpadded base64url (`A-Za-z0-9_-`) can never contain `*/` or break out of a SQL comment.
+- **Trailing position:** Must be the final comment in the statement; may share a comment with other `sqlcommenter` keys (such as `traceparent`).
+- **No named prepared statements:** Per-actor comments create unbounded cached statements in `pg` or `psycopg`; disable statement naming or use `set_config`.
+- **Spoofing resistance:** Extraction trims trailing whitespace/semicolons and reads only the final comment, ignoring comment-like text inside string literals.
+
+## Validation rules
+
+Triggers (`resolve_actor()`), exports (`event.schema.json`), and SDKs enforce identical strict validation:
+
+- **Actor & context:** `type` and `onBehalfOf.type` must match the 5-value enum; `id`, `tenant`, and known `context` fields (`requestId`, `source`, `ip`, `userAgent`) must be non-empty strings; `onBehalfOf` depth ≤ 1.
+- **Application events:** `auditstream.log_event()` requires `target` and `data` to be JSON objects or `NULL` (else `SQLSTATE 22023`) and rejects reserved DML names after trim/uppercase.
+- **JWT fallback:** Invalid `request.jwt.claims` JSON or invalid non-null `sub` yields `actor_source = 'invalid'`; valid objects without `sub` (or `sub: null`) yield `NULL`.
+- **Fail-open capture:** Table `CHECK` constraints enforce `source`, `actor_source`, and `schema_version`; malformed actors never abort writes (`actor = NULL`, `actor_source = 'invalid'`).
+
+## Spec & conformance
+
+The normative specification (`v0.1.1`, independently SemVer-versioned) and shared conformance fixtures live in [`spec/`](https://github.com/auditstream/auditstream/tree/spec-v0.1.1/spec):
+
+- [Normative Specification (`spec-v0.1.1`)](https://github.com/auditstream/auditstream/tree/spec-v0.1.1/spec) — `actor.md`, `transport.md`, `history-table.md`, `export.md`, JSON schemas, and fixtures.
+- [Implementation Compliance Matrix (`spec/compliance.md`)](https://github.com/auditstream/auditstream/blob/main/spec/compliance.md) — per-SDK support and verified conformance coverage.

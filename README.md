@@ -1,14 +1,16 @@
 # auditstream.dev
 
-Landing page and documentation site for [Auditstream](https://github.com/auditstream/auditstream), built with Astro (static output), build-time Shiki dual themes, self-hosted latin variable fonts, native compositor scrolling, and Pagefind static search.
+[![CI][ci-badge]][ci-url] [![MIT License][license-badge]][license-url]
 
-## Stack
+Source for the [Auditstream](https://auditstream.dev) website and documentation — built with Astro 5 (static output), Content Collections (`src/content/docs/`), build-time Shiki dual-theme highlighting, and Pagefind static search.
 
-- **Framework:** Astro 5 (`output: "static"`) + Content Collections (`src/content/docs/`)
-- **Syntax highlighting:** Shiki at build time mapped to compact dual-theme CSS classes (0 KB client highlighter)
-- **Typography:** Self-hosted latin `@fontsource-variable/mona-sans` (`wdth 75–125`) and `@fontsource/ibm-plex-mono` with zero-CLS CSS container-query sizing
-- **Scroll & Motion:** Native compositor scrolling (crisp subpixel text), opacity-only one-shot reveals, and CSS Scroll-Driven top progress rail
-- **Search:** Pagefind static index built after `astro build` (`⌘K` or `/`)
+## Repositories
+
+| Repository | Role |
+| :--- | :--- |
+| [`auditstream/auditstream`](https://github.com/auditstream/auditstream) | Rust CLI & engine (`init`, `status`, `verify`, `history`, `export`), generated PostgreSQL triggers, and normative `spec/` |
+| [`auditstream/auditstream-js`](https://github.com/auditstream/auditstream-js) | ESM-only TypeScript adapters (`@auditstream/node`, `@auditstream/prisma`, `@auditstream/drizzle`) and runnable examples |
+| [`auditstream/.github`](https://github.com/auditstream/.github) | Organization profile, community health files, and shared security & contribution defaults |
 
 ## Development
 
@@ -17,13 +19,19 @@ Requires Node.js 22.12+ and pnpm 12+.
 ```bash
 pnpm install
 pnpm dev       # local dev server on http://localhost:4321
-pnpm build     # static build + Pagefind index in dist/
+pnpm check     # Astro & TypeScript diagnostics (astro check)
+pnpm build     # static build + Pagefind search index in dist/
 pnpm preview   # preview dist/ locally (including live Pagefind search)
 ```
 
 ## Deployment
 
-Deploy `dist/` as a static site on Cloudflare Pages, Netlify, or GitHub Pages using:
+Deploy `dist/` as a static site (Cloudflare Pages, Netlify, or GitHub Pages):
 
 - **Build command:** `pnpm build`
 - **Output directory:** `dist`
+
+[ci-badge]: https://img.shields.io/github/actions/workflow/status/auditstream/site/ci.yml?branch=main&style=flat&label=CI
+[ci-url]: https://github.com/auditstream/site/actions/workflows/ci.yml
+[license-badge]: https://img.shields.io/github/license/auditstream/site?style=flat
+[license-url]: LICENSE

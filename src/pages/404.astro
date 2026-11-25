@@ -1,0 +1,183 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import BrandMark from "../components/BrandMark.astro";
+---
+
+<BaseLayout
+  title="Page not found — Auditstream"
+  description="The page you requested could not be found on auditstream.dev."
+  currentPath="/404"
+  showProgress={false}
+  noindex={true}
+>
+  <main id="main-content" class="nf-main">
+    <div class="shell nf-wrap">
+      <div class="surface-frame nf-card">
+        <div class="surface-bar">
+          <span>HTTP 404</span>
+          <span class="nf-badge">Route not found</span>
+        </div>
+        <div class="nf-body">
+          <h1 class="h2">This page does not exist.</h1>
+          <p class="lead nf-lead">
+            The URL may have moved or been typed incorrectly. Jump back to the homepage, browse the
+            documentation, or open <button type="button" class="nf-search-link" id="nf-open-search">quick search</button><span class="hide-sm"> (<span class="nf-kbd-pair"><kbd class="kbd-hint">/</kbd> or <kbd class="kbd-hint">⌘K</kbd></span>)</span>.
+          </p>
+
+          <div class="nf-actions">
+            <a href="/" class="btn btn-primary">Back to Home</a>
+            <a href="/docs/" class="btn btn-secondary">Read Docs</a>
+          </div>
+
+          <nav class="nf-links" aria-label="Popular documentation pages">
+            <a href="/docs/getting-started/">Getting Started</a>
+            <a href="/docs/typescript/">TypeScript SDK</a>
+            <a href="/docs/python/">Python</a>
+            <a href="/docs/cli/">CLI &amp; Day-2 Ops</a>
+            <a href="/docs/evidence/">Benchmarks</a>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="nf-footer">
+    <div class="shell nf-footer-inner">
+      <a href="/" class="brand">
+        <BrandMark size={18} />
+        <span>Auditstream</span>
+      </a>
+      <nav class="nf-footer-links" aria-label="Footer">
+        <a href="/">Home</a>
+        <a href="/docs/">Docs</a>
+        <a href="/docs/evidence/">Benchmarks</a>
+        <a
+          href="https://github.com/auditstream/auditstream"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          GitHub <span aria-hidden="true">↗</span>
+        </a>
+      </nav>
+    </div>
+  </footer>
+</BaseLayout>
+
+<style>
+  .nf-main {
+    min-height: calc(100vh - 8.5rem);
+    display: grid;
+    align-items: center;
+    padding-block: clamp(3rem, 7vw, 5.5rem);
+  }
+
+  .nf-wrap {
+    max-width: 45rem;
+  }
+
+  .nf-badge {
+    color: var(--before);
+    background: var(--before-bg);
+    border: 1px solid var(--before-border);
+    border-radius: var(--radius-pill);
+    padding: 0.1rem 0.55rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .nf-body {
+    padding: clamp(1.5rem, 3.5vw, 2.5rem);
+  }
+
+  .nf-lead {
+    margin-top: 0.9rem;
+    text-wrap: pretty;
+  }
+
+  .nf-kbd-pair {
+    white-space: nowrap;
+  }
+
+  .nf-search-link {
+    color: var(--accent);
+    font-weight: 500;
+    text-decoration: underline;
+    text-underline-offset: 0.22em;
+    padding: 0;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    font: inherit;
+    transition: color var(--dur-quick) var(--ease-out);
+  }
+
+  .nf-search-link:hover {
+    color: var(--accent-hover);
+  }
+
+  .nf-actions {
+    margin-top: 1.75rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
+  .nf-links {
+    margin-top: 1.85rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.35rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  .nf-links a {
+    padding-block: 0.4rem;
+  }
+
+  .nf-links a:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+  }
+
+  .nf-footer {
+    border-top: 1px solid var(--rule);
+    background: var(--ground);
+    padding-block: 1.5rem;
+  }
+
+  .nf-footer-inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .nf-footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1.25rem;
+    font-size: 0.8125rem;
+    color: var(--ink-3);
+  }
+
+  .nf-footer-links a {
+    padding-block: 0.25rem;
+    transition: color var(--dur-quick) var(--ease-out);
+  }
+
+  .nf-footer-links a:hover {
+    color: var(--ink);
+  }
+</style>
+
+<script>
+  document.getElementById("nf-open-search")?.addEventListener("click", () => {
+    document.getElementById("open-search")?.click();
+  });
+</script>

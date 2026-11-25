@@ -6,8 +6,10 @@ const docs = defineCollection({
   schema: z.object({
     title: z.string(),
     description: z.string(),
-    section: z.enum(["Start", "Architecture", "Contract", "Adapters", "Evidence"]),
+    section: z.enum(["Get Started", "SDKs & Languages", "Operate", "Reference"]),
     order: z.number(),
+    parent: z.string().optional(),
+    badge: z.string().optional(),
     eyebrow: z.string().optional(),
   }),
 });

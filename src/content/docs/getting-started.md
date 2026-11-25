@@ -1,28 +1,25 @@
 ---
 title: Getting Started
-description: Supported PostgreSQL, Node.js, Prisma, and Drizzle versions plus the three-step v0.1 setup flow.
-section: Start
+description: Install the CLI, run a 60-second local demo, and wire your first application.
+section: Get Started
 order: 2
-eyebrow: START · QUICKSTART
+eyebrow: GET STARTED · QUICKSTART
 ---
 
-## Supported versions in v0.1
+<div class="docs-meta-pills" aria-label="Current releases">
+  <span class="docs-meta-pill"><strong>CLI</strong> v0.1.0</span>
+  <span class="docs-meta-pill"><strong>TypeScript SDK</strong> v0.2.0</span>
+</div>
 
-| Dependency | Supported range | Notes |
-| :--- | :--- | :--- |
-| **PostgreSQL** | 15 to 19 | PostgreSQL 14 reached EOL on 2026-11-12; identical suite output verified on 15.20, 16.15, 17.12, 18.7, and 19.0 |
-| **Node.js** | 22.12 or newer | Tested on Node 22, 24, and 26; ESM-only packages |
-| **Prisma** | `@prisma/client` 7.1+ (within 7.x) | Uses official SQL comments plugin; Prisma 6 is unsupported; Prisma 8 awaits stable release |
-| **Drizzle** | 0.45 and 1.x | `auditComment()` on Drizzle 1.x; `/pg`, `/postgres-js`, and `/neon-http` driver wrappers on 0.45 |
-| **Runtimes** | Node.js, Bun, Deno, Cloudflare Workers | Uses `AsyncLocalStorage.run()` only (`nodejs_als` flag or compatibility date `2026-08-04` or later on Workers) |
+## 1. Install the CLI
 
-## 1. Install the CLI and try it in 60 seconds
-
-Install the prebuilt `auditstream` binary through any supported channel:
+Install the prebuilt `auditstream` v0.1.0 binary:
 
 ```bash
 # Shell (macOS and Linux)
-curl --proto '=https' --tlsv1.2 -LsSf https://github.com/auditstream/auditstream/releases/latest/download/auditstream-installer.sh | sh
+REPO="https://github.com/auditstream/auditstream"
+curl --proto '=https' --tlsv1.2 -LsSf \
+  "$REPO/releases/latest/download/auditstream-installer.sh" | sh
 
 # Homebrew (macOS and Linux)
 brew install auditstream/tap/auditstream
@@ -34,85 +31,135 @@ npm install -g auditstream
 docker run --rm ghcr.io/auditstream/auditstream:latest --version
 ```
 
-On Windows PowerShell:
+Windows PowerShell:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -c "irm https://github.com/auditstream/auditstream/releases/latest/download/auditstream-installer.ps1 | iex"
+$url = "https://github.com/auditstream/auditstream/releases" +
+  "/latest/download/auditstream-installer.ps1"
+powershell -ExecutionPolicy Bypass -c "irm $url | iex"
 ```
 
-Or build from source with Cargo (`git clone https://github.com/auditstream/auditstream && cd auditstream && cargo install --path crates/auditstream --locked`).
-
-Verify everything end-to-end against a disposable PostgreSQL container (including `--exclude` PII redaction):
+Or build from source with Cargo:
 
 ```bash
-docker run -d --rm --name as-demo -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:18
-psql postgres://postgres:postgres@127.0.0.1:5432/postgres -c \
-  "CREATE TABLE public.invoice (id int PRIMARY KEY, status text NOT NULL, password_hash text);"
-auditstream --database-url postgres://postgres:postgres@127.0.0.1:5432/postgres \
-  init --migrations sql --table public.invoice --exclude public.invoice.password_hash
-psql postgres://postgres:postgres@127.0.0.1:5432/postgres -v ON_ERROR_STOP=1 -f migrations/*_auditstream.sql
-psql postgres://postgres:postgres@127.0.0.1:5432/postgres -c \
-  "INSERT INTO public.invoice VALUES (1, 'draft', 'secret') /*auditstream='eyJ0eXBlIjoidXNlciIsImlkIjoidXNyXzQyIn0'*/;"
-auditstream --database-url postgres://postgres:postgres@127.0.0.1:5432/postgres \
+git clone https://github.com/auditstream/auditstream \
+  && cd auditstream \
+  && cargo install --path crates/auditstream --locked
+```
+
+Run a 60-second local demo against PostgreSQL (with `--exclude` PII redaction):
+
+```bash
+export DB="postgres://postgres:postgres@127.0.0.1:5432/postgres"
+
+docker run -d --rm --name as-demo \
+  -e POSTGRES_PASSWORD=postgres -p 5432:5432 postgres:18
+
+psql "$DB" -c "CREATE TABLE public.invoice (
+  id int PRIMARY KEY, status text NOT NULL, password_hash text
+);"
+
+auditstream --database-url "$DB" init --migrations sql \
+  --table public.invoice --exclude public.invoice.password_hash
+
+psql "$DB" -v ON_ERROR_STOP=1 -f migrations/*_auditstream.sql
+
+psql "$DB" -c "INSERT INTO public.invoice VALUES (1, 'draft', 'secret')
+  /*auditstream='eyJ0eXBlIjoidXNlciIsImlkIjoidXNyXzQyIn0'*/;"
+
+auditstream --database-url "$DB" \
   history --table public.invoice --record-id 1
 ```
 
-Expected output (`password_hash` is never recorded in `before` or `after`):
+Expected output (`password_hash` is stripped before capture; wrapped across two lines for width):
 
 ```text
-OCCURRED_AT                  OP      TABLE           RECORD_ID  ACTOR        ACTOR_SOURCE  CHANGED
-2026-11-24T15:22:00.000000Z  INSERT  public.invoice  {"id":1}   user:usr_42  comment       -
+OCCURRED_AT                  OP      TABLE           RECORD_ID
+  ACTOR        ACTOR_SOURCE  CHANGED
+
+2026-11-24T15:22:00.000000Z  INSERT  public.invoice  {"id":1}
+  user:usr_42  comment       -
 ```
 
-For Prisma or Drizzle projects, generate migrations directly into your project's migration directory:
+For Prisma or Drizzle projects, write migrations directly into your project folder:
 
 ```bash
-auditstream init --migrations prisma --table public.invoice --table public.users --exclude public.users.password_hash
+auditstream init \
+  --migrations prisma \
+  --table public.invoice \
+  --table public.users \
+  --exclude public.users.password_hash
 ```
 
-`auditstream init` inspects your schema and generates migrations for Prisma, Drizzle, or plain SQL containing:
-- The `auditstream` schema and `auditstream_owner` `NOLOGIN` role;
-- Monthly partitions for `auditstream.changes` created three months ahead plus a `DEFAULT` partition;
-- A BRIN index on `occurred_at` and a partial `HASH` lookup index on `record_id` (`WHERE record_id IS NOT NULL`);
-- Statement-level `INSERT` / `DELETE` triggers, row-level `UPDATE` triggers, and `TRUNCATE` triggers;
-- `SELECT`-only grants for your application role.
+`auditstream init` generates idempotent Prisma, Drizzle, or SQL migrations containing:
 
-## 2. Wire an adapter in TypeScript
+- **Schema & role:** `auditstream` schema, `auditstream_owner` (`NOLOGIN`), and SELECT-only app grants ([Cloud & Security](/docs/cloud-and-security/)).
+- **Partitioned history:** Monthly `auditstream.changes` partitions three months ahead plus a `DEFAULT` partition.
+- **Indexes:** A BRIN index on `occurred_at` and a partial HASH index on `record_id` (`IS NOT NULL`).
+- **Hybrid triggers:** Statement-level INSERT/DELETE triggers, row-level UPDATE triggers, and TRUNCATE triggers.
 
-Install `@auditstream/node` alongside your ORM adapter:
+## 2. Wire an adapter
+
+Install `@auditstream/node` v0.2.0 with your ORM and PostgreSQL driver adapter:
 
 ```bash
-pnpm add @auditstream/node @auditstream/prisma
+pnpm add @auditstream/node @auditstream/prisma @prisma/adapter-pg pg
 ```
 
-Wrap requests or mutations with `audit.as(actor, fn)` — always awaiting queries inside the callback:
+Attach `auditstream()` to `PrismaClient` and wrap awaited queries in `audit.as(actor, fn)`:
 
 ```ts
+import pg from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
 import { audit } from "@auditstream/node";
 import { auditstream } from "@auditstream/prisma";
 
+const pool = new pg.Pool({
+  connectionString: process.env.DATABASE_URL,
+});
 const db = new PrismaClient({
+  adapter: new PrismaPg(pool),
   comments: [auditstream()],
 });
 
-await audit.as({ type: "user", id: "usr_42", tenant: "org_acme" }, async () => {
-  await db.invoice.update({
-    where: { id: "inv_901" },
-    data: { status: "paid" },
-  });
-});
+await audit.as(
+  { type: "user", id: "usr_42", tenant: "org_acme" },
+  async () => {
+    await db.invoice.update({
+      where: { id: "inv_901" },
+      data: { status: "paid" },
+    });
+  },
+);
 ```
 
-## 3. Verify, inspect, and export
+Never set `statementNameGenerator` on `PrismaPg` with SQL comments. Using [Drizzle](/docs/typescript/drizzle/), [Next.js](/docs/typescript/nextjs/), [Hono & Express](/docs/typescript/http/), [Python](/docs/python/), or [Plain SQL](/docs/plain-sql/)? Jump straight to your guide.
+
+## 3. Verify and export
 
 ```bash
-# Check for missing/disabled triggers or rows stuck in the DEFAULT partition
+# Check for missing/disabled triggers or rows in DEFAULT partition
 auditstream verify
 
-# Inspect recent changes and diffs directly in your terminal (<schema>.<table>)
+# Inspect recent changes and diffs (<schema>.<table>)
 auditstream history --table public.invoice --limit 20
 
-# Export immutable batches using the commit-safe xid8 cursor
-auditstream export --format jsonl --output audit.jsonl --cursor-file cursor.json
+# Export immutable batches via the commit-safe xid8 cursor
+auditstream export \
+  --format jsonl \
+  --output audit.jsonl \
+  --cursor-file cursor.json
 ```
+
+## Supported versions
+
+| Dependency | Status | Notes |
+| :--- | :--- | :--- |
+| **PostgreSQL** | **15–19 (Supported)** | Verified on 15.20, 16.15, 17.12, 18.7, and 19.0 (PG 14 EOL 2026-11-12) |
+| **MySQL** | Planned | Not supported yet — PostgreSQL 15–19 is the only engine in v0.1 |
+| **Node.js** | **22.12+ (Supported)** | Tested on Node 22, 24, and 26; ESM-only TypeScript SDK (`v0.2.0`) |
+| **Prisma** | **7.1+ (`7.x`)** | Official SQL comments plugin; Prisma 6 unsupported |
+| **Drizzle** | **0.45 and 1.x** | `auditComment()` on 1.x; `/pg`, `/postgres-js`, `/neon-http` on 0.45 & 1.x |
+| **Python SDK** | Planned | No native SDK yet — attribute writes via `psycopg` today ([Python](/docs/python/)) |
+| **Runtimes** | Node, Bun, Deno, Workers | `AsyncLocalStorage.run()` only (Workers: `nodejs_als` or compat ≥ 2026-08-04) |
