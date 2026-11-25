@@ -171,6 +171,7 @@
   font-size: 0.9375rem;
   line-height: 1.62;
   color: var(--ink-2);
+  text-wrap: pretty;
 }
 
 /* ----------------------------------------------------------------------------
@@ -196,7 +197,6 @@
 
 .code-lead {
   margin-top: 1.15rem;
-  max-width: 46ch;
   text-wrap: pretty;
 }
 
@@ -263,6 +263,7 @@
   font-size: 0.9375rem;
   line-height: 1.6;
   color: var(--ink-2);
+  text-wrap: pretty;
 }
 
 .proof-foot {
@@ -280,7 +281,6 @@
   font-size: 0.875rem;
   line-height: 1.6;
   color: var(--ink-2);
-  max-width: 82ch;
   text-wrap: pretty;
 }
 
