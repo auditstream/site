@@ -36,10 +36,12 @@ export const POST = withAudit(
   },
   {
     actor: async () => await getVerifiedSessionActor(),
-    context: (request) => ({
-      requestId: request.headers.get("x-request-id") ?? undefined,
-      source: "next-route",
-    }),
+    context: (request) => {
+      const requestId = request.headers.get("x-request-id");
+      return requestId && /^[A-Za-z0-9._-]{1,64}$/.test(requestId)
+        ? { requestId, source: "next-route" }
+        : { source: "next-route" };
+    },
   },
 );
 
@@ -53,6 +55,8 @@ export const approveInvoice = auditAction(
   { actor: async () => await getVerifiedSessionActor() },
 );
 ```
+
+> **Validate client headers:** Always validate and bound client-supplied headers such as `x-request-id` (and opt-in `userAgent`) before placing them in `context`. Empty, malformed (NUL or unpaired surrogate), or oversized headers can trigger `INVALID_CONTEXT` or exceed the 512-byte serialized actor+context payload limit (`PAYLOAD_TOO_LARGE`).
 
 > **Why not Next.js `proxy`?** `AsyncLocalStorage` does not propagate across the Next.js 16 `proxy` boundary into Route Handlers or Server Actions. Always bind the verified session inside `withAudit` and `auditAction`.
 
