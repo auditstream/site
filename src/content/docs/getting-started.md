@@ -157,7 +157,7 @@ auditstream export \
 | Dependency | Status | Notes |
 | :--- | :--- | :--- |
 | **PostgreSQL** | **15–19 (Supported)** | Verified on 15.20, 16.15, 17.12, 18.7, and 19.0 (PG 14 EOL 2026-11-12) |
-| **MySQL** | Planned | Not supported yet — PostgreSQL 15–19 is the only engine in v0.1 |
+| **MySQL** | Evaluating | Not supported yet — PostgreSQL 15–19 is the only engine in v0.1 |
 | **Node.js** | **22.12+ (Supported)** | Tested on Node 22, 24, and 26; ESM-only TypeScript SDK (`v0.2.0`) |
 | **Prisma** | **7.1+ (`7.x`)** | Official SQL comments plugin; Prisma 6 unsupported |
 | **Drizzle** | **0.45 and 1.x** | `auditComment()` on 1.x; `/pg`, `/postgres-js`, `/neon-http` on 0.45 & 1.x |

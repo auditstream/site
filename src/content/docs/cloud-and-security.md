@@ -20,7 +20,7 @@ Run migrations and `auditstream verify --fix` on a **direct (non-pooled)** conne
 | **AWS RDS Proxy** | Trailing SQL comment | Per AWS docs, trailing comments never pin backend sessions; `set_config(..., true)` pins the server session. |
 | **Prisma Accelerate** | `auditTransaction()` (`set_config`) | SQL comment plugins are bypassed under Accelerate; use `auditTransaction()` from `@auditstream/prisma` ([Prisma](/docs/typescript/prisma/)). |
 
-> **Engines not supported in v0.1:** **MySQL** is planned (not supported yet); **Aurora DSQL** lacks triggers; **CockroachDB** triggers and `current_query()` behavior remain unverified.
+> **Engines not supported in v0.1:** **MySQL** is under evaluation (not supported yet); **Aurora DSQL** lacks triggers; **CockroachDB** triggers and `current_query()` behavior remain unverified.
 
 ## Tamper resistance
 
