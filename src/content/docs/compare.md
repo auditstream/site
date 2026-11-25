@@ -3,6 +3,7 @@ title: Comparisons
 description: Honest architectural comparison of Auditstream against pgaudit, Debezium / logical replication, and hand-rolled application logging.
 section: Reference
 order: 11
+eyebrow: REFERENCE · COMPARISONS
 ---
 
 How Auditstream compares against `pgaudit`, Debezium logical replication, and hand-rolled application logging for PostgreSQL 15–19 audit trails.

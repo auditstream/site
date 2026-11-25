@@ -13,7 +13,7 @@ The static `auditstream` v0.1.0 CLI handles migrations, drift checks, history, a
 | Flag & environment | Default | Purpose |
 | :--- | :--- | :--- |
 | `--config <PATH>`<br>`AUDITSTREAM_CONFIG` | `./auditstream.toml` | Path to TOML configuration file |
-| `--database-url <URL>`<br>`AUDITSTREAM_DATABASE_URL`<br>`DATABASE_URL` | *none* | PostgreSQL URL (hidden in `--help`, redacted in logs and errors) |
+| `--database-url <URL>`<br>`AUDITSTREAM_DATABASE_URL`<br>`DATABASE_URL` | *none* | PostgreSQL URL (env value hidden in `--help`, redacted in logs and errors) |
 | `--schema <SCHEMA>`<br>`AUDITSTREAM_SCHEMA` | `auditstream` | Schema holding `changes`, functions, and triggers |
 | `-v`, `-vv`, `-q`<br>`AUDITSTREAM_LOG` | `warn` | Stderr verbosity (`-v` info, `-vv` debug, `-q` error; env overrides flags) |
 

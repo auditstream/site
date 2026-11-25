@@ -34,7 +34,9 @@ import json
 import psycopg
 
 def audit_comment(actor: dict) -> str:
-    raw = json.dumps(actor, separators=(",", ":")).encode("utf-8")
+    raw = json.dumps(
+        actor, separators=(",", ":"), ensure_ascii=False
+    ).encode("utf-8")
     tag = base64.urlsafe_b64encode(raw).rstrip(b"=").decode("ascii")
     return f" /*auditstream='{tag}'*/"
 

@@ -463,7 +463,7 @@ function docHref(id: string) {
   /* Collapsible mobile/tablet On this page (< 1280px) */
   .docs-toc-mobile {
     margin-top: 1.35rem;
-    border: 1px solid var(--rule);
+    border: 1px solid var(--rule-strong);
     border-radius: var(--radius-md);
     background: var(--surface);
   }
@@ -472,7 +472,7 @@ function docHref(id: string) {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    min-height: 2.5rem;
+    min-height: 2.75rem;
     padding: 0.55rem 0.9rem;
     font-size: 0.8125rem;
     color: var(--ink-2);
@@ -488,8 +488,10 @@ function docHref(id: string) {
   }
 
   .docs-toc-mobile-list a {
-    display: block;
-    padding: 0.5rem 0;
+    display: flex;
+    align-items: center;
+    min-height: 2.5rem;
+    padding: 0.35rem 0;
     font-size: 0.8125rem;
     color: var(--ink-2);
   }
@@ -501,6 +503,14 @@ function docHref(id: string) {
   .docs-toc-mobile-list li.is-sub a {
     padding-left: 1rem;
     color: var(--ink-3);
+  }
+
+  .docs-toc-mobile-list li.is-sub a:hover {
+    color: var(--accent);
+  }
+
+  .docs-sidebar-mobile-list a {
+    min-height: 2.5rem;
   }
 
   .docs-toc {
@@ -524,6 +534,16 @@ function docHref(id: string) {
   .docs-toc li.is-sub a {
     padding-left: 1.45rem;
     color: var(--ink-3);
+  }
+
+  .docs-toc li.is-sub a:hover {
+    color: var(--ink);
+  }
+
+  .docs-toc li.is-sub a[aria-current="location"] {
+    color: var(--accent);
+    border-left-color: var(--accent);
+    font-weight: 600;
   }
 
   .docs-header {
@@ -678,7 +698,10 @@ function docHref(id: string) {
     -webkit-box-decoration-break: clone;
   }
 
-  .prose :global(strong > code) {
+  .prose :global(strong > code),
+  .prose :global(h2 > code),
+  .prose :global(h3 > code),
+  .prose :global(h4 > code) {
     font-weight: 600;
   }
 
@@ -695,6 +718,8 @@ function docHref(id: string) {
 
   .prose :global(a:not(.heading-anchor):not(.docs-card) > code) {
     color: inherit;
+    background: var(--accent-soft);
+    box-shadow: inset 0 0 0 1px var(--accent-border);
   }
 
   .prose :global(.doc-code-frame) {
@@ -747,13 +772,13 @@ function docHref(id: string) {
     border-radius: var(--radius-md);
     background-color: var(--surface);
     background-image:
-      linear-gradient(90deg, var(--surface) 30%, rgba(255, 255, 255, 0)),
-      linear-gradient(270deg, var(--surface) 30%, rgba(255, 255, 255, 0)),
-      linear-gradient(90deg, rgba(15, 23, 42, 0.14), rgba(15, 23, 42, 0)),
-      linear-gradient(270deg, rgba(15, 23, 42, 0.14), rgba(15, 23, 42, 0));
+      linear-gradient(90deg, var(--surface) 30%, var(--scroll-fade)),
+      linear-gradient(270deg, var(--surface) 30%, var(--scroll-fade)),
+      linear-gradient(90deg, var(--scroll-shadow), var(--scroll-shadow-end)),
+      linear-gradient(270deg, var(--scroll-shadow), var(--scroll-shadow-end));
     background-position: 0 0, 100% 0, 0 0, 100% 0;
     background-repeat: no-repeat;
-    background-size: 32px 100%, 32px 100%, 20px 100%, 20px 100%;
+    background-size: 36px 100%, 36px 100%, 28px 100%, 28px 100%;
     background-attachment: local, local, scroll, scroll;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -831,7 +856,7 @@ function docHref(id: string) {
     letter-spacing: 0.04em;
     line-height: 1.35;
     color: var(--ink-3);
-    background: var(--ground-2);
+    background: color-mix(in srgb, var(--ground-2) 88%, transparent);
     border-bottom: 1px solid var(--rule-strong);
     vertical-align: middle;
     white-space: nowrap;
@@ -861,8 +886,8 @@ function docHref(id: string) {
       padding-right: 0.75rem;
     }
 
-    .prose :global(td:first-child) {
-      min-width: 8.5rem;
+    .prose :global(td:first-child:not([align="right"])) {
+      min-width: 6rem;
     }
   }
 
@@ -1018,6 +1043,11 @@ function docHref(id: string) {
   .prose :global(.docs-callout-info strong) {
     color: var(--accent);
     font-weight: 600;
+  }
+
+  .prose :global(.docs-callout-info :not(pre) > code) {
+    background: color-mix(in srgb, var(--accent) 14%, var(--accent-soft));
+    border: 1px solid var(--accent-border);
   }
 
   /* Lightweight Docs Components: KPI Strip, Path Cards, Collapsible Details */

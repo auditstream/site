@@ -17,6 +17,7 @@ Write idempotent SQL migrations directly into your Drizzle migrations folder:
 auditstream init \
   --migrations drizzle \
   --table public.invoice \
+  --table public.users \
   --exclude public.users.password_hash
 ```
 

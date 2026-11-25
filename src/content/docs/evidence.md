@@ -6,7 +6,7 @@ order: 10
 eyebrow: REFERENCE · BENCHMARKS
 ---
 
-All figures below were measured on live PostgreSQL instances (`pgbench`, `xtask bench`, `--release` CLI) with **0 failed transactions**, **100% row-count verification**, and **0 actor leaks**.
+All figures below were measured on live PostgreSQL instances (`pgbench`, `cargo xtask bench`, `--release` CLI) with **0 failed transactions**, **100% row-count verification**, and **0 actor leaks**.
 
 <div class="docs-kpis">
   <div class="docs-kpi">
@@ -74,13 +74,13 @@ Durable storage (`fsync=on`, `synchronous_commit=on`, 16 clients, 8 jobs, 10 s r
 | 10k bulk INSERT (baseline) | 22.3 ms/stmt | 2.2 | baseline | — | 0/50,000 |
 | 10k bulk INSERT (comment) | **60.5 ms/stmt** | 6.1 | +171.5% | **+3.8 µs** | 50,000/50,000 |
 
-<p class="table-caption-cmd">Command: xtask bench --clients 16 --jobs 8 --duration 10 --bulk-runs 5</p>
+<p class="table-caption-cmd">Command: cargo xtask bench --clients 16 --jobs 8 --duration 10 --bulk-runs 5</p>
 
 ### CPU ceiling & bulk DML
 
 In-memory `tmpfs` (`-M prepared`, 8–64 clients) isolates PL/pgSQL cost across 2-column and wide 15-column `invoice` tables with a 368-byte AI-agent actor:
 
-| Single-row workload (`tmpfs`) | Clients | Throughput | Overhead | +µs/row |
+| Single-row workload (`tmpfs`) | Clients | Throughput | TPS delta | +µs/row |
 | :--- | ---: | ---: | ---: | ---: |
 | Narrow UPDATE, small comment (36 B) | 32 | **72,013 tps** | −67.5% | +9.4 µs |
 | Narrow UPDATE, small comment (36 B) | 64 | **64,346 tps** | −71.3% | +11.1 µs |

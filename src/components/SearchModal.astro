@@ -346,7 +346,7 @@ const CORE_SHORTCUTS = [
         e.preventDefault();
         activeIndex = (activeIndex - 1 + hits.length) % hits.length;
         renderHits(statusEl?.textContent || "", !input?.value.trim());
-      } else if (e.key === "Enter" && activeIndex >= 0 && hits[activeIndex]) {
+      } else if (e.key === "Enter" && document.activeElement === input && activeIndex >= 0 && hits[activeIndex]) {
         e.preventDefault();
         window.location.href = hits[activeIndex].url;
       }

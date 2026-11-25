@@ -1,5 +1,5 @@
 /* ============================================================================
-   AUDITSTREAM — WARM ARCHITECTURAL PAPER DESIGN SYSTEM (100% LIGHT-ONLY)
+   AUDITSTREAM — WARM ARCHITECTURAL PAPER (LIGHT) & FORENSIC LEDGER OBSIDIAN (DARK)
    Self-hosted IBM Plex Sans + IBM Plex Mono
    ============================================================================ */
 
@@ -14,7 +14,7 @@
 
   --sheet: 76rem;
 
-  /* Warm Architectural Paper surfaces */
+  /* Warm Architectural Paper surfaces (Light) */
   --ground: #fafaf8;
   --ground-2: #f3f3ee;
   --code-bg: #f1f0eb;
@@ -27,6 +27,7 @@
   --ink-prose: #334155;
   --ink-2: #475569;
   --ink-3: #5b6676;
+  --btn-primary-ink: #ffffff;
 
   /* Editorial Cobalt Accent */
   --accent: #1d4ed8;
@@ -54,8 +55,11 @@
 
   --nav-bg: rgba(250, 250, 248, 0.88);
   --backdrop-bg: rgba(15, 23, 42, 0.36);
+  --scroll-fade: rgba(255, 255, 255, 0);
+  --scroll-shadow: rgba(15, 23, 42, 0.14);
+  --scroll-shadow-end: rgba(15, 23, 42, 0);
 
-  /* Single-Theme Light Shiki Palette */
+  /* Light Shiki Palette */
   --st-fg: #0f172a;
   --st-cm: #5b6676;
   --st-kw: #1d4ed8;
@@ -64,6 +68,100 @@
   --st-num: #1e40af;
   --st-prop: #334155;
   --st-punc: #5b6676;
+}
+
+/* Forensic Ledger Obsidian (Dark) — aligned to Brand Guidelines (#0c0f13 / #edf1f5 / #6ba6ff)
+   Every foreground/surface pair verified >= 4.5:1 WCAG 2.1 AA */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --ground: #0c0f13;
+  --ground-2: #11161d;
+  --code-bg: #1d2634;
+  --surface: #131820;
+  --rule: #26303e;
+  --rule-strong: #323d4f;
+
+  --ink: #edf1f5;
+  --ink-prose: #cfd8e3;
+  --ink-2: #a3b1c2;
+  --ink-3: #8392a6;
+  --btn-primary-ink: #0c0f13;
+
+  /* Signal Cobalt Accent */
+  --accent: #6ba6ff;
+  --accent-hover: #93bfff;
+  --accent-soft: #142238;
+  --accent-border: rgba(107, 166, 255, 0.30);
+
+  /* Semantic Diff & Verified Persistence Channels (Dark-Calibrated) */
+  --after: #34d399;
+  --after-bg: #0d261f;
+  --after-border: rgba(52, 211, 153, 0.30);
+
+  --before: #f87171;
+  --before-bg: #2b1417;
+  --before-border: rgba(248, 113, 113, 0.30);
+
+  --shadow-focal: 0 1px 2px rgba(0, 0, 0, 0.38), 0 22px 52px -18px rgba(0, 0, 0, 0.72);
+
+  --nav-bg: rgba(12, 15, 19, 0.86);
+  --backdrop-bg: rgba(2, 6, 12, 0.72);
+  --scroll-fade: rgba(19, 24, 32, 0);
+  --scroll-shadow: rgba(0, 0, 0, 0.85);
+  --scroll-shadow-end: rgba(0, 0, 0, 0);
+
+  /* Dark Shiki Palette */
+  --st-fg: #edf1f5;
+  --st-cm: #8392a6;
+  --st-kw: #6ba6ff;
+  --st-fn: #edf1f5;
+  --st-str: #34d399;
+  --st-num: #93bfff;
+  --st-prop: #cfd8e3;
+  --st-punc: #8392a6;
+}
+
+/* Pure-CSS OS dark preference fallback when JS is disabled */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: #0c0f13;
+    --ground-2: #11161d;
+    --code-bg: #1d2634;
+    --surface: #131820;
+    --rule: #26303e;
+    --rule-strong: #323d4f;
+    --ink: #edf1f5;
+    --ink-prose: #cfd8e3;
+    --ink-2: #a3b1c2;
+    --ink-3: #8392a6;
+    --btn-primary-ink: #0c0f13;
+    --accent: #6ba6ff;
+    --accent-hover: #93bfff;
+    --accent-soft: #142238;
+    --accent-border: rgba(107, 166, 255, 0.30);
+    --after: #34d399;
+    --after-bg: #0d261f;
+    --after-border: rgba(52, 211, 153, 0.30);
+    --before: #f87171;
+    --before-bg: #2b1417;
+    --before-border: rgba(248, 113, 113, 0.30);
+    --shadow-focal: 0 1px 2px rgba(0, 0, 0, 0.38), 0 22px 52px -18px rgba(0, 0, 0, 0.72);
+    --nav-bg: rgba(12, 15, 19, 0.86);
+    --backdrop-bg: rgba(2, 6, 12, 0.72);
+    --scroll-fade: rgba(19, 24, 32, 0);
+    --scroll-shadow: rgba(0, 0, 0, 0.85);
+    --scroll-shadow-end: rgba(0, 0, 0, 0);
+    --st-fg: #edf1f5;
+    --st-cm: #8392a6;
+    --st-kw: #6ba6ff;
+    --st-fn: #edf1f5;
+    --st-str: #34d399;
+    --st-num: #93bfff;
+    --st-prop: #cfd8e3;
+    --st-punc: #8392a6;
+  }
 }
 
 /* ============================================================================
@@ -99,6 +197,25 @@ body {
   color: var(--ink);
 }
 
+/* Suppress CSS transitions (never keyframe animations) for 1 frame during theme toggle */
+:root[data-theme-switching] *,
+:root[data-theme-switching] *::before,
+:root[data-theme-switching] *::after {
+  transition: none !important;
+}
+
+:root[data-theme="dark"] ::selection {
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+  color: var(--ink);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) ::selection {
+    background: color-mix(in srgb, var(--accent) 28%, transparent);
+    color: var(--ink);
+  }
+}
+
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -113,7 +230,7 @@ body {
   padding: 0.55rem 0.95rem;
   border-radius: var(--radius-sm);
   background: var(--ink);
-  color: var(--surface);
+  color: var(--btn-primary-ink);
   font-family: var(--font-mono);
   font-size: 0.8125rem;
   font-weight: 500;
@@ -166,12 +283,13 @@ table, th, td, dl, dd, .tabular {
   white-space: nowrap;
 }
 
-/* Smooth light scrollbars across root & code surfaces */
+/* Smooth themed scrollbars across root, code, tables & search surfaces */
 html::-webkit-scrollbar,
 .shiki::-webkit-scrollbar,
 .astro-code::-webkit-scrollbar,
 .table-wrap::-webkit-scrollbar,
-.prose pre::-webkit-scrollbar {
+.prose pre::-webkit-scrollbar,
+.search-results::-webkit-scrollbar {
   height: 6px;
   width: 6px;
 }
@@ -180,7 +298,8 @@ html::-webkit-scrollbar-track,
 .shiki::-webkit-scrollbar-track,
 .astro-code::-webkit-scrollbar-track,
 .table-wrap::-webkit-scrollbar-track,
-.prose pre::-webkit-scrollbar-track {
+.prose pre::-webkit-scrollbar-track,
+.search-results::-webkit-scrollbar-track {
   background: transparent;
 }
 
@@ -188,13 +307,14 @@ html::-webkit-scrollbar-thumb,
 .shiki::-webkit-scrollbar-thumb,
 .astro-code::-webkit-scrollbar-thumb,
 .table-wrap::-webkit-scrollbar-thumb,
-.prose pre::-webkit-scrollbar-thumb {
+.prose pre::-webkit-scrollbar-thumb,
+.search-results::-webkit-scrollbar-thumb {
   background: var(--rule-strong);
   border-radius: var(--radius-pill);
 }
 
 /* ============================================================================
-   Single-Theme Light Shiki Code Blocks
+   Dual-Theme Shiki Code Blocks (Light + Dark)
    ============================================================================ */
 .astro-code,
 .shiki {
@@ -205,9 +325,30 @@ html::-webkit-scrollbar-thumb,
   font-size: 0.84375rem;
   line-height: 1.68;
   background: transparent !important;
-  color: var(--st-fg);
+  color: var(--st-fg) !important;
   scrollbar-width: thin;
   scrollbar-color: var(--rule-strong) transparent;
+}
+
+.astro-code span {
+  font-style: var(--shiki-light-font-style, normal);
+  font-weight: var(--shiki-light-font-weight, inherit);
+}
+
+:root[data-theme="dark"] .astro-code,
+:root[data-theme="dark"] .astro-code span {
+  color: var(--shiki-dark) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .astro-code,
+  :root:not([data-theme="light"]) .astro-code span {
+    color: var(--shiki-dark) !important;
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+  }
 }
 
 .shiki .st-fg   { color: var(--st-fg); }
@@ -225,7 +366,7 @@ html::-webkit-scrollbar-thumb,
   display: inline-block;
   width: 1.75rem;
   color: var(--ink-3);
-  opacity: 0.6;
+  opacity: 0.78;
   user-select: none;
   font-style: normal;
   font-weight: 400;
@@ -341,7 +482,7 @@ html::-webkit-scrollbar-thumb,
 
 .btn-primary {
   background: var(--ink);
-  color: var(--surface);
+  color: var(--btn-primary-ink);
   border-color: var(--ink);
 }
 
@@ -409,6 +550,20 @@ html::-webkit-scrollbar-thumb,
   line-height: 1.3;
 }
 
+:root[data-theme="dark"] .kbd-hint {
+  background: var(--code-bg);
+  border-color: var(--rule-strong);
+  color: var(--ink-2);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .kbd-hint {
+    background: var(--code-bg);
+    border-color: var(--rule-strong);
+    color: var(--ink-2);
+  }
+}
+
 /* Tabs inside framed surfaces */
 .tabs {
   display: flex;
@@ -449,6 +604,18 @@ html::-webkit-scrollbar-thumb,
   background: var(--surface);
   border-color: var(--rule-strong);
   font-weight: 500;
+}
+
+:root[data-theme="dark"] .tab[aria-selected="true"] {
+  background: var(--code-bg);
+  border-color: var(--rule-strong);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .tab[aria-selected="true"] {
+    background: var(--code-bg);
+    border-color: var(--rule-strong);
+  }
 }
 
 /* ============================================================================
@@ -546,7 +713,7 @@ html::-webkit-scrollbar-thumb,
 }
 
 /* ============================================================================
-   Search Modal (Light-Only Pagefind Ctrl+K / /)
+   Search Modal (Dual-Theme Pagefind Ctrl+K / /)
    ============================================================================ */
 .search-backdrop {
   position: fixed;
@@ -580,12 +747,12 @@ html::-webkit-scrollbar-thumb,
   gap: 0.7rem;
   padding: 0.85rem 1rem;
   border-bottom: 1px solid var(--rule);
-  transition: box-shadow var(--dur-quick), background-color var(--dur-quick);
+  transition: border-color var(--dur-quick), box-shadow var(--dur-quick);
 }
 
 .search-head:focus-within {
-  box-shadow: inset 0 0 0 2px var(--accent);
-  background: var(--accent-soft);
+  border-bottom-color: var(--accent);
+  box-shadow: inset 0 -1px 0 var(--accent);
 }
 
 .search-input {
@@ -626,6 +793,8 @@ html::-webkit-scrollbar-thumb,
   max-height: 22rem;
   overflow-y: auto;
   padding: 0.45rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--rule-strong) transparent;
 }
 
 .search-results[hidden] {
@@ -660,10 +829,23 @@ html::-webkit-scrollbar-thumb,
 }
 
 .search-hit-excerpt mark {
-  background: var(--accent-soft);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   color: var(--accent);
-  padding: 0 0.2rem;
-  border-radius: var(--radius-sm);
+  font-weight: 600;
+  padding: 0.02rem 0.22rem;
+  border-radius: 4px;
+}
+
+:root[data-theme="dark"] .search-hit-excerpt mark {
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  color: var(--accent-hover);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .search-hit-excerpt mark {
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+    color: var(--accent-hover);
+  }
 }
 
 .search-empty {
@@ -748,6 +930,11 @@ html::-webkit-scrollbar-thumb,
   .search-foot {
     display: none;
   }
+
+  #close-search {
+    min-height: 2.25rem;
+    padding: 0 0.7rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -762,7 +949,7 @@ html::-webkit-scrollbar-thumb,
   }
 
   .surface-bar .chip-btn[data-copy-target] {
-    min-width: 3.5rem;
+    min-width: 4rem;
     padding: 0 0.5rem;
   }
 }

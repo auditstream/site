@@ -71,7 +71,7 @@ auditstream --database-url "$DB" \
   history --table public.invoice --record-id 1
 ```
 
-Expected output (`password_hash` is stripped before capture):
+Expected output (`password_hash` is stripped before capture; wrapped across two lines for width):
 
 ```text
 OCCURRED_AT                  OP      TABLE           RECORD_ID
@@ -160,6 +160,6 @@ auditstream export \
 | **MySQL** | Planned | Not supported yet — PostgreSQL 15–19 is the only engine in v0.1 |
 | **Node.js** | **22.12+ (Supported)** | Tested on Node 22, 24, and 26; ESM-only TypeScript SDK (`v0.2.0`) |
 | **Prisma** | **7.1+ (`7.x`)** | Official SQL comments plugin; Prisma 6 unsupported |
-| **Drizzle** | **0.45 and 1.x** | `auditComment()` on 1.x; `/pg`, `/postgres-js`, `/neon-http` on 0.45 |
+| **Drizzle** | **0.45 and 1.x** | `auditComment()` on 1.x; `/pg`, `/postgres-js`, `/neon-http` on 0.45 & 1.x |
 | **Python SDK** | Planned | No native SDK yet — attribute writes via `psycopg` today ([Python](/docs/python/)) |
 | **Runtimes** | Node, Bun, Deno, Workers | `AsyncLocalStorage.run()` only (Workers: `nodejs_als` or compat ≥ 2026-08-04) |

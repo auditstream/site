@@ -3,6 +3,7 @@ import "@fontsource/ibm-plex-sans/latin-400.css";
 import "@fontsource/ibm-plex-sans/latin-500.css";
 import "@fontsource/ibm-plex-sans/latin-600.css";
 import "@fontsource/ibm-plex-mono/latin-400.css";
+import "@fontsource/ibm-plex-mono/latin-400-italic.css";
 import "@fontsource/ibm-plex-mono/latin-500.css";
 import "@fontsource/ibm-plex-mono/latin-600.css";
 import ibmSans400Url from "@fontsource/ibm-plex-sans/files/ibm-plex-sans-latin-400-normal.woff2?url";
@@ -44,8 +45,10 @@ const jsonLd =
   normalizedPath === "/"
     ? JSON.stringify({
         "@context": "https://schema.org",
-        "@type": "SoftwareApplication",
+        "@type": ["SoftwareApplication", "SoftwareSourceCode"],
         name: "Auditstream",
+        softwareVersion: "0.1.0",
+        isAccessibleForFree: true,
         applicationCategory: "DeveloperApplication",
         operatingSystem: "Linux, macOS, Windows",
         license: "https://opensource.org/licenses/MIT",
@@ -64,8 +67,25 @@ const jsonLd =
     <title>{title}</title>
     <meta name="description" content={description} />
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonicalUrl} />}
-    <meta name="color-scheme" content="light" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#fafaf8" />
+    <script is:inline>
+      (function () {
+        var stored = null;
+        try {
+          stored = localStorage.getItem("auditstream-theme");
+        } catch (e) {}
+        var theme =
+          stored === "dark" || stored === "light"
+            ? stored
+            : window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+        document.documentElement.dataset.theme = theme;
+        var meta = document.querySelector('meta[name="theme-color"]');
+        if (meta) meta.setAttribute("content", theme === "dark" ? "#0c0f13" : "#fafaf8");
+      })();
+    </script>
     <link rel="icon" href="/favicon.ico" sizes="48x48" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -108,6 +128,8 @@ const jsonLd =
           const target = document.querySelector<HTMLElement>(id);
           if (target) {
             e.preventDefault();
+            const mobileToc = a.closest<HTMLDetailsElement>("details.docs-toc-mobile");
+            if (mobileToc) mobileToc.open = false;
             target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
           }
         });

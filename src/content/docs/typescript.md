@@ -84,10 +84,11 @@ await audit.as(
 Read timelines and log non-database domain events with `@auditstream/node`:
 
 ```ts
-import { audit } from "@auditstream/node";
+import { audit, tagSql } from "@auditstream/node";
 
-const exec = (sql: string, values: readonly unknown[]) =>
-  pool.query(sql, values);
+// Forward active actor comment when calling audit.log() on a raw pg.Pool
+const exec = (sql: string, values: unknown[]) =>
+  pool.query(tagSql(sql), values);
 
 // Read a timeline from auditstream.changes (SELECT-only role)
 const entries = await audit.history(exec, {

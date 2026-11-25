@@ -35,6 +35,9 @@ export async function highlightCode(
     theme: "auditstream-light",
   });
 
+  // Strip inline light background/color from <pre> so dual-theme tokens control it cleanly
+  html = html.replace(/^(<pre[^>]*)\s+style="[^"]*"/, "$1");
+
   // Compact inline style="color:#..." into short semantic classes
   html = html.replace(/<span style="([^"]+)">/g, (full, styleStr: string) => {
     const m = styleStr.match(/color:(#[0-9a-fA-F]{6})/);

@@ -1,5 +1,5 @@
 /* ============================================================================
-   Auditstream Landing Page — Calm Minimalist Light-Only Editorial Layout
+   Auditstream Landing Page — Calm Dual-Theme Editorial Layout
    ============================================================================ */
 
 .landing-main {
@@ -106,19 +106,19 @@
 
 @media (max-width: 480px) {
   .install-chip {
-    gap: 0.32rem;
-    padding: 0.2rem 0.22rem 0.2rem 0.48rem;
+    gap: 0.24rem;
+    padding: 0.18rem 0.2rem 0.18rem 0.42rem;
   }
 
   .install-prompt,
   .install-cmd {
     font-size: 0.75rem;
-    letter-spacing: -0.045em;
+    letter-spacing: -0.055em;
   }
 
   .chip-btn.install-copy[data-copy] {
-    min-width: 3rem;
-    padding: 0 0.4rem;
+    min-width: 3.45rem;
+    padding: 0 0.32rem;
     font-size: 0.75rem;
   }
 }

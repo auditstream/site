@@ -3,9 +3,73 @@ interface Props {
   size?: number;
 }
 const { size = 24 } = Astro.props;
+const isSmall = size < 28;
 ---
 
-<svg width={size} height={size} viewBox="0 0 256 256" fill="none" aria-hidden="true">
-  <path fill="var(--accent)" d="M 62.57 70.54 A 52.00 52.00 0 0 1 122.53 32.92 A 76.00 76.00 0 0 0 105.39 64.33 L 66.47 209.56 A 10 10 0 0 1 59.40 216.64 L 40.72 221.64 A 12 12 0 0 1 26.02 206.95 Z" />
-  <path fill="currentColor" fill-rule="evenodd" d="M 128.57 70.54 A 52.00 52.00 0 0 1 229.03 97.46 L 206.23 182.56 A 24 24 0 0 1 189.26 199.53 L 106.72 221.64 A 12 12 0 0 1 92.02 206.95 Z M 162.02 75.52 L 178.45 79.92 L 167.58 120.48 L 151.15 116.08 Z M 194.02 75.52 L 210.45 79.92 L 199.58 120.48 L 183.15 116.08 Z" />
+<svg class="brand-mark" width={size} height={size} viewBox="0 0 256 256" fill="none" aria-hidden="true">
+  {isSmall ? (
+    <!-- Microscale cut (< 28px per Brand Guidelines §3: wider 26u channel + 16px-snapped eyes) -->
+    <g>
+      <path
+        fill="var(--accent)"
+        d="M 62.57 70.54 A 52.00 52.00 0 0 1 120.19 32.53 A 78.00 78.00 0 0 0 103.46 63.81 L 64.24 210.16 A 10 10 0 0 1 57.17 217.23 L 40.72 221.64 A 12 12 0 0 1 26.02 206.95 Z"
+      />
+      <path
+        fill="currentColor"
+        fill-rule="evenodd"
+        d="M 128.57 70.54 A 52.00 52.00 0 0 1 229.03 97.46 L 206.23 182.56 A 24 24 0 0 1 189.26 199.53 L 106.72 221.64 A 12 12 0 0 1 92.02 206.95 Z M 161.56 74.36 L 179.43 79.14 L 168.04 121.64 L 150.17 116.86 Z M 193.56 74.36 L 211.43 79.14 L 200.04 121.64 L 182.17 116.86 Z"
+      />
+    </g>
+  ) : (
+    <>
+      <!-- Light master (>= 28px standard optical stroke weight) -->
+      <g class="bm-light">
+        <path
+          fill="var(--accent)"
+          d="M 62.57 70.54 A 52.00 52.00 0 0 1 122.53 32.92 A 76.00 76.00 0 0 0 105.39 64.33 L 66.47 209.56 A 10 10 0 0 1 59.40 216.64 L 40.72 221.64 A 12 12 0 0 1 26.02 206.95 Z"
+        />
+        <path
+          fill="currentColor"
+          fill-rule="evenodd"
+          d="M 128.57 70.54 A 52.00 52.00 0 0 1 229.03 97.46 L 206.23 182.56 A 24 24 0 0 1 189.26 199.53 L 106.72 221.64 A 12 12 0 0 1 92.02 206.95 Z M 162.02 75.52 L 178.45 79.92 L 167.58 120.48 L 151.15 116.08 Z M 194.02 75.52 L 210.45 79.92 L 199.58 120.48 L 183.15 116.08 Z"
+        />
+      </g>
+      <!-- Dark master (-2.5% optical thinning against dark-mode irradiation on #0c0f13) -->
+      <g class="bm-dark">
+        <path
+          fill="var(--accent)"
+          d="M 63.54 70.80 A 51.00 51.00 0 0 1 121.17 33.69 A 76.50 76.50 0 0 0 104.91 64.20 L 66.28 208.34 A 10 10 0 0 1 59.21 215.41 L 42.20 219.97 A 12 12 0 0 1 27.51 205.27 Z"
+        />
+        <path
+          fill="currentColor"
+          fill-rule="evenodd"
+          d="M 129.54 70.80 A 51.00 51.00 0 0 1 228.06 97.20 L 205.48 181.48 A 24 24 0 0 1 188.51 198.45 L 108.20 219.97 A 12 12 0 0 1 93.51 205.27 Z M 161.67 74.90 L 179.06 79.56 L 167.93 121.10 L 150.54 116.44 Z M 193.67 74.90 L 211.06 79.56 L 199.93 121.10 L 182.54 116.44 Z"
+        />
+      </g>
+    </>
+  )}
 </svg>
+
+<style is:global>
+  .brand-mark .bm-dark {
+    display: none;
+  }
+
+  :root[data-theme="dark"] .brand-mark .bm-light {
+    display: none;
+  }
+
+  :root[data-theme="dark"] .brand-mark .bm-dark {
+    display: inline;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .brand-mark .bm-light {
+      display: none;
+    }
+
+    :root:not([data-theme="light"]) .brand-mark .bm-dark {
+      display: inline;
+    }
+  }
+</style>

@@ -296,6 +296,16 @@
     border-color: var(--rule-strong);
   }
 
+  :global(:root[data-theme="dark"]) .ap-card[data-phase="2"] [data-phase-btn="2"] {
+    background: var(--code-bg);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .ap-card[data-phase="2"] [data-phase-btn="2"] {
+      background: var(--code-bg);
+    }
+  }
+
   .ap-card[data-phase="3"] [data-phase-btn="3"] {
     color: var(--after);
     background: var(--after-bg);
@@ -984,6 +994,7 @@
 
     .ap-step {
       gap: 0.28rem;
+      min-height: 1.75rem;
       padding: 0.14rem 0.36rem;
       white-space: nowrap;
     }
@@ -1131,12 +1142,14 @@
       });
     });
 
-    card.addEventListener("pointerenter", () => {
+    card.addEventListener("pointerenter", (e) => {
+      if (e.pointerType !== "mouse") return;
       hovered = true;
       sync();
     });
 
-    card.addEventListener("pointerleave", () => {
+    card.addEventListener("pointerleave", (e) => {
+      if (e.pointerType !== "mouse") return;
       hovered = false;
       sync();
     });

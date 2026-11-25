@@ -1,6 +1,6 @@
 ---
 name: Auditstream
-description: Warm Architectural Paper (Light-Only) editorial design system for database audit trail engineering — crisp gallery surfaces, Editorial Cobalt, Committed Emerald, Diff Vermilion, and IBM Plex typography.
+description: Dual-theme editorial design system for database audit trail engineering — Warm Architectural Paper (Light) and Forensic Ledger Obsidian (Dark), paired with Editorial/Signal Cobalt, Committed Emerald, Diff Vermilion, and IBM Plex typography.
 colors:
   editorial-cobalt: "#1d4ed8"
   editorial-cobalt-hover: "#1e40af"
@@ -177,17 +177,18 @@ components:
 
 ## Overview
 
-**Creative North Star: "Warm Architectural Paper" (Light-Only)**
+**Creative North Star: "Warm Architectural Paper" (Light) & "Forensic Ledger Obsidian" (Dark)**
 
-Auditstream's visual language prioritizes calm editorial restraint, generous whitespace, and zero visual friction. Every page — homepage, documentation, search modal, and error view — lives in a single cohesive Light-Only surface system built on warm gallery off-white (`#fafaf8`), pure white elevated frames (`#ffffff`), delicate warm stone hairlines (`#e6e6df` / `#d4d4ca`), and crisp slate ink (`#0f172a`).
+Auditstream's visual language prioritizes calm editorial restraint, generous whitespace, and zero visual friction across both Light and Dark themes. Light mode rests on warm gallery off-white (`#fafaf8`), pure white elevated frames (`#ffffff`), delicate warm stone hairlines (`#e6e6df` / `#d4d4ca`), and crisp slate ink (`#0f172a`). Dark mode aligns directly to the official brand kit's Forensic Ledger Obsidian palette: `#0c0f13` ground, `#11161d` alternate bands, `#131820` elevated surfaces, `#222a36` / `#323d4f` structural hairlines, `#edf1f5` Mineral White ink, and `#6ba6ff` Signal Cobalt accents.
 
-Decorative clutter — dark-mode toggles, jarring light-to-dark section flips, uppercase kickers above headings, stacked card grids, corner brackets, and heavy client runtimes — is intentionally removed so PostgreSQL evidence, SQL attribution, and immutable diffs speak clearly on their own.
+Decorative clutter — uppercase kickers above headings, stacked card grids, corner brackets, neon dark-mode glows, and heavy client runtimes — is intentionally avoided so database evidence, SQL attribution, and immutable diffs speak clearly on their own.
 
 **Key Characteristics:**
-- 100% Light-Only system across homepage, docs, search dialog, and 404 page with zero theme flash and single-theme Light Shiki syntax highlighting.
-- Signature `E4+ · Eco Duplo` `BrandMark` (`src/components/BrandMark.astro`): two-path geometric vector pairing a leading Editorial Cobalt (`var(--accent)`) tilted echo crescent with a slate (`currentColor`) monolith cut with twin parallel ledger slots.
+- Cohesive dual-theme system (Light & Dark) across homepage, docs, search dialog, and 404 page with an inline `<head>` blocking script (`0ms` FOUC), `prefers-color-scheme` default + `localStorage` persistence, and zero-JS CSS fallback.
+- Dual-theme build-time Shiki syntax highlighting (`auditstream-light` + `auditstream-dark`) with every syntax token verified `>= 5.3:1` WCAG AA in both themes.
+- Signature `E4+ · Eco Duplo` `BrandMark` (`src/components/BrandMark.astro`): dual-master geometric vector automatically swapping between standard light geometry (`#0f172a` + `#1d4ed8`) and `-2.5%` optically-thinned dark geometry (`#edf1f5` + `#6ba6ff`) to prevent halation on `#0c0f13`.
 - Subtle architectural corner radii (`6px` controls, `10px` code and reference frames, `12px` focal cards, `999px` small status pills).
-- Strict semantic color isolation: Editorial Cobalt (`#1d4ed8`) for navigation, focus, links, and active SQL comment tags; Committed Emerald (`#047857`) for verified persistence and added diffs; Diff Vermilion (`#b91c1c`) for removed values and 404/denial states.
+- Strict semantic color isolation: Cobalt (`#1d4ed8` light / `#6ba6ff` dark) for navigation, focus, links, and active SQL comment tags; Committed Emerald (`#047857` light / `#34d399` dark) for verified persistence and added diffs; Diff Vermilion (`#b91c1c` light / `#f87171` dark) for removed values and 404/denial states.
 - Self-hosted IBM Plex Sans paired with IBM Plex Mono (`tabular-nums`, ligatures disabled) at comfortable Retina reading sizes (`>= 12px` everywhere, `15px` / `0.9375rem` docs prose on a `47rem` reading rail, `13.5px` monospace code).
 - One single spacious focal micro-motion (`AuditPulseVisual`) driven by a calm `7.8s` JS `data-phase` state machine (`2.4s` / `1.9s` / `3.5s`) with genuine `420–460ms` CSS transitions and separated two-layer one-shot SVG packet travel rather than scattered animations or video payloads.
 
@@ -209,9 +210,9 @@ Every foreground/background pair — including muted labels (`#5b6676`), syntax 
 - **Slate Ink hierarchy:** Primary heading ink (`#0f172a`), high-comfort long-form docs prose (`#334155`), secondary body copy (`#475569`), and muted metadata labels (`#5b6676`, `>= 5.1:1` even on `#f3f3ee`).
 
 ### Named Rules
-**The Light-Only Cohesion Rule.** Every route, code block, modal, and visual uses the same Warm Architectural Paper palette. Never introduce dark sections, inverted theme bands, or dual-theme CSS overhead.
+**The Dual-Theme Cohesion Rule.** Every route, code block, modal, table, and diagram adapts cleanly between Warm Architectural Paper (Light) and Forensic Ledger Obsidian (Dark) via semantic CSS tokens — never jarring single-section dark inversions or uncalibrated gray text.
 
-**The Channel Isolation Rule.** Editorial Cobalt is for identity and navigation; Committed Emerald is for verified persistence; Diff Vermilion is for removals and error markers. Never mix channels or apply semantic colors decoratively.
+**The Channel Isolation Rule.** Cobalt is for identity and navigation; Committed Emerald is for verified persistence; Diff Vermilion is for removals and error markers. Never mix channels or apply semantic colors decoratively.
 
 ## Typography
 
@@ -277,14 +278,14 @@ Surfaces remain completely flat at rest, separated by `1px` hairlines (`#e6e6df`
 ## Do's and Don'ts
 
 ### Do:
-- **Do** keep the entire site 100% Light-Only on the Warm Architectural Paper palette.
-- **Do** verify every foreground/background combination passes WCAG 2.1 AA (`>= 4.5:1`), including syntax tokens and tinted diff rows.
+- **Do** keep both Light (`#fafaf8`) and Dark (`#0c0f13`) themes calibrated via semantic CSS tokens with zero FOUC.
+- **Do** verify every foreground/background combination passes WCAG 2.1 AA (`>= 4.5:1`) in both themes, including syntax tokens and tinted diff rows.
 - **Do** reserve `--shadow-focal` strictly for `AuditPulseVisual` and `SearchModal`, keeping all other frames flat with 1px hairlines.
 - **Do** use full 1px borders on rounded elements and keep every font size `>= 12px` (`0.75rem`).
 - **Do** use IBM Plex Mono with `tabular-nums` and `font-variant-ligatures: none` strictly for code, SQL, CLI commands, and benchmark figures.
 
 ### Don't:
-- **Don't** reintroduce dark mode CSS, theme toggles, dual-theme Shiki variables, or inverted dark sections.
+- **Don't** hardcode light-only or dark-only hex colors in components or leave Shiki blocks un-themed in Dark Mode.
 - **Don't** place kickers, eyebrows, or section numbers above headings.
-- **Don't** use one-sided accent bars on rounded boxes, corner registration brackets, sticky curtain footers, or decorative video files.
+- **Don't** use one-sided accent bars on rounded boxes, corner registration brackets, sticky curtain footers, neon glows, or decorative video files.
 - **Don't** fabricate customer logos, testimonials, or unmeasured performance claims.

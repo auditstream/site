@@ -1,6 +1,6 @@
 import { defineConfig, passthroughImageService } from "astro/config";
 import sitemap from "@astrojs/sitemap";
-import { auditstreamLight } from "./src/styles/shiki-themes.mjs";
+import { auditstreamDark, auditstreamLight } from "./src/styles/shiki-themes.mjs";
 
 function extractText(node) {
   if (!node) return "";
@@ -177,7 +177,10 @@ export default defineConfig({
   markdown: {
     rehypePlugins: [rehypeWrapTables, rehypeCodeFrames, rehypeInlineCode],
     shikiConfig: {
-      theme: auditstreamLight,
+      themes: {
+        light: auditstreamLight,
+        dark: auditstreamDark,
+      },
       wrap: false,
     },
   },

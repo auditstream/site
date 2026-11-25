@@ -73,7 +73,7 @@ const adapterTabs = [
 ];
 
 const initCmd =
-  "auditstream init --migrations prisma --table public.invoice \\\n  --exclude public.users.password_hash";
+  "auditstream init --migrations prisma \\\n  --table public.invoice --table public.users \\\n  --exclude public.users.password_hash";
 const exportCmd =
   "auditstream export --format jsonl --output audit.jsonl \\\n  --cursor-file cursor.json";
 const shellInstallDisplay =
@@ -86,25 +86,25 @@ const installSnippets = [
     key: "brew",
     label: "Homebrew",
     display: `brew install auditstream/tap/auditstream\n${initCmd}\n${exportCmd}`,
-    copy: `brew install auditstream/tap/auditstream\nauditstream init --migrations prisma --table public.invoice --exclude public.users.password_hash\nauditstream export --format jsonl --output audit.jsonl --cursor-file cursor.json`,
+    copy: `brew install auditstream/tap/auditstream\nauditstream init --migrations prisma --table public.invoice --table public.users --exclude public.users.password_hash\nauditstream export --format jsonl --output audit.jsonl --cursor-file cursor.json`,
   },
   {
     key: "shell",
     label: "Shell",
     display: `${shellInstallDisplay}\n${initCmd}\n${exportCmd}`,
-    copy: `${shellInstallCopy}\nauditstream init --migrations prisma --table public.invoice --exclude public.users.password_hash\nauditstream export --format jsonl --output audit.jsonl --cursor-file cursor.json`,
+    copy: `${shellInstallCopy}\nauditstream init --migrations prisma --table public.invoice --table public.users --exclude public.users.password_hash\nauditstream export --format jsonl --output audit.jsonl --cursor-file cursor.json`,
   },
   {
     key: "npm",
     label: "npm",
     display: `npm install -g auditstream\n${initCmd}\n${exportCmd}`,
-    copy: `npm install -g auditstream\nauditstream init --migrations prisma --table public.invoice --exclude public.users.password_hash\nauditstream export --format jsonl --output audit.jsonl --cursor-file cursor.json`,
+    copy: `npm install -g auditstream\nauditstream init --migrations prisma --table public.invoice --table public.users --exclude public.users.password_hash\nauditstream export --format jsonl --output audit.jsonl --cursor-file cursor.json`,
   },
   {
     key: "docker",
     label: "Docker",
-    display: `docker pull ghcr.io/auditstream/auditstream:0.1.0\ndocker run --rm -e DATABASE_URL ghcr.io/auditstream/auditstream:0.1.0 \\\n  init --table public.invoice\ndocker run --rm -e DATABASE_URL ghcr.io/auditstream/auditstream:0.1.0 \\\n  export --format jsonl`,
-    copy: `docker pull ghcr.io/auditstream/auditstream:0.1.0\ndocker run --rm -e DATABASE_URL ghcr.io/auditstream/auditstream:0.1.0 init --table public.invoice\ndocker run --rm -e DATABASE_URL ghcr.io/auditstream/auditstream:0.1.0 export --format jsonl`,
+    display: `docker pull ghcr.io/auditstream/auditstream:0.1.0\ndocker run --rm -e DATABASE_URL -v "$PWD:/work" -w /work \\\n  ghcr.io/auditstream/auditstream:0.1.0 \\\n  init --migrations sql --table public.invoice\ndocker run --rm -e DATABASE_URL \\\n  ghcr.io/auditstream/auditstream:0.1.0 \\\n  export --format jsonl`,
+    copy: `docker pull ghcr.io/auditstream/auditstream:0.1.0\ndocker run --rm -e DATABASE_URL -v "$PWD:/work" -w /work ghcr.io/auditstream/auditstream:0.1.0 init --migrations sql --table public.invoice\ndocker run --rm -e DATABASE_URL ghcr.io/auditstream/auditstream:0.1.0 export --format jsonl`,
   },
 ];
 
@@ -120,7 +120,7 @@ const heroInstallCmd = "brew install auditstream/tap/auditstream";
 
 <BaseLayout
   title="Auditstream — Open-source database audit trail engine"
-  description="Open-source database audit trail engine written in Rust. Zero daemons, pooler-safe actors, and tamper-proof diffs."
+  description="Open-source database audit trail engine written in Rust. Zero daemons, pooler-safe actors, and tamper-resistant diffs."
   currentPath="/"
   showProgress={true}
 >
@@ -135,7 +135,7 @@ const heroInstallCmd = "brew install auditstream/tap/auditstream";
           </h1>
           <p class="lead hero-sub">
             Open-source database audit trail engine written in Rust.<br class="hero-br" />
-            Zero daemons, pooler-safe actors, and tamper-proof diffs.
+            Zero daemons, pooler-safe actors, and tamper-resistant diffs.
           </p>
 
           <div class="hero-actions">
@@ -178,7 +178,7 @@ const heroInstallCmd = "brew install auditstream/tap/auditstream";
           </div>
 
           <div class="pillar">
-            <h2 class="pillar-title">Tamper-evident by default</h2>
+            <h2 class="pillar-title">Tamper-resistant by default</h2>
             <p class="pillar-body">
               Application roles receive <strong class="pillar-em">SELECT only</strong> (<code class="ic">ERROR 42501</code> on
               UPDATE/DELETE), with continuous schema drift checks via
@@ -319,7 +319,7 @@ const heroInstallCmd = "brew install auditstream/tap/auditstream";
     </section>
   </main>
 
-  <!-- Minimal Light Footer -->
+  <!-- Minimal Editorial Footer -->
   <footer class="site-footer">
     <div class="shell footer-inner">
       <div class="footer-brand-group">

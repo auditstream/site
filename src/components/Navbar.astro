@@ -52,6 +52,45 @@ const isMobileDocs = isDocs && !isGettingStarted;
 
         <button
           type="button"
+          class="chip-btn theme-toggle-btn"
+          id="theme-toggle"
+          aria-label="Dark mode"
+          aria-pressed="false"
+          title="Switch to dark mode"
+        >
+          <svg
+            class="icon-theme-dark"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.9"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+          </svg>
+          <svg
+            class="icon-theme-light"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.9"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <circle cx="12" cy="12" r="4" />
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+          </svg>
+        </button>
+
+        <button
+          type="button"
           class="chip-btn mobile-menu-btn"
           id="mobile-menu-toggle"
           aria-expanded="false"
@@ -105,6 +144,33 @@ const isMobileDocs = isDocs && !isGettingStarted;
     color: var(--ink-3);
   }
 
+  .theme-toggle-btn {
+    min-width: 2rem;
+    padding: 0 0.5rem;
+  }
+
+  .theme-toggle-btn .icon-theme-light {
+    display: none;
+  }
+
+  :global(:root[data-theme="dark"]) .theme-toggle-btn .icon-theme-dark {
+    display: none;
+  }
+
+  :global(:root[data-theme="dark"]) .theme-toggle-btn .icon-theme-light {
+    display: block;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :global(:root:not([data-theme="light"])) .theme-toggle-btn .icon-theme-dark {
+      display: none;
+    }
+
+    :global(:root:not([data-theme="light"])) .theme-toggle-btn .icon-theme-light {
+      display: block;
+    }
+  }
+
   .mobile-menu-btn {
     display: none;
     min-width: 2.75rem;
@@ -132,6 +198,7 @@ const isMobileDocs = isDocs && !isGettingStarted;
     z-index: 45;
     border-bottom: 1px solid var(--rule-strong);
     background: var(--surface);
+    box-shadow: var(--shadow-focal);
   }
 
   .mobile-drawer[hidden] {
@@ -173,10 +240,74 @@ const isMobileDocs = isDocs && !isGettingStarted;
     .mobile-menu-btn {
       display: inline-flex;
     }
+
+    .theme-toggle-btn {
+      min-width: 2.75rem;
+      min-height: 2.75rem;
+      padding: 0;
+    }
   }
 </style>
 
 <script>
+  const themeBtn = document.getElementById("theme-toggle");
+  const THEME_KEY = "auditstream-theme";
+  const themeMedia = window.matchMedia("(prefers-color-scheme: dark)");
+
+  function getActiveTheme(): "light" | "dark" {
+    const attr = document.documentElement.dataset.theme;
+    if (attr === "dark" || attr === "light") return attr;
+    return themeMedia.matches ? "dark" : "light";
+  }
+
+  function applyTheme(theme: "light" | "dark", persist: boolean, animateFree = false) {
+    const root = document.documentElement;
+    const changed = root.dataset.theme !== theme;
+    if (animateFree && changed) {
+      root.dataset.themeSwitching = "";
+    }
+    root.dataset.theme = theme;
+    if (animateFree && changed) {
+      void root.offsetHeight;
+      window.requestAnimationFrame(() => {
+        delete root.dataset.themeSwitching;
+      });
+    }
+    if (persist) {
+      try {
+        localStorage.setItem(THEME_KEY, theme);
+      } catch {}
+    }
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", theme === "dark" ? "#0c0f13" : "#fafaf8");
+    if (themeBtn) {
+      const isDark = theme === "dark";
+      themeBtn.setAttribute("aria-pressed", String(isDark));
+      themeBtn.setAttribute("title", isDark ? "Switch to light mode" : "Switch to dark mode");
+    }
+  }
+
+  applyTheme(getActiveTheme(), false, false);
+
+  themeBtn?.addEventListener("click", () => {
+    const next = getActiveTheme() === "dark" ? "light" : "dark";
+    applyTheme(next, true, true);
+  });
+
+  themeMedia.addEventListener("change", (ev) => {
+    try {
+      const stored = localStorage.getItem(THEME_KEY);
+      if (stored === "dark" || stored === "light") return;
+    } catch {}
+    applyTheme(ev.matches ? "dark" : "light", false, true);
+  });
+
+  window.addEventListener("storage", (ev) => {
+    if (ev.key === THEME_KEY && (ev.newValue === "dark" || ev.newValue === "light")) {
+      applyTheme(ev.newValue, false, true);
+    }
+  });
+
   const toggleBtn = document.getElementById("mobile-menu-toggle");
   const drawer = document.getElementById("mobile-nav-drawer");
 
