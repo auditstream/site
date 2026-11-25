@@ -26,10 +26,12 @@ app.use(
       const userId = c.get("authUserId");
       return userId ? { type: "user", id: userId } : undefined;
     },
-    context: (c) => ({
-      requestId: c.req.header("x-request-id") ?? undefined,
-      source: "api",
-    }),
+    context: (c) => {
+      const requestId = c.req.header("x-request-id");
+      return requestId && /^[A-Za-z0-9._-]{1,64}$/.test(requestId)
+        ? { requestId, source: "api" }
+        : { source: "api" };
+    },
   }),
 );
 ```
@@ -48,13 +50,17 @@ app.use(
   auditstream({
     actor: (req) =>
       req.user ? { type: "user", id: req.user.id } : undefined,
-    context: (req) => ({
-      requestId: req.header("x-request-id") ?? undefined,
-      source: "api",
-    }),
+    context: (req) => {
+      const requestId = req.header("x-request-id");
+      return requestId && /^[A-Za-z0-9._-]{1,64}$/.test(requestId)
+        ? { requestId, source: "api" }
+        : { source: "api" };
+    },
   }),
 );
 ```
+
+> **Validate client headers:** Always validate and bound client-supplied headers such as `x-request-id` (and opt-in `userAgent`) before placing them in `context`. Empty, malformed (NUL or unpaired surrogate), or oversized headers can trigger `INVALID_CONTEXT` or exceed the 512-byte serialized actor+context payload limit (`PAYLOAD_TOO_LARGE`).
 
 ## Public & nested scopes
 
