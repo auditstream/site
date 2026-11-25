@@ -1,12 +1,12 @@
 ---
 title: TypeScript
-description: ESM-only packages (v0.2.0) for Node.js, Prisma 7, Drizzle, Next.js 16, Hono, and Express — built around AsyncLocalStorage.run() with zero capture logic in JavaScript.
+description: ESM-only packages (v0.2.1) for Node.js, Prisma 7, Drizzle, Next.js 16, Hono, and Express — built around AsyncLocalStorage.run() with zero capture logic in JavaScript.
 section: SDKs & Languages
 order: 3
 eyebrow: SDKS & LANGUAGES · TYPESCRIPT
 ---
 
-[`auditstream-js`](https://github.com/auditstream/auditstream-js) ships three ESM-only packages (v0.2.0): `@auditstream/node` manages actor scope while ORM and HTTP adapters forward it to PostgreSQL.
+[`auditstream-js`](https://github.com/auditstream/auditstream-js) ships three ESM-only packages (v0.2.1): `@auditstream/node` manages actor scope while ORM and HTTP adapters forward it to PostgreSQL.
 
 > **Triggers live in PostgreSQL:** Adapters never create audit tables or triggers. Apply migrations first with the CLI ([Getting Started](/docs/getting-started/)).
 
@@ -33,9 +33,14 @@ eyebrow: SDKS & LANGUAGES · TYPESCRIPT
     <div class="docs-card-title">Hono &amp; Express</div>
     <div class="docs-card-desc">Attach authenticated actors and request trace metadata once at your HTTP middleware boundary.</div>
   </a>
+  <a class="docs-card" href="/docs/typescript/activity-feed/">
+    <div class="docs-card-tag">Pattern</div>
+    <div class="docs-card-title">Activity Feed (BFF)</div>
+    <div class="docs-card-desc">Expose allowlisted, keyset-paginated user timelines safely without leaking raw HistoryEntry rows.</div>
+  </a>
 </div>
 
-## Packages (v0.2.0)
+## Packages (v0.2.1)
 
 ```bash
 # Core runtime + HTTP/Next.js middlewares
@@ -46,7 +51,7 @@ pnpm add @auditstream/prisma   # Prisma 7.1+
 pnpm add @auditstream/drizzle  # Drizzle 0.45 or 1.x
 ```
 
-| Package (v0.2.0) | Responsibility | Peer dependencies |
+| Package (v0.2.1) | Responsibility | Peer dependencies |
 | :--- | :--- | :--- |
 | `@auditstream/node` | `AsyncLocalStorage` (`run()`), `audit.as()`, `audit.log()`, `audit.history()`, `audit.query()`, codec, `/express`, `/hono`, `/next` | `express`, `hono`, `next` (optional) |
 | `@auditstream/prisma` | `auditstream()` SQL comments plugin (Prisma 7.1+) and `auditTransaction()` `set_config` fallback | `@prisma/client` `>=7.1.0 <8`, `@auditstream/node` |
@@ -128,7 +133,7 @@ const page: AuditQueryPage = await audit.query(exec, query);
 // Pass page.nextCursor as `cursor` when page.hasMore is true
 ```
 
-> **Backend-only API:** `audit.query()` returns raw `HistoryEntry` rows with internal DB metadata (`db_user`, `xact_id`, `table_oid`, `actor_source`) and raw `before`/`after` payloads. Enforce auth and tenant checks on the server and project rows into an allowlisted DTO before sending to browsers (see [`examples/next-prisma`](https://github.com/auditstream/auditstream-js/tree/main/examples/next-prisma)).
+> **Backend-only API:** `audit.query()` returns raw `HistoryEntry` rows with internal DB metadata (`db_user`, `xact_id`, `table_oid`, `actor_source`) and raw `before`/`after` payloads. Enforce auth and tenant checks on the server and project rows into an allowlisted DTO before sending to browsers — see the [Activity Feed (BFF) guide](/docs/typescript/activity-feed/) and [`examples/next-prisma`](https://github.com/auditstream/auditstream-js/tree/main/examples/next-prisma).
 
 ## Concurrency rules
 

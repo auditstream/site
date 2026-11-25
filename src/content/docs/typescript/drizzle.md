@@ -91,9 +91,24 @@ const neonDb = drizzleNeon({
   client: wrapNeonHttp(neon(process.env.DATABASE_URL!)),
 });
 
-// Drizzle 1.x native sqlcommenter helper
+// Drizzle 1.x native sqlcommenter helper (no driver wrapper required for query builders)
+import { audit } from "@auditstream/node";
 import { auditComment } from "@auditstream/drizzle";
+
+await audit.as({ type: "user", id: "usr_42" }, async () => {
+  await db
+    .update(invoice)
+    .set({ status: "paid" })
+    .where(eq(invoice.id, "inv_901"))
+    .comment(
+      auditComment({
+        traceparent: "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+      }),
+    );
+});
 ```
+
+> **Raw SQL & transactions on Drizzle 1.x:** `db.execute(sql)` and transaction control statements do not expose `.comment()`. Pair `auditComment()` with a driver wrapper (`wrapPgPool`, `wrapPostgresJs`, or `wrapNeonHttp`) when you also execute raw SQL — wrappers skip statements already tagged by `auditComment()`.
 
 ## Concurrency guarantee
 

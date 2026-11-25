@@ -62,4 +62,4 @@ When rendering an activity log in a Next.js page or API route, never return raw 
 
 - Enforce authentication and `tenant` filtering on the server.
 - Project each entry into an explicit allowlisted DTO before serialization.
-- See the full working integration in [`examples/next-prisma`](https://github.com/auditstream/auditstream-js/tree/main/examples/next-prisma).
+- Follow the copy-paste [Activity Feed (BFF) guide](/docs/typescript/activity-feed/) or inspect the full working integration in [`examples/next-prisma`](https://github.com/auditstream/auditstream-js/tree/main/examples/next-prisma).

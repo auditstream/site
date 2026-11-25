@@ -8,7 +8,7 @@ eyebrow: GET STARTED · QUICKSTART
 
 <div class="docs-meta-pills" aria-label="Current releases">
   <span class="docs-meta-pill"><strong>CLI</strong> v0.1.0</span>
-  <span class="docs-meta-pill"><strong>TypeScript SDK</strong> v0.2.0</span>
+  <span class="docs-meta-pill"><strong>TypeScript SDK</strong> v0.2.1</span>
 </div>
 
 ## 1. Install the CLI
@@ -47,7 +47,7 @@ git clone https://github.com/auditstream/auditstream \
   && cargo install --path crates/auditstream --locked
 ```
 
-Run a 60-second local demo against PostgreSQL (with `--exclude` PII redaction):
+Run a 60-second local demo against PostgreSQL (with `--exclude` PII redaction, an `INSERT`, and an AI-agent `UPDATE` acting `onBehalfOf` a user):
 
 ```bash
 export DB="postgres://postgres:postgres@127.0.0.1:5432/postgres"
@@ -64,8 +64,15 @@ auditstream --database-url "$DB" init --migrations sql \
 
 psql "$DB" -v ON_ERROR_STOP=1 -f migrations/*_auditstream.sql
 
+# 1) INSERT by user:usr_42
+#    {"id":"usr_42","type":"user"} -> unpadded base64url
 psql "$DB" -c "INSERT INTO public.invoice VALUES (1, 'draft', 'secret')
-  /*auditstream='eyJ0eXBlIjoidXNlciIsImlkIjoidXNyXzQyIn0'*/;"
+  /*auditstream='eyJpZCI6InVzcl80MiIsInR5cGUiOiJ1c2VyIn0'*/;"
+
+# 2) UPDATE by ai_agent:billing-agent acting onBehalfOf user:usr_42
+#    {"id":"billing-agent","onBehalfOf":{"id":"usr_42","type":"user"},"type":"ai_agent"}
+psql "$DB" -c "UPDATE public.invoice SET status = 'paid' WHERE id = 1
+  /*auditstream='eyJpZCI6ImJpbGxpbmctYWdlbnQiLCJvbkJlaGFsZk9mIjp7ImlkIjoidXNyXzQyIiwidHlwZSI6InVzZXIifSwidHlwZSI6ImFpX2FnZW50In0'*/;"
 
 auditstream --database-url "$DB" \
   history --table public.invoice --record-id 1
@@ -75,10 +82,20 @@ Expected output (`password_hash` is stripped before capture; wrapped across two 
 
 ```text
 OCCURRED_AT                  OP      TABLE           RECORD_ID
-  ACTOR        ACTOR_SOURCE  CHANGED
+  ACTOR                                   ACTOR_SOURCE  CHANGED
+
+2026-11-24T15:22:05.000000Z  UPDATE  public.invoice  {"id":1}
+  ai_agent:billing-agent for user:usr_42  comment       status
 
 2026-11-24T15:22:00.000000Z  INSERT  public.invoice  {"id":1}
-  user:usr_42  comment       -
+  user:usr_42                             comment       -
+```
+
+Pass `--format json` to inspect the full `before` and `after` row images (confirming `password_hash` was never captured):
+
+```bash
+auditstream --database-url "$DB" \
+  history --table public.invoice --record-id 1 --format json
 ```
 
 For Prisma or Drizzle projects, write migrations directly into your project folder:
@@ -100,7 +117,7 @@ auditstream init \
 
 ## 2. Wire an adapter
 
-Install `@auditstream/node` v0.2.0 with your ORM and PostgreSQL driver adapter:
+Install `@auditstream/node` v0.2.1 with your ORM and PostgreSQL driver adapter:
 
 ```bash
 pnpm add @auditstream/node @auditstream/prisma @prisma/adapter-pg pg
@@ -134,7 +151,7 @@ await audit.as(
 );
 ```
 
-Never set `statementNameGenerator` on `PrismaPg` with SQL comments. Using [Drizzle](/docs/typescript/drizzle/), [Next.js](/docs/typescript/nextjs/), [Hono & Express](/docs/typescript/http/), [Python](/docs/python/), or [Plain SQL](/docs/plain-sql/)? Jump straight to your guide.
+Never set `statementNameGenerator` on `PrismaPg` with SQL comments. Using [Drizzle](/docs/typescript/drizzle/), [Next.js](/docs/typescript/nextjs/), [Hono & Express](/docs/typescript/http/), [Python](/docs/python/), or [Plain SQL](/docs/plain-sql/)? Jump straight to your guide, or follow the [Activity Feed (BFF) guide](/docs/typescript/activity-feed/) to expose safe user-facing timelines.
 
 ## 3. Verify and export
 
@@ -158,7 +175,7 @@ auditstream export \
 | :--- | :--- | :--- |
 | **PostgreSQL** | **15–19 (Supported)** | Verified on 15.20, 16.15, 17.12, 18.7, and 19.0 (PG 14 EOL 2026-11-12) |
 | **MySQL** | Evaluating | Not supported yet — PostgreSQL 15–19 is the only engine in v0.1 |
-| **Node.js** | **22.12+ (Supported)** | Tested on Node 22, 24, and 26; ESM-only TypeScript SDK (`v0.2.0`) |
+| **Node.js** | **22.12+ (Supported)** | Tested on Node 22, 24, and 26; ESM-only TypeScript SDK (`v0.2.1`) |
 | **Prisma** | **7.1+ (`7.x`)** | Official SQL comments plugin; Prisma 6 unsupported |
 | **Drizzle** | **0.45 and 1.x** | `auditComment()` on 1.x; `/pg`, `/postgres-js`, `/neon-http` on 0.45 & 1.x |
 | **Python SDK** | Planned | No native SDK yet — attribute writes via `psycopg` today ([Python](/docs/python/)) |

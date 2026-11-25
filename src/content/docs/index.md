@@ -8,7 +8,7 @@ eyebrow: GET STARTED · OVERVIEW
 
 <div class="docs-meta-pills" aria-label="Current releases">
   <span class="docs-meta-pill"><strong>CLI</strong> v0.1.0</span>
-  <span class="docs-meta-pill"><strong>TypeScript SDK</strong> v0.2.0</span>
+  <span class="docs-meta-pill"><strong>TypeScript SDK</strong> v0.2.1</span>
 </div>
 
 <div class="docs-steps">
@@ -35,7 +35,7 @@ eyebrow: GET STARTED · OVERVIEW
 | :--- | :--- | :--- |
 | **PostgreSQL** | **Supported&nbsp;&amp;&nbsp;tested** | PostgreSQL 15–19 (verified 15.20–19.0), PgBouncer 1.26, Neon, and Supabase |
 | **MySQL** | Evaluating | Not supported yet — PostgreSQL is the only engine in v0.1 |
-| **TypeScript&nbsp;SDK** | **Supported** | `@auditstream/*` v0.2.0 for Prisma 7, Drizzle, Next.js 16, Hono, and Express |
+| **TypeScript&nbsp;SDK** | **Supported** | `@auditstream/*` v0.2.1 for Prisma 7, Drizzle, Next.js 16, Hono, and Express |
 | **Python&nbsp;SDK** | Planned | No native SDK yet — works today via `psycopg` and SQL comments |
 | **Plain&nbsp;SQL** | **Supported** | Any language or driver (Go, Ruby, Java, `psql`) via SQL comments or `set_config` |
 
@@ -50,7 +50,7 @@ eyebrow: GET STARTED · OVERVIEW
   <a class="docs-card" href="/docs/typescript/">
     <div class="docs-card-tag">SDKs &amp; Languages</div>
     <div class="docs-card-title">TypeScript</div>
-    <div class="docs-card-desc">Use @auditstream/* v0.2.0 with Prisma 7, Drizzle, Next.js 16, Hono, and Express.</div>
+    <div class="docs-card-desc">Use @auditstream/* v0.2.1 with Prisma 7, Drizzle, Next.js 16, Hono, and Express.</div>
   </a>
   <a class="docs-card" href="/docs/python/">
     <div class="docs-card-tag">SDKs &amp; Languages</div>
@@ -90,7 +90,7 @@ eyebrow: GET STARTED · OVERVIEW
   <a class="docs-card" href="/docs/compare/">
     <div class="docs-card-tag">Reference</div>
     <div class="docs-card-title">Comparisons</div>
-    <div class="docs-card-desc">Compare Auditstream against pgaudit, Debezium CDC, and hand-rolled app logging.</div>
+    <div class="docs-card-desc">Compare Auditstream against supa_audit, Bemi, WorkOS, DIY triggers, pgaudit, and Debezium CDC.</div>
   </a>
   <a class="docs-card" href="/docs/roadmap/">
     <div class="docs-card-tag">Reference</div>

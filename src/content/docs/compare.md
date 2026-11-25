@@ -1,27 +1,50 @@
 ---
 title: Comparisons
-description: Honest architectural comparison of Auditstream against pgaudit, Debezium / logical replication, and hand-rolled application logging.
+description: Honest architectural comparison of Auditstream against supa_audit, Bemi, WorkOS Audit Logs, DIY PL/pgSQL triggers, pgaudit, Debezium CDC, and hand-rolled app logging.
 section: Reference
 order: 11
 eyebrow: REFERENCE · COMPARISONS
 ---
 
-How Auditstream compares against `pgaudit`, Debezium logical replication, and hand-rolled application logging for PostgreSQL 15–19 audit trails.
+How Auditstream compares against PostgreSQL-native tools (`supa_audit`, DIY PL/pgSQL triggers, `pgaudit`), logical-replication CDC (Bemi, Debezium), hosted compliance SaaS (WorkOS Audit Logs), and hand-rolled application logging.
 
-## Feature comparison
+## Trigger & PostgreSQL-native tools
 
-| Requirement | Auditstream | pgaudit | Debezium CDC | App&nbsp;logging |
+| Requirement | Auditstream | `supa_audit` | DIY PL/pgSQL triggers | `pgaudit` |
 | :--- | :--- | :--- | :--- | :--- |
-| **Row diffs** | `before`/`after` `jsonb` + `changed` | SQL text logs only (no diffs) | Needs `REPLICA IDENTITY` `FULL` | Misses direct SQL & migrations |
-| **Actor & AI** | Trailing comment + `onBehalfOf` | DB role (`session_user`) only | Explicit tx + `emit_message` | Per-ORM glue; leaks in pools |
-| **Infra & WAL** | Zero daemon · any PG 15–19 | Extension + log pipeline | `wal_level` `logical` + 24/7 consumer | None (you own schema & ops) |
-| **Poolers** | Pool-safe (0 leaks / 2.4M tx) | Safe (no per-user context) | Dedicated replication slot | Session vars pin RDS Proxy |
-| **Drift & ops** | `auditstream` `verify` `--fix` in CI | Manual log retention rules | Slot lag alerts (disk-full risk) | Silent drift on schema changes |
-| **Overhead** | +3.2% (+5.1 µs) durable UPDATE · 211k/s bulk INSERT | Text log I/O overhead | Lower write CPU · higher WAL | Varies; often slow row-by-row |
+| **Row diffs** | `before`/`after` `jsonb` + `changed` + column `--exclude` | `record` / `old_record` `jsonb` in `audit.record_version` | Whatever you author and maintain | SQL text logs only (no row diffs) |
+| **Actor & AI** | Trailing SQL comment + `set_config` + `onBehalfOf` | `auth.uid()` / `request.jwt.claims` only (no app/AI transport) | Custom session vars (often pooler-unsafe) | DB role (`session_user`) only |
+| **Storage & scale** | Monthly partitions + BRIN + partial HASH + `xid8` export | Single unpartitioned table (bloat/vacuum risk on heavy tables) | You build partitioning, retention & cursors | Server log files + external log pipeline |
+| **Drift & CI** | `auditstream verify` + `--fix` in CI | None built in | Manual audits; silent drift on DDL changes | Config check only |
+| **Deployment** | Plain SQL migrations on any PG 15–19 (no extension) | Requires `supa_audit` extension (archived for heavy prod) | Plain SQL migrations | Requires `pgaudit` extension + log sink |
+
+## CDC, SaaS, and application logging
+
+| Requirement | Auditstream | Bemi (WAL / CDC) | Debezium CDC | WorkOS Audit Logs | App&nbsp;logging |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Capture layer** | In-DB hybrid triggers + optional `log_event()` | WAL logical replication + ORM comment context | WAL logical replication (`pgoutput`) | Hosted SaaS API (app events only) | Application code only |
+| **Direct SQL & migrations** | Captured automatically | Captured automatically | Captured automatically | Missed unless emitted by app code | Missed (migrations, scripts, `psql`) |
+| **Infra & WAL** | Zero daemon · standard PG 15–19 | `wal_level=logical` + replication slot + worker | `wal_level=logical` + Kafka Connect / 24×7 consumer | Managed SaaS (zero DB load) | None (you own schema & ops) |
+| **Poolers** | Pool-safe (0 leaks / 2.4M PgBouncer tx) | Comment context survives transaction poolers | Dedicated replication slot | N/A (HTTP API outside PG) | Session vars pin RDS Proxy |
+| **Compliance & UI** | `export` JSONL/CSV + copy-paste [BFF Activity Feed](/docs/typescript/activity-feed/) | Worker-managed storage & queries | Stream to Kafka/SIEM consumers | Turnkey admin portal & SIEM Log Streams | Build everything yourself |
+
+## Performance nuance: durable disk vs. CPU ceiling
+
+Trigger-based capture runs synchronously inside the write transaction, so the real trade-off depends on whether your workload is **disk-bound** or **CPU-bound**:
+
+- **Durable storage (`fsync=on`, `synchronous_commit=on`):** WAL commit latency (~150 µs/row) dominates. Single-row `UPDATE` overhead measures **+3.2% (+5.1 µs/row)** and single-row `INSERT` measures **−0.2%** (within noise).
+- **In-memory CPU ceiling (`tmpfs`, 210k–224k tps baseline):** Without disk flush latency, PL/pgSQL trigger work costs **+9.4 to +20.8 µs/row**, which reads as **−67% to −82% TPS** against an extreme 4.5 µs in-memory baseline.
+- **Bulk DML:** Statement-level transition-table triggers sustain **211k rows/s** bulk `INSERT` and **213k rows/s** bulk `DELETE` (+3.7–4.0 µs/row), while single-statement bulk `UPDATE` runs row-by-row and caps around **~15k rows/s** (+64.5 µs/row).
+
+See the full methodology and raw numbers on [Benchmarks & Limits](/docs/evidence/).
 
 ## Choosing another tool
 
-- **Choose `pgaudit`** if compliance requires logging raw `SELECT` reads or full DDL into PostgreSQL server logs and you already run a log pipeline.
-- **Choose Debezium / logical replication** if you already operate Kafka Connect, need real-time multi-consumer streaming, or run single-statement bulk UPDATEs above ~15k rows/s.
+- **Choose `supa_audit`** only for lightweight internal debugging on low-write Supabase databases where JWT `auth.uid()` is enough and you do not need monthly partitioning, PII exclusions, or AI-agent `onBehalfOf` attribution.
+- **Choose Bemi** if you want PostgreSQL WAL-based change tracking with ORM context, already run (or want) `wal_level = logical` + an external worker daemon, and need write transactions to avoid synchronous trigger CPU.
+- **Choose Debezium / logical replication** if you already operate Kafka Connect, need real-time multi-consumer event streaming, or run single-statement bulk `UPDATE`s above ~15k rows/s.
+- **Choose WorkOS Audit Logs** if you want a managed B2B SaaS compliance suite with hosted enterprise customer portals and turnkey SIEM Log Streams, and application-level semantic events are sufficient (no DB-level row diff requirement).
+- **Choose DIY PL/pgSQL triggers** if you have highly bespoke database rules and prefer owning trigger generation, schema-drift verification, monthly partition lifecycle, and commit-safe export cursors in-house.
+- **Choose `pgaudit`** if compliance requires logging raw `SELECT` reads or full DDL into PostgreSQL server logs and you already operate a log pipeline.
 - **Choose hand-rolled app logging** if you only need coarse product analytics and no migrations, scripts, or direct SQL touch audited tables.
-- **Choose Auditstream** if you want structured `before`/`after` diffs plus user and AI-agent attribution inside PostgreSQL with zero new infrastructure and CI drift gating.
+- **Choose Auditstream** if you want structured `before`/`after` row diffs plus user and AI-agent (`onBehalfOf`) attribution directly in PostgreSQL 15–19 with zero new daemons, pooler safety, commit-safe `xid8` export, and CI drift gating.
