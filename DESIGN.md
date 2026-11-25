@@ -252,7 +252,7 @@ Surfaces remain completely flat at rest, separated by `1px` hairlines (`#e6e6df`
 - **Controls & Diffs (`6px`):** Primary/secondary buttons, action chips, tabs, inline code badges, install chip, and diff bands.
 - **Frames (`10px`):** Code frames, documentation tables, blockquotes, mobile disclosures, and pagination links.
 - **Focal Surfaces (`12px`):** Hero `AuditPulseVisual` card and `SearchModal` dialog.
-- **Small Status Pills (`999px`):** `PG Trigger` bridge pill and `Recorded` / `404` status chips.
+- **Small Status Pills (`999px`):** `DB Trigger` bridge pill and `Recorded` / `404` status chips.
 
 ## Components
 
@@ -271,7 +271,7 @@ Surfaces remain completely flat at rest, separated by `1px` hairlines (`#e6e6df`
 - **Info Callout & Blockquotes (`.docs-callout-info`, `blockquote`):** Soft Editorial Cobalt notice banners (`--accent-soft` fill + `--accent-border`) for key status notes, paired with flat gallery-white (`#ffffff`) hairline-bordered blockquotes (`0.875rem`).
 
 ### AuditPulseVisual (Single Focal Micro-Motion)
-- **Structure:** Generous `960px` white focal card topped by an interactive 3-step button strip (`1. Tag query → 2. Trigger fires → 3. Diff recorded`) cycling Editorial Cobalt → Crisp Slate + emerald dot → Committed Emerald, containing two clean `#ffffff` DOM panes (`APPLICATION WRITE` and `auditstream.changes`, zero pane washes) joined by a crisp `112px` inline SVG vector bridge with separated two-layer cobalt/emerald packets and a soft Committed Emerald `PG Trigger` pill (mirroring the exact two-leg structure vertically in a `56px` SVG connector below `820px`).
+- **Structure:** Generous `960px` white focal card topped by an interactive 3-step button strip (`1. Tag query → 2. Trigger fires → 3. Diff recorded`) cycling Editorial Cobalt → Crisp Slate + emerald dot → Committed Emerald, containing two clean `#ffffff` DOM panes (`APPLICATION WRITE` and `auditstream.changes`, zero pane washes) joined by a crisp `112px` inline SVG vector bridge with separated two-layer cobalt/emerald packets and a soft Committed Emerald `DB Trigger` pill (mirroring the exact two-leg structure vertically in a `56px` SVG connector below `820px`).
 - **Motion & Accessibility:** Interruptible `7.8s` JS `data-phase="1"|"2"|"3"` state machine (`2.4s` / `1.9s` / `3.5s`, initial `1.2s` hold on SSR-settled `data-phase="3"`), smooth `420–460ms` transitions, persistent fixed-width morphing status chip (`Pending` → `Capturing` → soft Committed Emerald `✓ Recorded` matching `status-chip`), quiet dashed waiting slot revealing reversible staggered diff rows, accurate pause/resume on hover, focus, offscreen (`IntersectionObserver`), and tab hidden (`visibilitychange`), and interactive step inspection even under `prefers-reduced-motion: reduce`.
 
 ## Do's and Don'ts

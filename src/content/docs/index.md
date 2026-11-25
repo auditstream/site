@@ -1,6 +1,6 @@
 ---
 title: Overview
-description: Database-level audit trails starting with PostgreSQL 15–19 — triggers capture every row change; your application only passes who acted.
+description: Database-level audit trails — triggers capture every row change; your application only passes who acted.
 section: Get Started
 order: 1
 eyebrow: GET STARTED · OVERVIEW
@@ -9,7 +9,6 @@ eyebrow: GET STARTED · OVERVIEW
 <div class="docs-meta-pills" aria-label="Current releases">
   <span class="docs-meta-pill"><strong>CLI</strong> v0.1.0</span>
   <span class="docs-meta-pill"><strong>TypeScript SDK</strong> v0.2.0</span>
-  <span class="docs-meta-pill"><strong>PostgreSQL</strong> 15–19</span>
 </div>
 
 <div class="docs-steps">
@@ -46,7 +45,7 @@ eyebrow: GET STARTED · OVERVIEW
   <a class="docs-card" href="/docs/getting-started/">
     <div class="docs-card-tag">Get Started</div>
     <div class="docs-card-title">Getting Started</div>
-    <div class="docs-card-desc">Install the CLI, run a 60-second PostgreSQL demo, and wire your first app.</div>
+    <div class="docs-card-desc">Install the CLI, run a 60-second local demo, and wire your first app.</div>
   </a>
   <a class="docs-card" href="/docs/typescript/">
     <div class="docs-card-tag">SDKs &amp; Languages</div>
@@ -56,7 +55,7 @@ eyebrow: GET STARTED · OVERVIEW
   <a class="docs-card" href="/docs/python/">
     <div class="docs-card-tag">SDKs &amp; Languages</div>
     <div class="docs-card-title">Python</div>
-    <div class="docs-card-desc">No native SDK yet — attribute PostgreSQL writes from psycopg today; Django, Flask, and FastAPI planned.</div>
+    <div class="docs-card-desc">No native SDK yet — attribute database writes from psycopg today; Django, Flask, and FastAPI planned.</div>
   </a>
   <a class="docs-card" href="/docs/plain-sql/">
     <div class="docs-card-tag">SDKs &amp; Languages</div>

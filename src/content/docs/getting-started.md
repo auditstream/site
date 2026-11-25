@@ -1,6 +1,6 @@
 ---
 title: Getting Started
-description: Install the CLI, run a 60-second PostgreSQL demo, and wire your first application.
+description: Install the CLI, run a 60-second local demo, and wire your first application.
 section: Get Started
 order: 2
 eyebrow: GET STARTED · QUICKSTART
@@ -9,7 +9,6 @@ eyebrow: GET STARTED · QUICKSTART
 <div class="docs-meta-pills" aria-label="Current releases">
   <span class="docs-meta-pill"><strong>CLI</strong> v0.1.0</span>
   <span class="docs-meta-pill"><strong>TypeScript SDK</strong> v0.2.0</span>
-  <span class="docs-meta-pill"><strong>PostgreSQL</strong> 15–19</span>
 </div>
 
 ## 1. Install the CLI

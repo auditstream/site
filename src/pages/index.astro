@@ -120,7 +120,7 @@ const heroInstallCmd = "brew install auditstream/tap/auditstream";
 
 <BaseLayout
   title="Auditstream — Open-source database audit trail engine"
-  description="Open-source database-level audit trail engine written in Rust, starting with PostgreSQL 15–19. Zero daemons, pooler-safe actors, and tamper-proof diffs."
+  description="Open-source database audit trail engine written in Rust. Zero daemons, pooler-safe actors, and tamper-proof diffs."
   currentPath="/"
   showProgress={true}
 >
@@ -134,8 +134,8 @@ const heroInstallCmd = "brew install auditstream/tap/auditstream";
             Enforced at the database.
           </h1>
           <p class="lead hero-sub">
-            Open-source database audit trail engine in Rust. Supported and tested on PostgreSQL&nbsp;15–19;<br class="hero-br" />
-            MySQL support is planned. Zero daemons, pooler-safe actors, and tamper-proof diffs.
+            Open-source database audit trail engine written in Rust.<br class="hero-br" />
+            Zero daemons, pooler-safe actors, and tamper-proof diffs.
           </p>
 
           <div class="hero-actions">
@@ -163,8 +163,8 @@ const heroInstallCmd = "brew install auditstream/tap/auditstream";
           <div class="pillar">
             <h2 class="pillar-title">Zero new infrastructure</h2>
             <p class="pillar-body">
-              Generated PostgreSQL triggers and a <strong class="pillar-em">commit-safe</strong>
-              <code class="ic">xid8</code> cursor replace 24/7 consumers and WAL replication slots.
+              Generated database triggers and a <strong class="pillar-em">commit-safe</strong>
+              export cursor replace 24/7 consumers and replication slots.
             </p>
           </div>
 
@@ -196,7 +196,7 @@ const heroInstallCmd = "brew install auditstream/tap/auditstream";
           <h2 class="h2">Four lines to attribute every write.</h2>
           <p class="lead code-lead">
             Wrap a request or tool call in <code class="ic">audit.as()</code>. Thin adapters attach
-            the actor to outgoing SQL, and PostgreSQL triggers capture before/after diffs inside the
+            the actor to outgoing SQL, and database triggers capture before/after diffs inside the
             same transaction.
           </p>
           <div class="text-links">
@@ -252,7 +252,7 @@ const heroInstallCmd = "brew install auditstream/tap/auditstream";
             <div class="proof-metric">2.4M</div>
             <div class="proof-label">Pooled transactions</div>
             <p class="proof-desc">
-              PgBouncer 1.26 · 0&nbsp;failed · 0&nbsp;leaked actors.
+              PgBouncer 1.26 · 0&nbsp;failed, 0&nbsp;leaked actors.
             </p>
           </div>
 
@@ -268,7 +268,7 @@ const heroInstallCmd = "brew install auditstream/tap/auditstream";
             <div class="proof-metric">~15k/s</div>
             <div class="proof-label">Bulk UPDATE ceiling</div>
             <p class="proof-desc">
-              Row-level by design; bulk INSERT/DELETE reach 211k–213k/s.
+              Row-level by design. <span class="nowrap">Bulk INSERT/DELETE</span> reach 211k/s.
             </p>
           </div>
         </div>
@@ -324,7 +324,7 @@ const heroInstallCmd = "brew install auditstream/tap/auditstream";
     <div class="shell footer-inner">
       <div class="footer-brand-group">
         <a href="#top" class="brand"><BrandMark size={18} /><span>Auditstream</span></a>
-        <span class="footer-meta">MIT License · PostgreSQL 15–19</span>
+        <span class="footer-meta">MIT License · Open-source</span>
       </div>
 
       <nav class="footer-links" aria-label="Footer">

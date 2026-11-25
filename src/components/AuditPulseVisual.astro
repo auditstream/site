@@ -9,7 +9,7 @@
   class="ap-card"
   id="audit-pulse-visual"
   data-phase="3"
-  aria-label="Live capture flow: 1. Tag query attaches an auditstream SQL comment to an UPDATE, 2. Trigger fires inside PostgreSQL within the same xid8 transaction, and 3. Diff recorded stamps an immutable before-and-after row into auditstream.changes."
+  aria-label="Live capture flow: 1. Tag query attaches an auditstream SQL comment to an UPDATE, 2. Database trigger fires within the same transaction, and 3. Diff recorded stamps an immutable before-and-after row into auditstream.changes."
 >
   <div class="ap-chrome">
     <ol class="ap-steps" aria-label="Capture sequence">
@@ -40,7 +40,7 @@
         >3. Diff recorded</button>
       </li>
     </ol>
-    <span class="ap-chrome-right">PostgreSQL 15–19 · Zero daemon</span>
+    <span class="ap-chrome-right">Same transaction · Zero daemon</span>
   </div>
 
   <div class="ap-stage">
@@ -136,9 +136,9 @@
             <circle cx="70" cy="14" r="4.5" class="ap-hub-node" />
           </svg>
 
-          <span class="ap-trigger-pill">PG Trigger</span>
+          <span class="ap-trigger-pill">DB Trigger</span>
         </div>
-        <span class="ap-trigger-sub">same xid8</span>
+        <span class="ap-trigger-sub">same tx</span>
       </div>
     </div>
 
@@ -173,7 +173,7 @@
         <!-- Visible during Phases 1 & 2, fades smoothly as the committed row reveals -->
         <div class="ap-waiting" aria-hidden="true">
           <span class="ap-waiting-title">Waiting for commit…</span>
-          <span class="ap-waiting-sub">Pending trigger inside same xid8</span>
+          <span class="ap-waiting-sub">Trigger fires inside same tx</span>
         </div>
 
         <!-- Reveals smoothly during Phase 3 with crisp reversible stagger -->

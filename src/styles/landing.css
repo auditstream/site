@@ -287,6 +287,10 @@
   text-wrap: pretty;
 }
 
+.nowrap {
+  white-space: nowrap;
+}
+
 .proof-foot {
   margin-top: clamp(2rem, 3.5vw, 2.5rem);
   padding-top: 1.25rem;
