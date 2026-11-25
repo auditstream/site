@@ -6,7 +6,7 @@ order: 10
 eyebrow: REFERENCE · BENCHMARKS
 ---
 
-Every load-bearing performance claim in Auditstream was measured directly on live PostgreSQL instances (`pgbench`, `xtask bench`, and `--release` CLI binaries) with **0 failed transactions**, **100% row-count verification**, and **0 actor leaks**.
+All figures below were measured on live PostgreSQL instances (`pgbench`, `xtask bench`, `--release` CLI) with **0 failed transactions**, **100% row-count verification**, and **0 actor leaks**.
 
 <div class="docs-kpis">
   <div class="docs-kpi">
@@ -62,7 +62,7 @@ Every load-bearing performance claim in Auditstream was measured directly on liv
 
 ### Durable disk (PG 19)
 
-Durable storage with `fsync=on`, `synchronous_commit=on`, and 16 clients (8 jobs, 10 s runs, 5 bulk runs). WAL group-commit latency (~150 µs/row) dominates write time, so capture adds only **+3.2% (+5.1 µs/row)** on single-row UPDATE and noise-floor **−0.2%** on single-row INSERT:
+Durable storage (`fsync=on`, `synchronous_commit=on`, 16 clients, 8 jobs, 10 s runs, 5 bulk runs). WAL commit latency (~150 µs/row) dominates, leaving **+3.2% (+5.1 µs/row)** on UPDATE and **−0.2%** on INSERT:
 
 | Workload | Throughput | µs/row | Overhead | +µs/row | Verified |
 | :--- | ---: | ---: | ---: | ---: | ---: |
@@ -78,7 +78,7 @@ Durable storage with `fsync=on`, `synchronous_commit=on`, and 16 clients (8 jobs
 
 ### CPU ceiling & bulk DML
 
-Isolating CPU and PL/pgSQL cost on tmpfs (`-M prepared`, 8–64 clients) across narrow 2-column and realistic wide 15-column `invoice` tables with a heavy 368-byte AI-agent actor (`ai_agent` + `onBehalfOf` user with `tenant` + all 4 `context` fields):
+In-memory `tmpfs` (`-M prepared`, 8–64 clients) isolates PL/pgSQL cost across 2-column and wide 15-column `invoice` tables with a 368-byte AI-agent actor:
 
 | Single-row workload (`tmpfs`) | Clients | Throughput | Overhead | +µs/row |
 | :--- | ---: | ---: | ---: | ---: |
@@ -99,11 +99,11 @@ Bulk DML on `tmpfs` (1 client, 368 B AI agent):
 | **10k bulk DELETE** (statement-level) | 7.0 ms | **46.9 ms** | **213,220/s** | **+4.0 µs** |
 | **10k bulk UPDATE** (row-level) | 19.7 ms | **665.1 ms** | **15,035/s** | **+64.5 µs** |
 
-> **Zero measurable overhead from strict SQL validation:** Direct tmpfs (`-c 8 -j 4`) comparison with and without full actor enum, `onBehalfOf`, `tenant`, and `context` validation plus table CHECK constraints confirmed **0 µs/row measurable regression** (63.0k vs 60.0k tps UPDATE comment; 76.5k vs 72.5k tps INSERT comment; 53.2 ms vs 53.1 ms for 10k bulk INSERT).
+> **Zero validation overhead:** Direct `tmpfs` (`-c 8 -j 4`) runs with full enum, `onBehalfOf`, `tenant`, `context`, and CHECK validation showed **0 µs/row regression** (63.0k vs 60.0k tps UPDATE; 76.5k vs 72.5k tps INSERT; 53.2 vs 53.1 ms 10k INSERT).
 
 ### PgBouncer 1.26
 
-Transaction-mode contention with 64 clients multiplexed onto 8 server connections (8× oversubscribed). Total across all protocol modes (`simple`, `extended`, `prepared`, plus mixed leak test): **2,407,659 captured transactions**, **0 failed**, **0 missing**, and **0 actor leaks**.
+Transaction mode with 64 clients on 8 server connections (8× oversubscribed): **2,407,659 captured tx**, **0 failed**, **0 missing**, **0 actor leaks**.
 
 | Protocol | Comment | `set_config` | Speedup | Captured (0 failed) |
 | :--- | ---: | ---: | ---: | ---: |
@@ -111,13 +111,11 @@ Transaction-mode contention with 64 clients multiplexed onto 8 server connection
 | `extended` | **49,957.2 tps** | 22,637.9 tps | **2.21×** | 722,863 tx |
 | `prepared` | **42,457.4 tps** | 23,391.1 tps | **1.82×** | 655,781 tx |
 
-Mixed leak test (`extended`): **272,053 interleaved transactions** (136,051 `set_config` + 136,002 actor-less) — **0 actor leaks**, **0 failed** (total **2,407,659 tx** across all four runs).
-
-Trailing SQL comments sustain **1.8×–2.4× higher throughput** behind transaction-mode poolers because each `set_config` write holds a backend slot across `BEGIN` → `set_config` → `UPDATE` → `COMMIT` instead of one auto-commit statement.
+Mixed leak test (`extended`): **272,053 interleaved tx** (136,051 `set_config` + 136,002 actor-less), **0 leaks**, **0 failed** (**2,407,659 tx** total). Comments sustain **1.8×–2.4× higher throughput** because auto-commit avoids holding a pool slot across `BEGIN … COMMIT`.
 
 ### 500k-row CLI scale
 
-Measured with the `auditstream` `--release` CLI against 500,000 rich rows totaling 348 MB across 3 monthly partitions:
+Measured with the `--release` CLI against 500,000 rows (348 MB across 3 monthly partitions):
 
 | Operation | Result | Notes |
 | :--- | ---: | :--- |
@@ -131,7 +129,7 @@ Measured with the `auditstream` `--release` CLI against 500,000 rich rows totali
 
 ## Adapter micro-benchmarks
 
-Measured on Node v26.13.1. `@auditstream/node` caches canonical JSON, UTF-8 bytes, base64url tags, and comment suffixes per immutable `audit.as()` scope via a process-wide `WeakMap`, and uses a bounded O(1) tail scan in `isTagged()`:
+Node v26.13.1 timings for `@auditstream/node` (`WeakMap` scope caching per immutable `audit.as()` scope and bounded O(1) tail scan in `isTagged()`):
 
 | Operation | Latency | Ops/sec | Notes |
 | :--- | ---: | ---: | :--- |
@@ -154,17 +152,16 @@ Measured on Node v26.13.1. `@auditstream/node` caches canonical JSON, UTF-8 byte
 
 ## Honest limits
 
-- **Bulk single-statement UPDATE ceiling (~15k rows/s):** Updating 10,000 rows in one SQL statement runs the UPDATE trigger row-by-row (665 ms, +64.5 µs/row) compared to statement-level INSERT and DELETE (211k–213k rows/s, +3.7–4.0 µs/row). Statement-level UPDATE transition tables cannot correlate rows safely when primary keys change, so Auditstream keeps UPDATE row-level by design.
-- **CPU ceiling vs. durable storage:** In-memory tmpfs benchmarks show high relative percentages (−67% to −82%) because uncaptured PostgreSQL runs at 210k–224k tps (4.5 µs/row). On real durable storage (`fsync=on`), WAL commit latency dominates and real-world single-row UPDATE overhead drops to **+3.2% (+5.1 µs/row)**.
-- **Aurora DSQL:** Does not support triggers.
-- **CockroachDB:** Triggers are in preview and `current_query()` behavior is unverified.
-- **Prisma Accelerate:** SQL comments plugins do not receive SQL under Accelerate; use the `auditTransaction()` `set_config` fallback until verified.
-- **AWS RDS Proxy:** AWS documents that `set_config(..., true)` pins the session while comments do not; live RDS Proxy testing is deferred until requested by users.
+- **Bulk single-statement UPDATE (~15k rows/s):** Updating 10,000 rows in one statement runs row-by-row (665 ms, +64.5 µs/row) vs statement-level INSERT/DELETE (211k–213k/s, +3.7–4.0 µs/row), because transition tables cannot safely correlate changed PKs.
+- **CPU ceiling vs. durable disk:** In-memory `tmpfs` percentages (−67% to −82%) reflect a 210k–224k tps baseline (4.5 µs/row); on durable storage (`fsync=on`), single-row UPDATE overhead drops to **+3.2% (+5.1 µs/row)**.
+- **Aurora DSQL:** Unsupported; triggers are not available.
+- **CockroachDB:** Unsupported; triggers are in preview and `current_query()` is unverified.
+- **Prisma Accelerate:** SQL comment plugins are bypassed; use `auditTransaction()` (`set_config`) instead.
+- **AWS RDS Proxy:** AWS docs state `set_config(..., true)` pins sessions while comments do not; live RDS Proxy tests are deferred.
 
 ## Reproduce
 
-Every capture harness, `pgbench` script, and pooler stress configuration lives in the engine repository:
+All `pgbench` scripts and pooler stress harnesses live in the engine repository:
 
 - Capture & durable-disk benchmarks: [`bench/capture`](https://github.com/auditstream/auditstream/tree/main/bench/capture)
-- PgBouncer, Neon, and Supavisor pooler harnesses: [`bench/poolers`](https://github.com/auditstream/auditstream/tree/main/bench/poolers)
-- Related guides: [Comparisons](/docs/compare/) · [How Capture Works](/docs/capture/) · [Cloud, Poolers & Security](/docs/cloud-and-security/)
+- PgBouncer, Neon, and Supavisor harnesses: [`bench/poolers`](https://github.com/auditstream/auditstream/tree/main/bench/poolers)

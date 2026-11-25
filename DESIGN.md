@@ -11,7 +11,7 @@ colors:
   diff-vermilion-soft: "#fef2f2"
   paper-ground: "#fafaf8"
   paper-ground-alt: "#f3f3ee"
-  paper-code-tint: "#eeede7"
+  paper-code-tint: "#f1f0eb"
   paper-surface: "#ffffff"
   paper-rule: "#e6e6df"
   paper-rule-strong: "#d4d4ca"
@@ -32,6 +32,12 @@ typography:
     fontWeight: 600
     lineHeight: 1.12
     letterSpacing: "-0.025em"
+  docs-title:
+    fontFamily: "\"IBM Plex Sans\", system-ui, -apple-system, sans-serif"
+    fontSize: "clamp(1.85rem, 3vw, 2.35rem)"
+    fontWeight: 600
+    lineHeight: 1.12
+    letterSpacing: "-0.028em"
   metric:
     fontFamily: "\"IBM Plex Mono\", ui-monospace, SFMono-Regular, monospace"
     fontSize: "clamp(2rem, 3.2vw, 2.85rem)"
@@ -52,9 +58,9 @@ typography:
     letterSpacing: "-0.02em"
   subhead:
     fontFamily: "\"IBM Plex Sans\", system-ui, -apple-system, sans-serif"
-    fontSize: "1.375rem"
+    fontSize: "1.3125rem"
     fontWeight: 600
-    lineHeight: 1.24
+    lineHeight: 1.25
     letterSpacing: "-0.02em"
   title:
     fontFamily: "\"IBM Plex Sans\", system-ui, -apple-system, sans-serif"
@@ -62,6 +68,12 @@ typography:
     fontWeight: 600
     lineHeight: 1.32
     letterSpacing: "-0.015em"
+  docs-subhead:
+    fontFamily: "\"IBM Plex Sans\", system-ui, -apple-system, sans-serif"
+    fontSize: "1.03125rem"
+    fontWeight: 600
+    lineHeight: 1.32
+    letterSpacing: "-0.012em"
   lead:
     fontFamily: "\"IBM Plex Sans\", system-ui, -apple-system, sans-serif"
     fontSize: "clamp(1rem, 1.1vw, 1.125rem)"
@@ -70,9 +82,9 @@ typography:
     letterSpacing: "0em"
   body:
     fontFamily: "\"IBM Plex Sans\", system-ui, -apple-system, sans-serif"
-    fontSize: "1rem"
+    fontSize: "0.9375rem"
     fontWeight: 400
-    lineHeight: 1.72
+    lineHeight: 1.7
     letterSpacing: "0em"
   body-sm:
     fontFamily: "\"IBM Plex Sans\", system-ui, -apple-system, sans-serif"
@@ -173,9 +185,10 @@ Decorative clutter — dark-mode toggles, jarring light-to-dark section flips, u
 
 **Key Characteristics:**
 - 100% Light-Only system across homepage, docs, search dialog, and 404 page with zero theme flash and single-theme Light Shiki syntax highlighting.
+- Signature `E4+ · Eco Duplo` `BrandMark` (`src/components/BrandMark.astro`): two-path geometric vector pairing a leading Editorial Cobalt (`var(--accent)`) tilted echo crescent with a slate (`currentColor`) monolith cut with twin parallel ledger slots.
 - Subtle architectural corner radii (`6px` controls, `10px` code and reference frames, `12px` focal cards, `999px` small status pills).
 - Strict semantic color isolation: Editorial Cobalt (`#1d4ed8`) for navigation, focus, links, and active SQL comment tags; Committed Emerald (`#047857`) for verified persistence and added diffs; Diff Vermilion (`#b91c1c`) for removed values and 404/denial states.
-- Self-hosted IBM Plex Sans paired with IBM Plex Mono (`tabular-nums`, ligatures disabled) at comfortable Retina reading sizes (`>= 12px` everywhere, `13.5px` monospace code).
+- Self-hosted IBM Plex Sans paired with IBM Plex Mono (`tabular-nums`, ligatures disabled) at comfortable Retina reading sizes (`>= 12px` everywhere, `15px` / `0.9375rem` docs prose on a `47rem` reading rail, `13.5px` monospace code).
 - One single spacious focal micro-motion (`AuditPulseVisual`) driven by a calm `7.8s` JS `data-phase` state machine (`2.4s` / `1.9s` / `3.5s`) with genuine `420–460ms` CSS transitions and separated two-layer one-shot SVG packet travel rather than scattered animations or video payloads.
 
 ## Colors
@@ -192,7 +205,7 @@ Every foreground/background pair — including muted labels (`#5b6676`), syntax 
 - **Diff Vermilion** (`#b91c1c`, soft tint `#fef2f2`): Exclusively denotes `−` removed diff values and error status badges.
 
 ### Neutral
-- **Warm Architectural Paper surfaces:** Primary ground (`#fafaf8`), subtle alternating band & code bar surface (`#f3f3ee`), crisp white frame surface (`#ffffff`), delicate rule (`#e6e6df`), and strong structural rule (`#d4d4ca`).
+- **Warm Architectural Paper surfaces:** Primary ground (`#fafaf8`), subtle alternating band & code bar surface (`#f3f3ee`), quiet inline code tint (`#f1f0eb` via `--code-bg`), crisp white frame surface (`#ffffff`), delicate rule (`#e6e6df`), and strong structural rule (`#d4d4ca`).
 - **Slate Ink hierarchy:** Primary heading ink (`#0f172a`), high-comfort long-form docs prose (`#334155`), secondary body copy (`#475569`), and muted metadata labels (`#5b6676`, `>= 5.1:1` even on `#f3f3ee`).
 
 ### Named Rules
@@ -206,13 +219,13 @@ Every foreground/background pair — including muted labels (`#5b6676`), syntax 
 **Code & Data Font:** IBM Plex Mono (`400`, `500`, `600` weights, self-hosted Latin WOFF2, `tabular-nums`, ligatures disabled)
 
 ### Hierarchy
-- **Display** (`600`, `clamp(2.45rem, 5.2vw, 4rem)`, line-height `1.07`, tracking `-0.03em`): Centered two-line hero headline only.
-- **Headline** (`600`, `clamp(1.75rem, 3vw, 2.5rem)`, line-height `1.12`, tracking `-0.025em`, `text-wrap: balance`): Landing section headings and documentation `h1` page titles.
+- **Display** (`600`, `clamp(2.25rem, 5vw, 3.85rem)`, line-height `1.07`, tracking `-0.03em`): Centered two-line hero headline only.
+- **Headline & Docs Title** (`600`, `clamp(1.75rem, 3vw, 2.5rem)` on landing; `clamp(1.85rem, 3vw, 2.35rem)`, tracking `-0.028em` for documentation `h1` page titles, line-height `1.12`, `text-wrap: balance`).
 - **Metric** (`600` mono, `clamp(2rem, 3.2vw, 2.85rem)`, line-height `1.04`, tracking `-0.03em`, `tabular-nums`): Measured proof strip figures (`+3.2%`, `2.4M`, `0.101 ms`).
-- **Subhead & Title** (`600`, `1.375rem` / `1.0625rem`): Documentation `h2`/`h3` headings and borderless pillar headings.
-- **Body & Prose** (`400`, `1rem` at `1.72` line-height in docs; `0.9375rem`–`1.125rem` on landing): Flows across the unified `52rem` reading rail in docs with `text-wrap: pretty` for even visual rhythm with tables and code frames.
-- **Code** (`400` mono, `0.84375rem` / `13.5px`, line-height `1.68`): Single-theme Light Shiki blocks and the Hero capture visual.
-- **Label** (`500` mono, `0.75rem` / `12px`, tracking `0.04em`): Minimum size across the entire site — used for code headers, status pills, table column headers, and keyboard hints.
+- **Subhead & Title** (`600`, `1.3125rem` docs `h2` at `1.25` line-height, `1.03125rem` docs `h3` at `-0.012em` tracking, and `1.0625rem` landing borderless pillar headings).
+- **Body & Prose** (`400`, `0.9375rem` / `15px` at `1.7` line-height in docs with `1.03125rem` / `1.58` page descriptions; `0.9375rem`–`1.125rem` on landing): Flows across the unified `47rem` (`752px`) reading rail in docs with `text-wrap: pretty` for even visual rhythm with tables, steps, callouts, and code frames.
+- **Code** (`400` mono, `0.84375rem` / `13.5px`, line-height `1.68`; inline code `0.84em` on `#f1f0eb`): Single-theme Light Shiki blocks and the Hero capture visual.
+- **Label** (`500` mono, `0.75rem` / `12px`, tracking `0.04em`): Minimum size across the entire site — used for code headers, status pills, docs meta pills, step numbers, table column headers, and keyboard hints.
 
 ### Named Rules
 **The Zero-Kicker Rule.** Headings carry their own authority. Never place uppercase eyebrows, kickers, or section-number prefixes above headings.
@@ -225,7 +238,7 @@ All pages share a calm container (`max-width: 76rem`) with responsive horizontal
 
 The homepage consists of five airy editorial blocks separated by generous vertical rhythm (`clamp(3.5rem, 6vw, 5.5rem)`) and single hairline borders: Hero + focal diagram, 3 borderless core pillars, `5fr / 7fr` code showcase, subtle `#f3f3ee` measured proof band, and a 3-line tabbed quickstart followed by a static minimal footer.
 
-Documentation pages render a widened 3-column reading layout above `1280px` (`max-width: 88rem`, `13.5rem` permanent sidebar, unified full-width `minmax(0, 52rem)` center reading rail across prose, tables, code frames, KPI tiles, spec grids, and path cards, and `13rem` sticky TOC), collapsing gracefully to 2 columns (`960px–1279px`, `12.75rem` sidebar + `48.5rem` rail) and single column (`< 960px`) with accessible `<details>` disclosures.
+Documentation pages render a harmonious 3-column reading layout above `1280px` (`max-width: 84rem`, `13.5rem` permanent sidebar, unified full-width `minmax(0, 47rem)` / `752px` center reading rail across prose, tables, code frames, KPI tiles, spec grids, step flows, meta pills, callouts, and path cards, and `12.5rem` sticky TOC separated by generous `2.5rem` gutters), collapsing gracefully to 2 columns (`960px–1279px`, `12.75rem` sidebar + `47rem` rail with `2.25rem` gap) and single column (`< 960px`) with accessible `<details>` disclosures.
 
 ## Elevation & Depth
 
@@ -247,9 +260,15 @@ Surfaces remain completely flat at rest, separated by `1px` hairlines (`#e6e6df`
 - **Primary:** Deep slate fill (`#0f172a`) with crisp white text (`#ffffff`), `6px` radius, `2.75rem` (`44px`) height, shifting to Editorial Cobalt (`#1d4ed8`) on hover.
 - **Secondary:** Crisp white surface (`#ffffff`) with `#d4d4ca` border and `#0f172a` text, warming to `#f3f3ee` with `#0f172a` border on hover.
 
-### Navigation
-- **Desktop:** Sticky translucent warm paper header (`rgba(250, 250, 248, 0.88)` + `backdrop-filter: blur(12px)`), BrandMark + `Auditstream` on left, strictly 3 links (`Docs`, `Benchmarks`, `GitHub ↗`) + `Search ⌘K` chip on right.
+### Navigation & BrandMark
+- **BrandMark (`E4+ · Eco Duplo`):** Geometric `256×256` SVG emblem (`src/components/BrandMark.astro`) combining a leading Editorial Cobalt (`var(--accent)`) tilted crescent echo with a primary slate (`currentColor`) monolith cut by two parallel ledger slots (`fill-rule="evenodd"`), paired with `Auditstream` in header and footer lockups.
+- **Desktop:** Sticky translucent warm paper header (`rgba(250, 250, 248, 0.88)` + `backdrop-filter: blur(12px)`), `E4+ · Eco Duplo` BrandMark + `Auditstream` on left, strictly 3 links (`Docs`, `Benchmarks`, `GitHub ↗`) + `Search ⌘K` chip on right.
 - **Mobile (`<= 768px`):** `44×44px` Search and Menu drawer controls with `Escape` and outside-click dismissal.
+
+### Editorial Docs Components
+- **Meta Pills (`.docs-meta-pills` / `.docs-meta-pill`):** Quiet pill-shaped monospace metadata badges (`#ffffff` surface, `1px solid var(--rule)`, `0.75rem`) replacing dense release/status prose.
+- **Step Flow (`.docs-steps` / `.docs-step`):** Three-column (`>= 640px`) architectural step cards (`#ffffff` surface, `1px solid var(--rule)`, Editorial Cobalt monospace step index, `0.9375rem` title, `0.84375rem` description).
+- **Info Callout & Blockquotes (`.docs-callout-info`, `blockquote`):** Soft Editorial Cobalt notice banners (`--accent-soft` fill + `--accent-border`) for key status notes, paired with flat gallery-white (`#ffffff`) hairline-bordered blockquotes (`0.875rem`).
 
 ### AuditPulseVisual (Single Focal Micro-Motion)
 - **Structure:** Generous `960px` white focal card topped by an interactive 3-step button strip (`1. Tag query → 2. Trigger fires → 3. Diff recorded`) cycling Editorial Cobalt → Crisp Slate + emerald dot → Committed Emerald, containing two clean `#ffffff` DOM panes (`APPLICATION WRITE` and `auditstream.changes`, zero pane washes) joined by a crisp `112px` inline SVG vector bridge with separated two-layer cobalt/emerald packets and a soft Committed Emerald `PG Trigger` pill (mirroring the exact two-leg structure vertically in a `56px` SVG connector below `820px`).

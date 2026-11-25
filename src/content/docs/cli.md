@@ -6,22 +6,22 @@ order: 6
 eyebrow: OPERATE · CLI REFERENCE
 ---
 
-The single static `auditstream` Rust binary (v0.1.0) handles migration generation, drift verification, catalog status checks, terminal history inspection, and lossless `xid8` batch exports. Data always writes to **stdout**; logs and diagnostics go to **stderr**.
+The static `auditstream` v0.1.0 CLI handles migrations, drift checks, history, and `xid8` exports — data writes to stdout; logs and diagnostics write to stderr.
 
 ## Global options
 
 | Flag & environment | Default | Purpose |
 | :--- | :--- | :--- |
 | `--config <PATH>`<br>`AUDITSTREAM_CONFIG` | `./auditstream.toml` | Path to TOML configuration file |
-| `--database-url <URL>`<br>`AUDITSTREAM_DATABASE_URL`<br>`DATABASE_URL` | *none* | PostgreSQL connection URL (hidden in `--help`, redacted in logs and errors) |
+| `--database-url <URL>`<br>`AUDITSTREAM_DATABASE_URL`<br>`DATABASE_URL` | *none* | PostgreSQL URL (hidden in `--help`, redacted in logs and errors) |
 | `--schema <SCHEMA>`<br>`AUDITSTREAM_SCHEMA` | `auditstream` | Schema holding `changes`, functions, and triggers |
-| `-v`, `-vv`, `-q`<br>`AUDITSTREAM_LOG` | `warn` | Stderr verbosity (`-v` info, `-vv` debug, `-q` error only; env var overrides flags) |
+| `-v`, `-vv`, `-q`<br>`AUDITSTREAM_LOG` | `warn` | Stderr verbosity (`-v` info, `-vv` debug, `-q` error; env overrides flags) |
 
 ## Subcommands
 
 ### init
 
-`auditstream init` introspects selected tables, validates excluded columns, writes idempotent migrations (`prisma`, `drizzle`, or `sql`), and updates `[capture]` and `[migrations]` in `auditstream.toml` without writing `database_url` or secrets:
+Introspects tables, validates `--exclude` columns, writes idempotent migrations (`prisma`, `drizzle`, `sql`), and updates `auditstream.toml` without storing secrets:
 
 ```bash
 auditstream init \
@@ -31,11 +31,11 @@ auditstream init \
   --exclude public.users.password_hash
 ```
 
-Add `--dry-run` to preview generated SQL on stdout without writing files, or `--out <dir>` to override the default migration directory (`prisma/migrations`, `drizzle`, or `migrations`). See [Getting Started](/docs/getting-started/) for a complete walkthrough.
+Use `--dry-run` to preview SQL on stdout, or `--out <dir>` to override default migration folders (`prisma/migrations`, `drizzle`, `migrations`).
 
 ### status
 
-`auditstream status` summarizes capture coverage across tables in scope and reports history-table health directly from PostgreSQL system catalogs — **never running `count(*)`** over monthly partitions:
+Summarizes capture coverage and partition health from PostgreSQL system catalogs — never running `count(*)` over monthly partitions:
 
 ```bash
 # Default human-readable text output
@@ -46,29 +46,30 @@ auditstream status --format json
 ```
 
 - **Formats:** `--format text` (default) or `--format json`.
-- **Table coverage:** lists every table in scope (`captured` or `uncaptured`), whether it is configured in `auditstream.toml`, its trigger state (`enabled`, `disabled`, `partial`, or `none`), and its excluded columns.
-- **Partition & catalog stats:** reports monthly partitions, `months_covered_ahead`, whether `changes_default` holds rows (`EXISTS (... LIMIT 1)`), catalog-estimated row counts (`pg_class.reltuples`), and `total_size_bytes` (`pg_total_relation_size`).
-- **Advisory exit behavior:** exits 0 whenever the catalog read succeeds; if `problems_found > 0`, prints a hint directing operators to `auditstream verify`.
+- **Coverage:** Lists every table (`captured`/`uncaptured`), TOML presence, trigger state (`enabled`, `disabled`, `partial`, `none`), and excluded columns.
+- **Partition stats:** Reports `months_covered_ahead`, `changes_default` rows (`EXISTS ... LIMIT 1`), `pg_class.reltuples`, and `total_size_bytes`.
+- **Advisory exit:** Exits 0 on successful catalog read; points operators to `auditstream verify` if `problems_found > 0`.
 
 ### verify
 
-`auditstream verify` acts as a CI drift gate. It runs all checks inside a `READ ONLY` transaction and exits 1 on any finding so silent trigger or partition drift fails CI before reaching production:
-- `missing` — history table, capture function, audited table, or expected trigger is missing;
-- `disabled` — trigger (or child partition clone) is disabled (`tgenabled = 'D'`) or replica-only (`'R'`);
-- `outdated` — function body, security settings, or trigger definition/exclusions drifted;
-- `partitioned_table` (warning) — audited table is partitioned (direct child-partition writes bypass statement triggers);
-- `default_partition_rows` — rows stranded in `auditstream.changes_default` (blocking monthly partition attachment);
-- `insufficient_partitions` — fewer than two contiguous monthly partitions exist ahead of the current UTC month.
+Runs all drift checks inside a `READ ONLY` transaction and exits 1 on any finding to gate CI:
+
+- `missing` — history table, capture function, audited table, or expected trigger is missing.
+- `disabled` — trigger or child-partition clone is disabled (`tgenabled = 'D'`) or replica-only (`'R'`).
+- `outdated` — function body, security settings, or trigger exclusions drifted.
+- `partitioned_table` (warning) — audited table is partitioned (direct child writes bypass statement triggers).
+- `default_partition_rows` — rows stranded in `auditstream.changes_default`, blocking partition attachment.
+- `insufficient_partitions` — fewer than two contiguous monthly partitions exist ahead of UTC now.
 
 ```bash
 # Non-zero exit (1) on any drift (suitable for CI / scheduled jobs)
 auditstream verify --format json
 
-# Create missing future monthly partitions 3 months ahead before verifying
+# Create missing monthly partitions 3 months ahead before verifying
 auditstream verify --fix
 ```
 
-Drop it into a scheduled GitHub Actions workflow (run `--fix` against your direct migration connection string — see [Cloud, Poolers & Security](/docs/cloud-and-security/)):
+Schedule in GitHub Actions (use a direct migration URL for `--fix`; see [Cloud, Poolers & Security](/docs/cloud-and-security/)):
 
 ```yaml
 - name: Verify PostgreSQL audit trail health
@@ -79,7 +80,7 @@ Drop it into a scheduled GitHub Actions workflow (run `--fix` against your direc
 
 ### history
 
-`auditstream history` queries recent changes newest-first (`occurred_at DESC, id DESC`), matching direct actors/tenants and delegated `onBehalfOf` entries:
+Queries recent changes newest-first (`occurred_at DESC, id DESC`), matching direct actors, tenants, and delegated `onBehalfOf` entries:
 
 ```bash
 auditstream history \
@@ -92,10 +93,10 @@ auditstream history \
 ```
 
 - `--actor <ID>` matches `actor.id` or `actor.onBehalfOf.id`.
-- `--tenant <ID>` matches `actor.tenant` or `actor.onBehalfOf.tenant` (pair with `--since`/`--until` for partition pruning; note that `actor.tenant` is self-asserted actor metadata and does not replace PostgreSQL row-level security).
-- `--limit` accepts 1 to 1000 (default 100).
+- `--tenant <ID>` matches `actor.tenant` or `actor.onBehalfOf.tenant` (self-asserted metadata; pair with `--since`/`--until`, does not replace RLS).
+- `--limit` accepts `1`–`1000` (default `100`); pass `--format json` for `event.schema.json` lines with `before`/`after`.
 
-Example `--format table` output (default, wrapped across two lines here for readability; pass `--format json` for newline-delimited `event.schema.json` records including `before` and `after`):
+Default `--format table` output (wrapped across two lines for width):
 
 ```text
 OCCURRED_AT                  OP      TABLE           RECORD_ID
@@ -110,7 +111,7 @@ OCCURRED_AT                  OP      TABLE           RECORD_ID
 
 ### export
 
-`auditstream export` streams committed events inside the lossless `xid8` window (`xact_id >= cursor AND xact_id < pg_snapshot_xmin()`), advancing the checkpoint file only after the destination flushes (see [How Capture Works](/docs/capture/) for cursor semantics):
+Streams committed events in the lossless `xid8` window (`xact_id >= cursor AND xact_id < pg_snapshot_xmin()`), advancing checkpoints only after flush ([How Capture Works](/docs/capture/)):
 
 ```bash
 auditstream export \
@@ -121,14 +122,14 @@ auditstream export \
   --batch-size 1000
 ```
 
-- Supports `--format jsonl` (default) or `--format csv`, `--since`, `--until`, `--actor`, `--tenant`, `--source db|app`, `--batch-size N` (default 1000), and `--from-start` to replay from the beginning.
-- Refuses with exit code 2 to resume a cursor against a different database, schema, filter set, sink format/path, or `export.redaction` policy.
-- Holds an OS lock via `<cursor-file>.lock` and replaces checkpoints atomically.
-- Cleanly stops with exit code 0 on `SIGPIPE` for stateless stdout pipes (for example `auditstream export | head -n 5`).
+- **Flags:** `--format jsonl|csv`, `--since`, `--until`, `--actor`, `--tenant`, `--source db|app`, `--batch-size N` (default `1000`), and `--from-start`.
+- **Cursor safety:** Exits 2 if resumed against a different database, schema, filter set, sink format/path, or `export.redaction` policy.
+- **Atomicity:** Holds an OS lock (`<cursor-file>.lock`) and replaces checkpoint files atomically.
+- **Pipes:** Exits 0 cleanly on `SIGPIPE` for stateless stdout pipes (`auditstream export | head -n 5`).
 
 ## Configuration
 
-Configuration lives in `auditstream.toml`. Values resolve in strict precedence order: **CLI flag → environment variable (global options only) → `auditstream.toml` → built-in default**. Unknown keys or wrong value types always fail fast with exit code 2.
+Precedence: **CLI flag → env var (global options) → `auditstream.toml` → default**; unknown keys or invalid types exit 2.
 
 ```toml
 schema = "auditstream"
@@ -163,25 +164,20 @@ columns = ["recipient_email"]
 mode = "remove"
 ```
 
-- **Secrets belong in `capture.exclude`:** Put password hashes, credentials, PAN/CVV, and API tokens in `capture.exclude` so triggers never write them into `auditstream.changes`. Use `[[export.redaction.rules]]` for application events (`log_event`), retroactive minimization, or two-tier SIEM/customer exports.
-- **Top-level keys & fail-closed:** Redaction rules match top-level keys only (dot-paths like `metadata.ssn` exit 2 at startup) and preserve untouched key order and arbitrary-precision PostgreSQL `numeric` values. If a matching rule hits a non-object or malformed JSON payload, `export` fails closed with exit code 5 before writing or advancing the cursor.
+- **Secrets in `capture.exclude`:** Strip password hashes, credentials, PAN/CVV, and tokens at capture time; use `export.redaction.rules` for app events or two-tier exports.
+- **Top-level keys only:** Dot-paths (`metadata.ssn`) exit 2 at startup; untouched key order and arbitrary-precision PostgreSQL `numeric` values stay intact.
+- **Fail-closed:** If a matching rule hits a non-object or malformed JSON payload, `export` exits 5 before writing or advancing the cursor.
 
 ## Exit codes
 
-CLI exit codes are part of the public contract. Every non-clap failure writes a single `error:` line to stderr and leaves stdout untouched.
+Exit codes are part of the public contract; every non-clap failure writes one `error:` line to stderr and leaves stdout untouched.
 
 | Code | Name | Meaning |
 | ---: | :--- | :--- |
-| **0** | Success | Command succeeded (including `--help`, `--version`, empty `history` results, and `BrokenPipe` on stateless stdout reads/exports) |
-| **1** | Check&nbsp;failed | Verification found problems (`auditstream verify` drift, missing/disabled triggers, rows in `changes_default`, or fewer than 2 future partitions) |
-| **2** | Usage&nbsp;/&nbsp;config | Invalid CLI flags, missing `--config` file, unknown `auditstream.toml` key, invalid filter/redaction rule, or incompatible export checkpoint |
-| **3** | Database&nbsp;error | PostgreSQL connection, permission, query, or migration / `verify --fix` failure |
-| **4** | Output&nbsp;/&nbsp;cursor | Filesystem I/O failure, held cursor lock, corrupt cursor, shortened export output file, or `BrokenPipe` on a stateful (`--cursor-file`) export |
-| **5** | Internal&nbsp;error | Fail-closed redaction error on a non-object/malformed payload or unexpected internal failure |
+| **0** | Success | Command succeeded (including `--help`, `--version`, empty `history`, and `BrokenPipe` on stateless stdout streams) |
+| **1** | Check&nbsp;failed | `auditstream verify` found drift, disabled triggers, `changes_default` rows, or fewer than 2 future partitions |
+| **2** | Usage&nbsp;/&nbsp;config | Invalid CLI flags, missing `--config`, unknown TOML key, invalid filter/redaction rule, or incompatible checkpoint |
+| **3** | Database&nbsp;error | PostgreSQL connection, permission, query, migration, or `verify --fix` failure |
+| **4** | Output&nbsp;/&nbsp;cursor | Filesystem I/O error, held cursor lock, corrupt cursor, truncated output file, or `BrokenPipe` with `--cursor-file` |
+| **5** | Internal&nbsp;error | Fail-closed redaction error on a non-object/malformed payload or unexpected internal error |
 | **101** | Panic | Uncaught Rust runtime panic |
-
-## Next steps
-
-- Configure connection poolers and least-privilege roles in [Cloud, Poolers & Security](/docs/cloud-and-security/).
-- Understand how triggers and the `xid8` cursor work under the hood in [How Capture Works](/docs/capture/).
-- See 500k-row `export`, `history`, `status`, and `verify` timings in [Benchmarks & Limits](/docs/evidence/).

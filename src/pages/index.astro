@@ -171,9 +171,9 @@ const heroInstallCmd = "brew install auditstream/tap/auditstream";
           <div class="pillar">
             <h2 class="pillar-title">Safe behind every pooler</h2>
             <p class="pillar-body">
-              Actors travel in a trailing SQL comment (including AI agents acting
-              <code class="ic">onBehalfOf</code> a user), verified with 0 leaks
-              across 2.4M PgBouncer transactions.
+              Actors travel in trailing SQL comments (AI agents
+              <code class="ic">onBehalfOf</code> users), with 0 leaks across
+              2.4M PgBouncer transactions.
             </p>
           </div>
 
@@ -195,10 +195,9 @@ const heroInstallCmd = "brew install auditstream/tap/auditstream";
         <div class="code-copy">
           <h2 class="h2">Four lines to attribute every write.</h2>
           <p class="lead code-lead">
-            Wrap a request or tool call in <code class="ic">audit.as()</code> using
-            <code class="ic">AsyncLocalStorage</code>. Thin adapters attach the actor as a trailing SQL
-            comment, while PostgreSQL triggers capture structured before-and-after diffs inside the same
-            transaction.
+            Wrap a request or tool call in <code class="ic">audit.as()</code>. Thin adapters attach
+            the actor to outgoing SQL, and PostgreSQL triggers capture before/after diffs inside the
+            same transaction.
           </p>
           <div class="text-links">
             <a href="/docs/adapters/" class="text-link">TypeScript SDK (Prisma, Drizzle, Next.js) →</a>

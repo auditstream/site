@@ -17,7 +17,7 @@
   /* Warm Architectural Paper surfaces */
   --ground: #fafaf8;
   --ground-2: #f3f3ee;
-  --code-bg: #eeede7;
+  --code-bg: #f1f0eb;
   --surface: #ffffff;
   --rule: #e6e6df;
   --rule-strong: #d4d4ca;
@@ -264,9 +264,9 @@ html::-webkit-scrollbar-thumb,
 
 .ic {
   font-family: var(--font-mono);
-  font-size: 0.85em;
+  font-size: 0.84em;
   font-weight: 400;
-  padding: 0.06em 0.28em;
+  padding: 0.08em 0.3em;
   border-radius: 4px;
   background: var(--code-bg);
   border: none;

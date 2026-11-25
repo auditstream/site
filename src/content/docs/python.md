@@ -7,25 +7,27 @@ badge: Soon
 eyebrow: SDKS & LANGUAGES · PYTHON
 ---
 
-> **Python SDK coming soon:** Native `auditstream` Python packages with `contextvars`-based actor scoping for **Django**, **Flask**, and **FastAPI / SQLAlchemy** are on the roadmap. Because capture runs inside PostgreSQL triggers, you can use Auditstream from Python **today** using `psycopg` with a trailing SQL comment or transaction-local `set_config`.
+<div class="docs-callout-info">
+  <strong>Python SDK coming soon:</strong> Native packages for Django, Flask, and FastAPI are on the roadmap. Capture runs inside PostgreSQL triggers, so you can attribute writes from <code>psycopg</code> today using the examples below.
+</div>
 
 ## Planned Python SDK
 
-The upcoming Python SDK follows the exact same thin-adapter design as the [TypeScript SDK](/docs/adapters/) — zero capture logic in Python, `contextvars.ContextVar` for async/sync isolation, and automatic trailing SQL comment tagging:
+The upcoming SDK mirrors the [TypeScript SDK](/docs/adapters/) thin-adapter design: zero capture logic in Python, `contextvars.ContextVar` isolation, and automatic SQL comment tagging.
 
-- **Core (`auditstream`):** `with audit.as_(actor):` / `async with audit.as_(actor):` scope manager, `audit.log()`, `audit.history()`, and `audit.query()`.
-- **Django:** Request middleware that attaches `request.user` (or delegated AI agent actors) plus an automatic database execution wrapper (`connection.execute_wrapper`) so ORM writes carry the actor transparently.
-- **Flask & FastAPI:** Request lifecycle hooks that bind the authenticated actor for every query executed inside the request or background task.
+- **Core (`auditstream`):** `with audit.as_(actor):` / `async with` scope manager plus `audit.log()`, `audit.history()`, and `audit.query()`.
+- **Django:** Request middleware binding `request.user` (or AI agent actors) plus a `connection.execute_wrapper` hook for transparent ORM tagging.
+- **Flask & FastAPI:** Request lifecycle hooks attaching the authenticated actor across queries and background tasks.
 
-Track progress or share your target framework on [GitHub Discussions](https://github.com/auditstream/auditstream/discussions).
+Track progress or request a framework on [GitHub Discussions](https://github.com/auditstream/auditstream/discussions).
 
 ## Use today (`psycopg`)
 
-Install migrations with the `auditstream` CLI first ([Getting Started](/docs/getting-started/)). From Python, attach actors directly via the wire format using only the standard library (`json` + `base64`).
+Apply migrations with the CLI first ([Getting Started](/docs/getting-started/)), then attach actors using Python's standard library (`json` + `base64`).
 
 ### Trailing SQL comment
 
-Encode the compact actor JSON as unpadded base64url and append `/*auditstream='<tag>'*/` at the end of the query. This works on auto-commit statements and stays pooler-safe behind PgBouncer, Neon, Supabase, and RDS Proxy:
+Encode compact actor JSON as unpadded base64url and append `/*auditstream='<tag>'*/` — works on auto-commit writes and stays pooler-safe:
 
 ```python
 import base64
@@ -53,11 +55,11 @@ with psycopg.connect(DATABASE_URL) as conn:
     )
 ```
 
-Always pass `prepare=False` when appending per-actor SQL comments with `psycopg` so each distinct actor tag does not accumulate prepared statements.
+Always pass `prepare=False` with per-actor comments so `psycopg` does not cache a distinct prepared statement per actor.
 
 ### Transaction `set_config`
 
-Inside an explicit transaction — or whenever you want named prepared statements — set `auditstream.actor` with `is_local = true` so PostgreSQL clears it automatically on commit or rollback:
+Inside an explicit transaction (or when keeping named prepared statements), set `auditstream.actor` with `is_local = true` so PostgreSQL clears it on commit or rollback:
 
 ```python
 import json
@@ -82,7 +84,7 @@ with psycopg.connect(DATABASE_URL) as conn:
 
 ### Application events
 
-Record non-database domain events (exports, approvals, logins) by calling `auditstream.log_event(action, target, data)` inside the same connection:
+Record non-database domain events (exports, approvals, logins) via `auditstream.log_event(action, target, data)`:
 
 ```python
 conn.execute(
@@ -96,9 +98,3 @@ conn.execute(
     prepare=False,
 )
 ```
-
-## Next steps
-
-- Review actor fields, size limits, and validation rules in [Wire Format & Spec](/docs/contract/).
-- See plain SQL examples for Go, Ruby, Java, and `psql` in [Plain SQL](/docs/plain-sql/).
-- Configure PgBouncer, Neon, Supabase, and least-privilege roles in [Cloud, Poolers & Security](/docs/cloud-and-security/).

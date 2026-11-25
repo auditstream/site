@@ -6,13 +6,11 @@ order: 5
 eyebrow: SDKS & LANGUAGES · PLAIN SQL
 ---
 
-Because capture triggers live inside PostgreSQL, **any language or SQL client** (Go `pgx`/`database/sql`, Ruby `pg`, Java JDBC, Rust `sqlx`, or `psql`) can attribute writes without waiting for a dedicated SDK. Keep actor payloads to IDs only and strictly under **512 UTF-8 bytes** (see [Wire Format & Spec](/docs/contract/)).
+Any language or SQL client (Go, Ruby, Java, Rust, `psql`) can attribute writes; keep payloads IDs-only and under **512 UTF-8 bytes** ([Wire Format & Spec](/docs/contract/)).
 
-## Trailing SQL comment (default)
+## Trailing SQL comment
 
-Serialize the actor object as compact JSON, encode its UTF-8 bytes as unpadded base64url (`A-Za-z0-9_-`), and append `/*auditstream='<value>'*/` at the end of the SQL statement.
-
-For `{"type":"user","id":"usr_42"}`, the unpadded base64url value is `eyJ0eXBlIjoidXNlciIsImlkIjoidXNyXzQyIn0`:
+Encode compact actor JSON as unpadded base64url (`A-Za-z0-9_-`) and append `/*auditstream='<value>'*/` at the end of the statement (for `{"type":"user","id":"usr_42"}`, the tag is `eyJ0eXBlIjoidXNlciIsImlkIjoidXNyXzQyIn0`).
 
 ```bash
 psql "$AUDITSTREAM_DATABASE_URL" -c "
@@ -22,13 +20,13 @@ psql "$AUDITSTREAM_DATABASE_URL" -c "
 "
 ```
 
-Trailing comments are the recommended default: they work on auto-commit statements without an explicit transaction and do not pin backend sessions behind PgBouncer, Supavisor, or AWS RDS Proxy.
+Trailing comments are the default: they work on auto-commit writes and never pin backend sessions behind PgBouncer, Supavisor, or AWS RDS Proxy.
 
-> **Prepared statements rule:** Never combine per-actor SQL comments with **named** prepared statements — each distinct comment creates a new statement name that drivers cache indefinitely. Disable prepared statement naming for tagged queries, or use `set_config` below.
+> **Prepared statements:** Never pair per-actor SQL comments with **named** prepared statements — drivers cache each distinct comment string indefinitely. Disable statement naming for tagged queries or use `set_config` below.
 
 ## Transaction `set_config`
 
-Inside an explicit transaction, call `set_config('auditstream.actor', '<json>', true)` before your writes. Always pass **`true`** (`is_local`) so PostgreSQL clears the setting automatically on commit or rollback and never leaks actors across pooled connections:
+Inside an explicit transaction, call `set_config('auditstream.actor', '<json>', true)` before writes; `is_local = true` clears the actor on commit or rollback so it never leaks across pooled connections.
 
 ```bash
 psql "$AUDITSTREAM_DATABASE_URL" -v ON_ERROR_STOP=1 -c "
@@ -47,7 +45,7 @@ When both `set_config` and a trailing SQL comment are present on the same statem
 
 ## Application events
 
-Record non-database domain events (exports, logins, approvals) directly through `auditstream.log_event(action, target, data)`. Both `target` and `data` must be JSON objects or `NULL`:
+Record non-database domain events (exports, logins, approvals) via `auditstream.log_event(action, target, data)` (`target` and `data` must be JSON objects or `NULL`):
 
 ```bash
 psql "$AUDITSTREAM_DATABASE_URL" -c "
@@ -59,9 +57,3 @@ psql "$AUDITSTREAM_DATABASE_URL" -c "
   /*auditstream='eyJ0eXBlIjoidXNlciIsImlkIjoidXNyXzQyIn0'*/;
 "
 ```
-
-## Next steps
-
-- Review all actor fields, base64url guarantees, and validation rules in [Wire Format & Spec](/docs/contract/).
-- Using TypeScript or Python? See [TypeScript](/docs/adapters/) and [Python](/docs/python/).
-- Configure poolers and least-privilege roles in [Cloud, Poolers & Security](/docs/cloud-and-security/).
