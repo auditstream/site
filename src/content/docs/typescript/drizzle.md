@@ -70,7 +70,7 @@ await audit.as(
 );
 ```
 
-### Other drivers & 1.x
+### `postgres.js` & Neon HTTP
 
 Swap only the driver entrypoint — actor scopes (`audit.as()` and [HTTP middleware](/docs/typescript/http/)) stay identical:
 
@@ -90,10 +90,35 @@ import { wrapNeonHttp } from "@auditstream/drizzle/neon-http";
 const neonDb = drizzleNeon({
   client: wrapNeonHttp(neon(process.env.DATABASE_URL!)),
 });
-
-// Drizzle 1.x native sqlcommenter helper
-import { auditComment } from "@auditstream/drizzle";
 ```
+
+### Drizzle 1.x native `.comment()` helper
+
+On Drizzle `1.x`, use `auditComment()` directly on query builders when you do not need a driver wrapper:
+
+```ts
+import { eq } from "drizzle-orm";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { audit } from "@auditstream/node";
+import { auditComment } from "@auditstream/drizzle";
+import { invoice } from "./schema";
+
+const db = drizzle(process.env.DATABASE_URL!);
+
+await audit.as({ type: "user", id: "usr_42" }, async () => {
+  await db
+    .update(invoice)
+    .set({ status: "paid" })
+    .where(eq(invoice.id, "inv_901"))
+    .comment(
+      auditComment({
+        traceparent: "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
+      }),
+    );
+});
+```
+
+> **Raw SQL & transactions on Drizzle 1.x:** `db.execute(sql)` and transaction control statements do not expose `.comment()`. Pair `auditComment()` with a driver wrapper (`wrapPgPool`, `wrapPostgresJs`, or `wrapNeonHttp`) when you also execute raw SQL — wrappers skip statements already tagged by `auditComment()`.
 
 ## Concurrency guarantee
 

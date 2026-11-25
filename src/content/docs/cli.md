@@ -69,9 +69,15 @@ auditstream verify --format json
 auditstream verify --fix
 ```
 
-Schedule in GitHub Actions (use a direct migration URL for `--fix`; see [Cloud, Poolers & Security](/docs/cloud-and-security/)):
+Schedule in GitHub Actions (install the CLI binary first, and use a direct migration URL when running `--fix`; see [Cloud, Poolers & Security](/docs/cloud-and-security/)):
 
 ```yaml
+- name: Install auditstream CLI
+  run: |
+    curl --proto '=https' --tlsv1.2 -LsSf \
+      https://github.com/auditstream/auditstream/releases/latest/download/auditstream-installer.sh | sh
+    echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
 - name: Verify PostgreSQL audit trail health
   env:
     AUDITSTREAM_DATABASE_URL: ${{ secrets.AUDITSTREAM_VERIFY_URL }}
