@@ -55,7 +55,7 @@ eyebrow: GET STARTED · OVERVIEW
   <a class="docs-card" href="/docs/python/">
     <div class="docs-card-tag">SDKs &amp; Languages</div>
     <div class="docs-card-title">Python</div>
-    <div class="docs-card-desc">No native SDK yet — attribute database writes from psycopg today; Django, Flask, and FastAPI planned.</div>
+    <div class="docs-card-desc">No native SDK yet — attribute database writes from psycopg today; native Python SDK planned.</div>
   </a>
   <a class="docs-card" href="/docs/plain-sql/">
     <div class="docs-card-tag">SDKs &amp; Languages</div>
@@ -91,5 +91,10 @@ eyebrow: GET STARTED · OVERVIEW
     <div class="docs-card-tag">Reference</div>
     <div class="docs-card-title">Comparisons</div>
     <div class="docs-card-desc">Compare Auditstream against pgaudit, Debezium CDC, and hand-rolled app logging.</div>
+  </a>
+  <a class="docs-card" href="/docs/roadmap/">
+    <div class="docs-card-tag">Reference</div>
+    <div class="docs-card-title">Roadmap</div>
+    <div class="docs-card-desc">Capability milestones toward v1.0, demand-gated work, and explicit non-goals.</div>
   </a>
 </div>
