@@ -34,7 +34,7 @@ eyebrow: GET STARTED · OVERVIEW
 | Target | Status | Details |
 | :--- | :--- | :--- |
 | **PostgreSQL** | **Supported&nbsp;&amp;&nbsp;tested** | PostgreSQL 15–19 (verified 15.20–19.0), PgBouncer 1.26, Neon, and Supabase |
-| **MySQL** | Planned | Not supported yet — PostgreSQL is the only engine in v0.1 |
+| **MySQL** | Evaluating | Not supported yet — PostgreSQL is the only engine in v0.1 |
 | **TypeScript&nbsp;SDK** | **Supported** | `@auditstream/*` v0.2.0 for Prisma 7, Drizzle, Next.js 16, Hono, and Express |
 | **Python&nbsp;SDK** | Planned | No native SDK yet — works today via `psycopg` and SQL comments |
 | **Plain&nbsp;SQL** | **Supported** | Any language or driver (Go, Ruby, Java, `psql`) via SQL comments or `set_config` |
