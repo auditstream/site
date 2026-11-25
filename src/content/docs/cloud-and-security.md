@@ -54,4 +54,4 @@ Every release runs static analysis, memory-safety enforcement, and provenance ch
 | **OpenSSF Scorecard** | **7.2 / 10** automated supply-chain score (`auditstream-js`) | [Scorecard](https://scorecard.dev/viewer/?uri=github.com/auditstream/auditstream-js) |
 | **Provenance & Docker** | SLSA Build Attestations, multi-arch (`amd64`/`arm64`) `distroless/static-debian12:nonroot` pinned by SHA-256 (`USER nonroot:nonroot`), npm Sigstore provenance | [Attestations](https://github.com/auditstream/auditstream/attestations) |
 
-**Vulnerability disclosure:** Report security issues privately via [SECURITY.md](https://github.com/auditstream/auditstream/security/policy) (`security@auditstream.dev`, 3-business-day acknowledgment target).
+> **Vulnerability disclosure:** Report security issues privately via [SECURITY.md](https://github.com/auditstream/auditstream/security/policy) (`security@auditstream.dev`, 3-business-day acknowledgment target).

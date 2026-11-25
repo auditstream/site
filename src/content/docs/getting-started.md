@@ -162,5 +162,3 @@ auditstream export \
 | **Prisma** | 7.1+ (`7.x`) | Official SQL comments plugin; Prisma 6 unsupported |
 | **Drizzle** | 0.45 and 1.x | `auditComment()` on 1.x; `/pg`, `/postgres-js`, `/neon-http` on 0.45 |
 | **Runtimes** | Node, Bun, Deno, Workers | `AsyncLocalStorage.run()` only (Workers: `nodejs_als` or compat ≥ 2026-08-04) |
-
-See also: [CLI & Day-2 Operations](/docs/cli/), [Cloud, Poolers & Security](/docs/cloud-and-security/), and [Benchmarks & Limits](/docs/evidence/).

@@ -1,14 +1,13 @@
 ---
 title: Python
-description: Official Python SDK for Django, Flask, and FastAPI is coming soon — and you can attribute PostgreSQL writes from psycopg today with zero dependencies.
+description: Attribute PostgreSQL writes from Python today using psycopg with zero extra dependencies — plus planned adapters for Django, Flask, and FastAPI.
 section: SDKs & Languages
 order: 4
-badge: Soon
 eyebrow: SDKS & LANGUAGES · PYTHON
 ---
 
 <div class="docs-callout-info">
-  <strong>Python SDK coming soon:</strong> Native packages for Django, Flask, and FastAPI are on the roadmap. Capture runs inside PostgreSQL triggers, so you can attribute writes from <code>psycopg</code> today using the examples below.
+  <strong>Native Python SDK planned:</strong> Dedicated packages for Django, Flask, and FastAPI are on the roadmap. Because capture runs inside PostgreSQL triggers, you can attribute writes from <code>psycopg</code> today using only Python's standard library.
 </div>
 
 ## Planned Python SDK

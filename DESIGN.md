@@ -1,6 +1,6 @@
 ---
 name: Auditstream
-description: Warm Architectural Paper (Light-Only) editorial design system for PostgreSQL audit trail engineering — crisp gallery surfaces, Editorial Cobalt, Committed Emerald, Diff Vermilion, and IBM Plex typography.
+description: Warm Architectural Paper (Light-Only) editorial design system for database audit trail engineering — crisp gallery surfaces, Editorial Cobalt, Committed Emerald, Diff Vermilion, and IBM Plex typography.
 colors:
   editorial-cobalt: "#1d4ed8"
   editorial-cobalt-hover: "#1e40af"
@@ -40,9 +40,9 @@ typography:
     letterSpacing: "-0.028em"
   metric:
     fontFamily: "\"IBM Plex Mono\", ui-monospace, SFMono-Regular, monospace"
-    fontSize: "clamp(2rem, 3.2vw, 2.85rem)"
+    fontSize: "clamp(1.85rem, 2.6vw, 2.35rem)"
     fontWeight: 600
-    lineHeight: 1.04
+    lineHeight: 1.06
     letterSpacing: "-0.03em"
   kpi:
     fontFamily: "\"IBM Plex Mono\", ui-monospace, SFMono-Regular, monospace"
@@ -221,7 +221,7 @@ Every foreground/background pair — including muted labels (`#5b6676`), syntax 
 ### Hierarchy
 - **Display** (`600`, `clamp(2.25rem, 5vw, 3.85rem)`, line-height `1.07`, tracking `-0.03em`): Centered two-line hero headline only.
 - **Headline & Docs Title** (`600`, `clamp(1.75rem, 3vw, 2.5rem)` on landing; `clamp(1.85rem, 3vw, 2.35rem)`, tracking `-0.028em` for documentation `h1` page titles, line-height `1.12`, `text-wrap: balance`).
-- **Metric** (`600` mono, `clamp(2rem, 3.2vw, 2.85rem)`, line-height `1.04`, tracking `-0.03em`, `tabular-nums`): Measured proof strip figures (`+3.2%`, `2.4M`, `0.101 ms`).
+- **Metric** (`600` mono, `clamp(1.85rem, 2.6vw, 2.35rem)`, line-height `1.06`, tracking `-0.03em`, `tabular-nums`): Measured proof strip figures (`+3.2%`, `2.4M`, `0.101 ms`, `~15k/s`).
 - **Subhead & Title** (`600`, `1.3125rem` docs `h2` at `1.25` line-height, `1.03125rem` docs `h3` at `-0.012em` tracking, and `1.0625rem` landing borderless pillar headings).
 - **Body & Prose** (`400`, `0.9375rem` / `15px` at `1.7` line-height in docs with `1.03125rem` / `1.58` page descriptions; `0.9375rem`–`1.125rem` on landing): Flows across the unified `47rem` (`752px`) reading rail in docs with `text-wrap: pretty` for even visual rhythm with tables, steps, callouts, and code frames.
 - **Code** (`400` mono, `0.84375rem` / `13.5px`, line-height `1.68`; inline code `0.84em` on `#f1f0eb`): Single-theme Light Shiki blocks and the Hero capture visual.

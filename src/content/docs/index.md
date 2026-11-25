@@ -1,6 +1,6 @@
 ---
 title: Overview
-description: PostgreSQL triggers capture every row change; your application only passes who acted.
+description: Database-level audit trails starting with PostgreSQL 15–19 — triggers capture every row change; your application only passes who acted.
 section: Get Started
 order: 1
 eyebrow: GET STARTED · OVERVIEW
@@ -15,7 +15,7 @@ eyebrow: GET STARTED · OVERVIEW
 <div class="docs-steps">
   <div class="docs-step">
     <div class="docs-step-num">01 · Capture</div>
-    <div class="docs-step-title">Generate PG triggers</div>
+    <div class="docs-step-title">Generate DB triggers</div>
     <div class="docs-step-desc">One CLI command generates <code>auditstream.changes</code> and its capture triggers.</div>
   </div>
   <div class="docs-step">
@@ -44,12 +44,9 @@ eyebrow: GET STARTED · OVERVIEW
     <div class="docs-card-desc">Use @auditstream/* v0.2.0 with Hono, Express, Next.js 16, Prisma 7, and Drizzle.</div>
   </a>
   <a class="docs-card" href="/docs/python/">
-    <div class="docs-card-head">
-      <div class="docs-card-tag">SDKs &amp; Languages</div>
-      <span class="docs-card-badge">Soon</span>
-    </div>
+    <div class="docs-card-tag">SDKs &amp; Languages</div>
     <div class="docs-card-title">Python</div>
-    <div class="docs-card-desc">Django, Flask, and FastAPI SDK roadmap plus working psycopg attribution today.</div>
+    <div class="docs-card-desc">Attribute PostgreSQL writes from psycopg today; Django, Flask, and FastAPI adapters planned.</div>
   </a>
   <a class="docs-card" href="/docs/plain-sql/">
     <div class="docs-card-tag">SDKs &amp; Languages</div>

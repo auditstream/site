@@ -74,4 +74,4 @@ Triggers execute as `SECURITY DEFINER` owned by `NOLOGIN` role `auditstream_owne
 
 Logical replication (`pgoutput`) requires `wal_level = logical`, `REPLICA IDENTITY FULL`, an always-on consumer whose stalled slot can fill disk, and explicit transactions for `pg_logical_emit_message()`. Triggers give teams structured audits inside standard PostgreSQL with zero new infrastructure.
 
-Contributing to the Rust engine? Explore the Cargo workspace in [`auditstream/auditstream`](https://github.com/auditstream/auditstream).
+> **Contributing to the Rust engine?** Explore the Cargo workspace in [`auditstream/auditstream`](https://github.com/auditstream/auditstream).

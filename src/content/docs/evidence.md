@@ -111,7 +111,7 @@ Transaction mode with 64 clients on 8 server connections (8× oversubscribed): *
 | `extended` | **49,957.2 tps** | 22,637.9 tps | **2.21×** | 722,863 tx |
 | `prepared` | **42,457.4 tps** | 23,391.1 tps | **1.82×** | 655,781 tx |
 
-Mixed leak test (`extended`): **272,053 interleaved tx** (136,051 `set_config` + 136,002 actor-less), **0 leaks**, **0 failed** (**2,407,659 tx** total). Comments sustain **1.8×–2.4× higher throughput** because auto-commit avoids holding a pool slot across `BEGIN … COMMIT`.
+> **Mixed leak test (`extended`):** **272,053 interleaved tx** (136,051 `set_config` + 136,002 actor-less), **0 leaks**, **0 failed** (**2,407,659 tx** total). Comments sustain **1.8×–2.4× higher throughput** because auto-commit avoids holding a pool slot across `BEGIN … COMMIT`.
 
 ### 500k-row CLI scale
 

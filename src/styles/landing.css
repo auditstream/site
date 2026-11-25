@@ -174,6 +174,11 @@
   text-wrap: pretty;
 }
 
+.pillar-em {
+  color: var(--ink);
+  font-weight: 500;
+}
+
 /* ----------------------------------------------------------------------------
    Block 3: Clean Code Showcase
    ---------------------------------------------------------------------------- */
@@ -233,13 +238,20 @@
   margin-top: clamp(2rem, 4vw, 3rem);
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 2.25rem;
+  gap: 2rem;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 640px) {
   .proof-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: clamp(2rem, 4vw, 3.25rem);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2.25rem 2.5rem;
+  }
+}
+
+@media (min-width: 1120px) {
+  .proof-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(1.5rem, 2.6vw, 2.25rem);
   }
 }
 
@@ -248,14 +260,37 @@
   padding-top: 1.25rem;
 }
 
+.proof-metric-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.45rem 0.65rem;
+}
+
 .proof-metric {
   font-family: var(--font-mono);
-  font-size: clamp(2rem, 3.2vw, 2.85rem);
+  font-size: clamp(1.85rem, 2.6vw, 2.35rem);
   font-weight: 600;
   letter-spacing: -0.03em;
-  line-height: 1.04;
+  line-height: 1.06;
   font-variant-numeric: tabular-nums;
   color: var(--ink);
+  white-space: nowrap;
+}
+
+.proof-limit-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.12rem 0.5rem;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--ink-2);
+  white-space: nowrap;
 }
 
 .proof-desc {
@@ -267,21 +302,14 @@
 }
 
 .proof-foot {
-  margin-top: clamp(2rem, 4vw, 2.75rem);
-  padding-top: 1.35rem;
+  margin-top: clamp(2rem, 3.5vw, 2.5rem);
+  padding-top: 1.25rem;
   border-top: 1px solid var(--rule);
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.75rem;
-}
-
-.proof-limit {
-  margin: 0;
-  font-size: 0.875rem;
-  line-height: 1.6;
-  color: var(--ink-2);
-  text-wrap: pretty;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem 1.75rem;
 }
 
 .proof-links {
