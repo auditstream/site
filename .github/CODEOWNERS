@@ -1,0 +1,7 @@
+# Default code owners for auditstream/site.
+# GitHub CODEOWNERS auto-requests `@auditstream/maintainers` and enforces approval
+# from at least one team member via branch rulesets; for external or bot PRs
+# touching `/.github/workflows/`, review from both maintainers is enforced by
+# maintainer review policy.
+
+* @auditstream/maintainers
