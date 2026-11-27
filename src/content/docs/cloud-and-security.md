@@ -41,6 +41,16 @@ Capture triggers still fire on audited writes, `history` and `export` work, and 
 
 > **Honest security boundary:** Superusers, roles holding `auditstream_owner`, or privileged sessions running `session_replication_role = replica` or `DISABLE TRIGGER` can bypass capture. Keep migration and superuser credentials out of app runtimes and run [`auditstream verify`](/docs/cli/#verify) in CI/cron to catch drift immediately.
 
+### Why external chained manifests instead of in-DB row hashes
+
+Auditstream intentionally does **not** build per-row hot-path hash chains or in-database seals ([ADR-0009](https://github.com/auditstream/auditstream/blob/main/docs/decisions/0009-no-ui-package-or-in-db-partition-sealing.md)):
+
+- **Same trust domain:** Any superuser or `auditstream_owner` administrator who can alter `auditstream.changes` can also recompute every downstream in-DB hash or seal in one transaction, leaving `0` broken links — cryptographic tamper-evidence only starts once a digest crosses an independent trust boundary.
+- **Hot-path contention and deadlocks:** Serializing a single chain head under PostgreSQL MVCC collapsed audited write throughput by **61×–152×** and triggered `40P01` deadlocks on deadlock-free SQL in live PostgreSQL 17.12 and 19.0 benchmarks.
+- **Breaks retention and privacy workflows:** Row hash chains spanning stored partitions break on routine monthly `DROP TABLE changes_YYYY_MM` retention drops and conflict with LGPD/GDPR data minimization.
+
+Instead, native cryptographic tamper-evidence is planned out-of-band in **v0.3** via immutable WORM storage (such as S3 Object Lock Compliance Mode) paired with CloudTrail-style **chained signed manifests** (`prev_manifest_sha256`, monotonic `chain_seq`, contiguous `(xact_id, id)` bounds, and external Ed25519/ES256 or KMS signatures) and offline verification ([`auditstream#112`](https://github.com/auditstream/auditstream/issues/112) · [Roadmap](/docs/roadmap/#v03-immutable-archiving-and-verification)). Today, you can ship incremental `auditstream export` batches to your own WORM bucket on a short cadence (`10–60 s`) and export `pgAudit` (`ddl, role, misc_set`) off-host to bound the export-lag window (`Δt_export`) and privileged bypass visibility.
+
 ## Supply-chain security
 
 Every release runs static analysis, memory-safety enforcement, and provenance checks across both repositories:
