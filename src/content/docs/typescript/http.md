@@ -7,7 +7,16 @@ order: 3.4
 eyebrow: TYPESCRIPT · HONO & EXPRESS
 ---
 
-Register Auditstream middleware once after your authentication layer so every downstream [Prisma](/docs/typescript/prisma/) or [Drizzle](/docs/typescript/drizzle/) write runs inside an isolated `AsyncLocalStorage.run()` scope.
+Auditstream is an open-source database audit trail engine written in Rust. Generated triggers record who changed which row, with before and after values. This middleware sets the actor (a signed-in user, API key, service, or AI agent) once per request, and your database adapter tags that request's SQL with it.
+
+## Before you start
+
+PostgreSQL 15–19 is the only supported database in v0.1.
+
+1. **Generate and apply the capture migration.** Install the [`auditstream` CLI](/docs/getting-started/), run `auditstream init` for the tables you want to audit, apply the generated migration on a direct (non-pooled) connection with your migration tool, then run `auditstream verify`. `auditstream init` only writes migration files; nothing is captured until the migration is applied.
+2. **Wire one database adapter.** The middleware only sets the actor; the adapter attaches it to each query. Use [Drizzle](/docs/typescript/drizzle/) (`wrapPgPool`, `wrapPostgresJs`, or `wrapNeonHttp`) or [Prisma 7.1+](/docs/typescript/prisma/) (`comments: [auditstream()]`). Without an adapter, audited writes are still captured, but with `actor = NULL`.
+3. **Install the SDK with your adapter**, for example `pnpm add @auditstream/node @auditstream/drizzle`.
+4. **Register the middleware after your authentication middleware**, as shown below, so every downstream write runs inside an isolated `AsyncLocalStorage.run()` scope. A runnable [Hono + Drizzle demo](https://github.com/auditstream/auditstream-js/tree/main/examples/hono-drizzle) lives in the SDK monorepo.
 
 ## Hono
 
@@ -22,9 +31,10 @@ const app = new Hono();
 app.use(
   "*",
   auditstream({
+    // Register after your auth middleware. hono/jwt stores verified claims in `jwtPayload`.
     actor: (c) => {
-      const userId = c.get("authUserId");
-      return userId ? { type: "user", id: userId } : undefined;
+      const sub = (c.get("jwtPayload") as { sub?: unknown } | undefined)?.sub;
+      return typeof sub === "string" && sub ? { type: "user", id: sub } : undefined;
     },
     context: (c) => {
       const requestId = c.req.header("x-request-id");
