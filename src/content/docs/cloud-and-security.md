@@ -15,8 +15,8 @@ Run migrations and `auditstream verify --fix` on a **direct (non-pooled)** conne
 | Platform | Transport | Operational notes |
 | :--- | :--- | :--- |
 | **PgBouncer 1.26** (transaction) | Trailing SQL comment | Verified across **2,407,659 tx** at 8× oversubscription (**0 failed, 0 leaks**); **1.8×–2.4× faster** than `set_config` ([Benchmarks](/docs/evidence/)). |
-| **Neon** (PG&nbsp;18.7) | Trailing SQL comment | Non-superuser `CREATEROLE` migrations handle `auditstream_owner` automatically on PG 16+; HTTP and WebSocket drivers verified. |
-| **Supabase** (PG&nbsp;17.12) | Comment or JWT fallback | Supavisor verified with Prisma 7 and Drizzle 0.45/1.x. Without comment/`set_config`, falls back to `request.jwt.claims` `sub` (`actor_source = 'jwt'`). |
+| **Neon** (PostgreSQL&nbsp;18.7) | Trailing SQL comment | Non-superuser `CREATEROLE` migrations handle `auditstream_owner` automatically on PostgreSQL 16+; HTTP and WebSocket drivers verified. |
+| **Supabase** (PostgreSQL&nbsp;17.12) | Comment or JWT fallback | Supavisor verified with Prisma 7 and Drizzle 0.45/1.x. Without comment/`set_config`, falls back to `request.jwt.claims` `sub` (`actor_source = 'jwt'`). |
 | **AWS RDS Proxy** | Trailing SQL comment | Per AWS docs, trailing comments never pin backend sessions; `set_config(..., true)` pins the server session. |
 | **Prisma Accelerate** | `auditTransaction()` (`set_config`) | SQL comment plugins are bypassed under Accelerate; use `auditTransaction()` from `@auditstream/prisma` ([Prisma](/docs/typescript/prisma/)). |
 

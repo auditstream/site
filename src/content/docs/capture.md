@@ -10,7 +10,7 @@ Generated PostgreSQL triggers record row changes into monthly-partitioned `audit
 
 ## Trigger strategy
 
-- **Statement-level INSERT & DELETE:** Transition tables resolve the actor once per statement — **211k–213k rows/s** (+3.7–4.0 µs/row on PG 19 tmpfs; **60.5 ms** / +3.8 µs/row for 10k durable-disk INSERT; [Benchmarks](/docs/evidence/)).
+- **Statement-level INSERT & DELETE:** Transition tables resolve the actor once per statement — **211k–213k rows/s** (+3.7–4.0 µs/row on PostgreSQL 19 tmpfs; **60.5 ms** / +3.8 µs/row for 10k durable-disk INSERT; [Benchmarks](/docs/evidence/)).
 - **Row-level UPDATE:** `WHEN (OLD.* IS DISTINCT FROM NEW.*)` skips no-ops and adds **+3.2% (+5.1 µs/row)** on durable disk. Single-statement bulk UPDATEs cap at **~15k rows/s** (+64.5 µs/row) because transition tables cannot correlate changed primary keys.
 - **Statement-level TRUNCATE:** `AFTER TRUNCATE FOR EACH STATEMENT` records the truncated table and actor.
 - **Excluded columns:** Columns like `password_hash` are stripped before storing `before`/`after`; updates touching only excluded columns write no row.
