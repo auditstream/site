@@ -23,7 +23,7 @@ Any language, ORM, or SQL client that emits this wire format works natively with
 - **`id`** MUST be a non-empty string.
 - **`onBehalfOf`** MAY hold one nested actor object, strictly one level deep (for delegated actions).
 - **`tenant`** MAY be a non-empty string.
-- **IDs only by default.** Avoid names, emails, or IPs since comments appear in PG logs; `context` supports `requestId`, `source`, and opt-in `ip`/`userAgent`.
+- **IDs only by default.** Avoid names, emails, or IPs since comments appear in PostgreSQL logs; `context` supports `requestId`, `source`, and opt-in `ip`/`userAgent`.
 - **512-byte cap.** Serialized actor plus context JSON MUST NOT exceed **512 UTF-8 bytes** (≤ 683 base64url chars).
 
 ## SQL transport format

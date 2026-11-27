@@ -16,7 +16,7 @@ How Auditstream compares against PostgreSQL-native tools (`supa_audit`, DIY PL/p
 | **Actor & AI** | Trailing SQL comment + `set_config` + `onBehalfOf` | `auth.uid()` / `auth.role()` on Supabase only (no app/AI transport) | Custom session vars (often pooler-unsafe) | DB role (`session_user`) only |
 | **Storage & scale** | Monthly partitions + BRIN + partial HASH + `xid8` export | Single unpartitioned table (bloat/vacuum risk on heavy tables) | You build partitioning, indexes & export cursors | Server log files + external log pipeline |
 | **Drift & CI** | `auditstream verify` in CI (`--fix` pre-creates future partitions) | None built in | Manual audits; silent drift on DDL changes | Config check only |
-| **Deployment** | Plain SQL migrations on any PG 15–19 (no extension) | Pure-SQL extension / script (needs `uuid-ossp`; repo archived Feb 2025) | Plain SQL migrations | Requires `pgaudit` extension + log sink |
+| **Deployment** | Plain SQL migrations on any PostgreSQL 15–19 (no extension) | Pure-SQL extension / script (needs `uuid-ossp`; repo archived Feb 2025) | Plain SQL migrations | Requires `pgaudit` extension + log sink |
 
 ## CDC, SaaS, and application logging
 
@@ -24,8 +24,8 @@ How Auditstream compares against PostgreSQL-native tools (`supa_audit`, DIY PL/p
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Capture layer** | In-DB hybrid triggers + optional `log_event()` | WAL logical replication + context trigger (`pg_logical_emit_message`) | WAL logical replication (`pgoutput`) | Hosted SaaS API (app events only) | Application code only |
 | **Direct SQL & migrations** | Captured automatically | Captured automatically | Captured automatically | Missed unless emitted by app code | Missed (migrations, scripts, `psql`) |
-| **Infra & WAL** | Zero daemon · standard PG 15–19 | `wal_level=logical` + `REPLICA IDENTITY FULL` + slot + worker | `wal_level=logical` + Kafka Connect / 24×7 consumer | Managed SaaS (zero DB load) | None (you own schema & ops) |
-| **Poolers** | Pool-safe (0 leaks / 2.4M PgBouncer tx) | Comment context survives transaction poolers | Dedicated replication slot | N/A (HTTP API outside PG) | Pool-safe (standard app SQL or external logs) |
+| **Infra & WAL** | Zero daemon · standard PostgreSQL 15–19 | `wal_level=logical` + `REPLICA IDENTITY FULL` + slot + worker | `wal_level=logical` + Kafka Connect / 24×7 consumer | Managed SaaS (zero DB load) | None (you own schema & ops) |
+| **Poolers** | Pool-safe (0 leaks / 2.4M PgBouncer tx) | Comment context survives transaction poolers | Dedicated replication slot | N/A (HTTP API outside PostgreSQL) | Pool-safe (standard app SQL or external logs) |
 | **Compliance & UI** | `export` JSONL/CSV + copy-paste [BFF Activity Feed](/docs/typescript/activity-feed/) | Worker-managed storage & queries | Stream to Kafka/SIEM consumers | Turnkey admin portal & SIEM Log Streams | Build everything yourself |
 
 ## Performance nuance: durable disk vs. CPU ceiling

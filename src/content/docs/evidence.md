@@ -11,7 +11,7 @@ All figures below were measured on live PostgreSQL instances (`pgbench`, `cargo 
 <div class="docs-kpis">
   <div class="docs-kpi">
     <div class="docs-kpi-val">+3.2%</div>
-    <div class="docs-kpi-label">Durable PG 19 UPDATE (+5.1 µs/row)</div>
+    <div class="docs-kpi-label">Durable PostgreSQL 19 UPDATE (+5.1 µs/row)</div>
   </div>
   <div class="docs-kpi">
     <div class="docs-kpi-val">2.4M tx</div>
@@ -60,7 +60,7 @@ All figures below were measured on live PostgreSQL instances (`pgbench`, `cargo 
   </div>
 </dl>
 
-### Durable disk (PG 19)
+### Durable disk (PostgreSQL 19)
 
 Durable storage (`fsync=on`, `synchronous_commit=on`, 16 clients, 8 jobs, 10 s runs, 5 bulk runs). WAL commit latency (~150 µs/row) dominates, leaving **+3.2% (+5.1 µs/row)** on UPDATE and **−0.2%** on INSERT:
 
@@ -124,7 +124,7 @@ Measured with the `--release` CLI against 500,000 rows (348 MB across 3 monthly 
 | `export` CSV (`--batch-size 5000`) | **29,062/s** | 15.7 MB/s, 17.20 s, 269.5 MB RFC 4180 CRLF output |
 | Single `record_id` SQL lookup | **0.101 ms** | `EXPLAIN (ANALYZE, BUFFERS)`: 22 shared buffer hits via partial HASH index |
 | Concurrent `record_id` lookups (16c) | **157,459 QPS** | `pgbench -c 16 -j 8`: 0.102 ms avg, 1,258,163 queries in 8 s, 0 failures |
-| `history --record-id` (40 CLI runs) | **36.4 ms** p50 | 48.8 ms p95, 50.1 ms p99; full process spawn + PG connect + `--format json` |
+| `history --record-id` (40 CLI runs) | **36.4 ms** p50 | 48.8 ms p95, 50.1 ms p99; full process spawn + PostgreSQL connect + `--format json` |
 | `verify` / `status` (`--format json`) | **12.6 / 9.8 ms** | Full trigger, function, and partition catalog audit |
 
 ## Adapter micro-benchmarks
@@ -147,8 +147,8 @@ Node v26.13.1 timings for `@auditstream/node` (`WeakMap` scope caching per immut
 | :--- | :---: | :--- |
 | **PostgreSQL&nbsp;15&#8288;–&#8288;19** | **Pass** | Identical 17/17 audit rows on 15.20, 16.15, 17.12, 18.7, and 19.0; matching tamper denials, `DEFAULT`-partition checks, and `xid8` cursor behavior |
 | **PgBouncer&nbsp;1.26.1** | **Pass** | Transaction mode: **2,407,659** stress tx at 8× oversubscription (**0 failed, 0 actor leaks**); Prisma 7.10 & Drizzle 0.45/1.0 verified |
-| **Neon** (PG&nbsp;18.7) | **Pass** | AWS `us-east-1` pooler + direct, HTTP & WebSocket drivers, 24 and 64 `pgbench` clients, 0 actor leaks |
-| **Supabase Supavisor** | **Pass** | PG 17.12 SQL suite, Prisma 7.10, Drizzle 0.45 (`pg` & `postgres.js`) and 1.0 `.comment()`, 24 `pgbench` clients on pool of 15, 0 actor leaks |
+| **Neon** (PostgreSQL&nbsp;18.7) | **Pass** | AWS `us-east-1` pooler + direct, HTTP & WebSocket drivers, 24 and 64 `pgbench` clients, 0 actor leaks |
+| **Supabase Supavisor** | **Pass** | PostgreSQL 17.12 SQL suite, Prisma 7.10, Drizzle 0.45 (`pg` & `postgres.js`) and 1.0 `.comment()`, 24 `pgbench` clients on pool of 15, 0 actor leaks |
 
 ## Honest limits
 

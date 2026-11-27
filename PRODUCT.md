@@ -23,7 +23,11 @@ Success means a team can go from zero audit trail to verified, pool-safe, tamper
 
 ## Positioning
 
-Trigger-first, zero-daemon PostgreSQL audit trail with pool-safe attribution and lossless pull-based `xid8` export:
+Open-source database audit trail engine written in Rust. Zero daemons, pooler-safe actors, and tamper-resistant diffs.
+
+Lead public copy with that positioning. PostgreSQL is the only engine in v0.1, but never the headline, and it is always spelled "PostgreSQL" (never "Postgres" or "PG") in visible text.
+
+Differentiators:
 - **Zero always-on infrastructure in v0.1:** No 24/7 consumer daemon, no `wal_level = logical`, no `REPLICA IDENTITY FULL`, and no stalled WAL replication slot risking disk exhaustion.
 - **Pool-safe human and AI-agent attribution:** Unpadded base64url trailing SQL comments carry humans, API keys, services, and AI agents (`onBehalfOf` nested actor, one level deep) without pinning transaction-mode pooler connections (PgBouncer, Supavisor, Neon, RDS Proxy) and without breaking out of SQL comments.
 - **Tamper resistance enforced by PostgreSQL itself:** `auditstream.changes` is owned by a dedicated `NOLOGIN` role (`auditstream_owner`), written exclusively by `SECURITY DEFINER` triggers, and granted `SELECT`-only to application roles so `INSERT`, `UPDATE`, and `DELETE` tamper attempts fail with PostgreSQL `42501`.
