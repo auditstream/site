@@ -16,6 +16,7 @@ The static `auditstream` v0.1.0 CLI handles migrations, drift checks, history, a
 | `--database-url <URL>`<br>`AUDITSTREAM_DATABASE_URL`<br>`DATABASE_URL` | *none* | PostgreSQL URL (env value hidden in `--help`, redacted in logs and errors) |
 | `--schema <SCHEMA>`<br>`AUDITSTREAM_SCHEMA` | `auditstream` | Schema holding `changes`, functions, and triggers |
 | `-v`, `-vv`, `-q`<br>`AUDITSTREAM_LOG` | `warn` | Stderr verbosity (`-v` info, `-vv` debug, `-q` error; env overrides flags) |
+| `--log-format <text\|json>`<br>`AUDITSTREAM_LOG_FORMAT` | `text` | Format stderr logs, notes, and fatal errors as plain text or single-line JSON (`v0.1.1+`) |
 
 ## Subcommands
 
@@ -120,7 +121,15 @@ auditstream history \
 
 - `--actor <ID>` matches `actor.id` or `actor.onBehalfOf.id`.
 - `--tenant <ID>` matches `actor.tenant` or `actor.onBehalfOf.tenant` (self-asserted metadata; pair with `--since`/`--until`, does not replace RLS).
-- `--limit` accepts `1`–`1000` (default `100`); pass `--format json` for `event.schema.json` lines with `before`/`after`.
+- `--limit` accepts `1`–`1000` (default `100`); pass `--format json` for `event.schema.json` lines with `before`/`after`, or `--diff` (`v0.1.1+`, `--format table` only) for field-level `before -> after` diffs. Both `--format table` and `--diff` strip ANSI/C0/C1 control sequences and Unicode BiDi overrides and normalize line breaks (`v0.1.1+`), including when redaction is active.
+- **Automatic redaction (`v0.1.1+`):** When `[[export.redaction.rules]]` are configured in `auditstream.toml`, `history` applies them automatically across `--format table`, `--diff`, and `--format json` before writing to stdout (`mode = "mask"` masks values with `"[redacted]"` while keeping column names in `changed`; `mode = "remove"` drops keys from `before`, `after`, and `changed`). An informational note prints to stderr whenever redaction is active and events are returned (formatted per `--log-format`, suppressed by `-q`/`--quiet`).
+- **`--redact` and `--unredacted` (`v0.1.1+`):** Pass `--redact` to require at least one configured `[[export.redaction.rules]]` rule (exits `2` without connecting if none exist — fail-closed for scripts and coding agents), or `--unredacted` as an explicit break-glass opt-out for local debugging (conflicts with `--redact`, exit `2`).
+- **`--omit-payload` (`v0.1.1+`):** Sets `before` and `after` to `null` (keeping `event.schema.json` compliance, event metadata, and `changed` column names) for compact, payload-free incident timelines and agent inspection. Conflicts with `--diff` (exit `2`); still applies `mode = "remove"` rules to `changed` unless `--unredacted` is also passed.
+
+```bash
+# Compact, payload-free timeline (metadata + changed column names only; v0.1.1+)
+auditstream history --table public.invoice --format json --omit-payload --limit 20
+```
 
 Default `--format table` output (wrapped across two lines for width):
 
@@ -177,8 +186,8 @@ batch_size = 1000
 type = "jsonl"                # "jsonl" (default) or "csv"
 path = "events.jsonl"         # omit to stream to stdout
 
-# Export-time redaction: mask ("[redacted]") or remove top-level keys
-# in before/after payloads
+# Redaction for export (and history in v0.1.1+): mask ("[redacted]") or remove
+# top-level keys in before/after payloads
 [[export.redaction.rules]]
 table = "public.invoice"      # "table", "schema.table", or "*"
 columns = ["ssn", "tax_id"]
@@ -190,19 +199,19 @@ columns = ["recipient_email"]
 mode = "remove"
 ```
 
-- **Secrets in `capture.exclude`:** Strip password hashes, credentials, PAN/CVV, and tokens at capture time; use `export.redaction.rules` for app events or two-tier exports.
-- **Top-level keys only:** Dot-paths (`metadata.ssn`) exit 2 at startup; untouched key order and arbitrary-precision PostgreSQL `numeric` values stay intact.
-- **Fail-closed:** If a matching rule hits a non-object or malformed JSON payload, `export` exits 5 before writing or advancing the cursor.
+- **Secrets in `capture.exclude`:** Strip password hashes, credentials, PAN/CVV, and tokens at capture time so triggers never store them in `auditstream.changes`; use `[[export.redaction.rules]]` for app events, `history` inspection (`v0.1.1+`), or two-tier exports.
+- **Top-level keys only (`record_id` untouched in v0.1):** Dot-paths (`metadata.ssn`) exit `2` at startup; untouched key order and arbitrary-precision PostgreSQL `numeric` values stay intact. `record_id` is never redacted in v0.1 — prefer surrogate primary keys and opaque `log_event()` `target` IDs (nested JSONB and `record_id` redaction are planned for v0.3).
+- **Fail-closed:** If a matching rule hits a non-object or malformed JSON payload, `export` exits `5` before writing or advancing the cursor, and `history` (`v0.1.1+`) exits `5` before emitting the redaction note or writing to stdout (unless `--omit-payload` or `--unredacted` is passed).
 
 ## Exit codes
 
-Exit codes are part of the public contract; every non-clap failure writes one `error:` line to stderr and leaves stdout untouched.
+Exit codes are part of the public contract. By default (plain text; `--log-format text` in `v0.1.1+`), every failure other than CLI argument parse errors writes one `error:` line to stderr without writing error diagnostics to stdout; with `--log-format json` / `AUDITSTREAM_LOG_FORMAT=json` (`v0.1.1+`), all fatal failures (including CLI argument parse errors) emit a single-line JSON `ERROR` record with `exit_code` on stderr only.
 
 | Code | Name | Meaning |
 | ---: | :--- | :--- |
 | **0** | Success | Command succeeded (including `--help`, `--version`, empty `history`, and `BrokenPipe` on stateless stdout streams) |
 | **1** | Check&nbsp;failed | `auditstream verify` found problems meeting `--fail-on` (`v0.1.1+`, default `error`): drift, disabled triggers, unsafe privileges, invalid ownership, history tampering, invalid exclusions, `changes_default` rows, or fewer than 2 future partitions |
-| **2** | Usage&nbsp;/&nbsp;config | Invalid CLI flags, missing `--config`, unknown TOML key, invalid filter/redaction rule, or incompatible checkpoint |
+| **2** | Usage&nbsp;/&nbsp;config | Invalid CLI flags, missing `--config`, unknown TOML key, invalid filter/redaction rule, `--redact` (`v0.1.1+`) without configured rules, or incompatible checkpoint |
 | **3** | Database&nbsp;error | PostgreSQL connection, permission, query, migration, or `verify --fix` failure |
 | **4** | Output&nbsp;/&nbsp;cursor | Filesystem I/O error, held cursor lock, corrupt cursor, truncated output file, or `BrokenPipe` with `--cursor-file` |
 | **5** | Internal&nbsp;error | Fail-closed redaction error on a non-object/malformed payload or unexpected internal error |
