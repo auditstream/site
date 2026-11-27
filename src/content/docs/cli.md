@@ -52,14 +52,18 @@ auditstream status --format json
 
 ### verify
 
-Runs all drift checks inside a `READ ONLY` transaction and exits 1 on any finding to gate CI:
+Runs all drift checks inside a `READ ONLY` transaction and exits `1` when findings meet `--fail-on` (`v0.1.1+`, default `error`; pass `--fail-on warning` to fail on warnings too):
 
-- `missing` — history table, capture function, audited table, or expected trigger is missing.
+- `missing` — `auditstream_owner`, history table, attached `changes_default` partition, `changes_pkey`, required history index, helper function, audited table, or expected trigger is missing.
 - `disabled` — trigger or child-partition clone is disabled (`tgenabled = 'D'`) or replica-only (`'R'`).
-- `outdated` — function body, security settings, or trigger exclusions drifted.
+- `outdated` — helper function body/signature/security settings, `changes_pkey` or history index definition, child partition kind/`DEFAULT` name, or trigger definition/exclusions drifted.
 - `partitioned_table` (warning) — audited table is partitioned (direct child writes bypass statement triggers).
 - `default_partition_rows` — rows stranded in `auditstream.changes_default`, blocking partition attachment.
 - `insufficient_partitions` — fewer than two contiguous monthly partitions exist ahead of UTC now.
+- `invalid_exclusion` (`v0.1.1+`) — primary key, dropped/renamed, or unverified table column listed in `capture.exclude` or on an installed trigger.
+- `unsafe_privileges` (`v0.1.1+`) — unexpected `PUBLIC`/non-owner grants on audit objects or child partitions, unsafe `auditstream_owner` attributes/memberships, or `session_replication_role` grants/`replica` overrides.
+- `invalid_ownership` (`v0.1.1+`) — audit schema, history table/partitions, sequence, or helper function not owned by `auditstream_owner`.
+- `tampered_history` (`v0.1.1+`) — unexpected trigger, rewrite rule, or Row-Level Security on `changes` or its partitions, or unexpected helper function overload in the audit schema.
 
 ```bash
 # Non-zero exit (1) on any drift (suitable for CI / scheduled jobs)
@@ -69,20 +73,36 @@ auditstream verify --format json
 auditstream verify --fix
 ```
 
-Schedule in GitHub Actions (install the CLI binary first, and use a direct migration URL when running `--fix`; see [Cloud, Poolers & Security](/docs/cloud-and-security/)):
+Schedule in GitHub Actions using the reusable subpath action (`v0.1.1+`; verifies SHA-256 before extraction — pin both the action ref `>= auditstream-v0.1.1` or full commit SHA and `version`, and pass optional `sha256` from `sha256.sum` using the `-musl` archive on Linux):
 
 ```yaml
-- name: Install auditstream CLI
-  run: |
-    curl --proto '=https' --tlsv1.2 -LsSf \
-      https://github.com/auditstream/auditstream/releases/latest/download/auditstream-installer.sh | sh
-    echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+- uses: actions/checkout@v4
+  with:
+    persist-credentials: false
+
+- uses: auditstream/auditstream/actions/setup@auditstream-v0.1.1
+  with:
+    version: "0.1.1"
 
 - name: Verify PostgreSQL audit trail health
   env:
     AUDITSTREAM_DATABASE_URL: ${{ secrets.AUDITSTREAM_VERIFY_URL }}
   run: auditstream verify --format json
 ```
+
+For read-only CI checks (`v0.1.1+`, without `--fix`), use a dedicated `SELECT`-only PostgreSQL role and enforce verified TLS (`sslmode=verify-full` for non-loopback hosts, plus `sslrootcert` for custom CAs):
+
+```sql
+CREATE ROLE auditstream_verify
+  LOGIN PASSWORD '<strong-password>'
+  NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT;
+
+GRANT CONNECT ON DATABASE <your_db> TO auditstream_verify;
+GRANT USAGE ON SCHEMA auditstream TO auditstream_verify;
+GRANT SELECT ON auditstream.changes TO auditstream_verify;
+```
+
+Run `GRANT CONNECT ON DATABASE` as the database owner or admin role. Run `GRANT USAGE` and `GRANT SELECT` as a superuser (or on managed PostgreSQL such as RDS, Cloud SQL, Neon, or Supabase inside a transaction that temporarily elevates to `auditstream_owner` and revokes the temporary membership before committing). Never grant write privileges, `WITH GRANT OPTION`, or direct privileges on child partitions (`auditstream.changes_*` — `verify` probes `changes_default` via `auditstream.changes` and flags child grants as `unsafe_privileges`). Run scheduled `--fix` partition maintenance in a separate job with a direct (non-pooled) migration URL ([Cloud, Poolers & Security](/docs/cloud-and-security/)).
 
 ### history
 
@@ -181,7 +201,7 @@ Exit codes are part of the public contract; every non-clap failure writes one `e
 | Code | Name | Meaning |
 | ---: | :--- | :--- |
 | **0** | Success | Command succeeded (including `--help`, `--version`, empty `history`, and `BrokenPipe` on stateless stdout streams) |
-| **1** | Check&nbsp;failed | `auditstream verify` found drift, disabled triggers, `changes_default` rows, or fewer than 2 future partitions |
+| **1** | Check&nbsp;failed | `auditstream verify` found problems meeting `--fail-on` (`v0.1.1+`, default `error`): drift, disabled triggers, unsafe privileges, invalid ownership, history tampering, invalid exclusions, `changes_default` rows, or fewer than 2 future partitions |
 | **2** | Usage&nbsp;/&nbsp;config | Invalid CLI flags, missing `--config`, unknown TOML key, invalid filter/redaction rule, or incompatible checkpoint |
 | **3** | Database&nbsp;error | PostgreSQL connection, permission, query, migration, or `verify --fix` failure |
 | **4** | Output&nbsp;/&nbsp;cursor | Filesystem I/O error, held cursor lock, corrupt cursor, truncated output file, or `BrokenPipe` with `--cursor-file` |

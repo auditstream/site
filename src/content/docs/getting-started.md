@@ -47,7 +47,21 @@ git clone https://github.com/auditstream/auditstream \
   && cargo install --path crates/auditstream --locked
 ```
 
-Run a 60-second local demo against PostgreSQL (with `--exclude` PII redaction, an `INSERT`, and an AI-agent `UPDATE` acting `onBehalfOf` a user):
+### Single-command Docker Compose starter
+
+With only Docker installed, clone the repository and run one command to boot PostgreSQL, create a sample `public.invoice` table, run `auditstream init` and `auditstream verify`, write human and delegated AI agent changes (skipping excluded `password_hash`), and inspect the captured history:
+
+```bash
+git clone https://github.com/auditstream/auditstream && cd auditstream
+docker compose up --abort-on-container-exit --exit-code-from quickstart
+docker compose down -v
+```
+
+If port `5432` is already in use locally, prefix `docker compose up` with `AUDITSTREAM_PG_PORT=55432`.
+
+### Manual 60-second local demo
+
+Or run a 60-second local demo against PostgreSQL (with `--exclude` PII redaction, an `INSERT`, and an AI-agent `UPDATE` acting `onBehalfOf` a user):
 
 ```bash
 export DB="postgres://postgres:postgres@127.0.0.1:5432/postgres"
@@ -97,6 +111,8 @@ Pass `--format json` to inspect the full `before` and `after` row images (confir
 auditstream --database-url "$DB" \
   history --table public.invoice --record-id 1 --format json
 ```
+
+### Generate migrations for your project
 
 For Prisma or Drizzle projects, write migrations directly into your project folder:
 
